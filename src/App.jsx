@@ -7,6 +7,20 @@ import HistoryTab from "./components/HistoryTab";
 import AnalysisTab from "./components/AnalysisTab";
 
 const TABS = ["対戦", "履歴", "分析"];
+const TAB_ICONS = ["⚔️", "📋", "📊"];
+const PC_BREAKPOINT = 768;
+
+function useIsPC() {
+  const [isPC, setIsPC] = useState(
+    () => window.innerWidth >= PC_BREAKPOINT,
+  );
+  useEffect(() => {
+    const onResize = () => setIsPC(window.innerWidth >= PC_BREAKPOINT);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return isPC;
+}
 
 export default function App() {
   const [data, setData] = useState(() => load());
@@ -14,6 +28,7 @@ export default function App() {
   const [tabIdx, setTabIdx] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
+  const isPC = useIsPC();
 
   useEffect(() => {
     document
@@ -45,18 +60,136 @@ export default function App() {
     }
   };
 
+  // Mobile layout
+  if (!isPC) {
+    return (
+      <div
+        onTouchStart={onTS}
+        onTouchMove={onTM}
+        onTouchEnd={onTE}
+        style={{
+          minHeight: "100vh",
+          background: T.bg,
+          maxWidth: 480,
+          margin: "0 auto",
+          overflow: "hidden",
+          touchAction: "pan-y",
+          fontFamily:
+            "-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif",
+          color: T.text,
+        }}
+      >
+        {showSettings && (
+          <Settings
+            data={data}
+            onSave={sv}
+            onClose={() => setShowSettings(false)}
+            T={T}
+          />
+        )}
+
+        <div
+          style={{
+            background: T.hdr,
+            paddingTop: "env(safe-area-inset-top, 8px)",
+            position: "sticky",
+            top: 0,
+            zIndex: 50,
+            boxShadow: "0 1px 0 rgba(0,0,0,.06)",
+          }}
+        >
+          <div
+            style={{
+              padding: "12px 20px 0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 22 }}>⚔️</span>
+              <span
+                style={{
+                  fontSize: 17,
+                  fontWeight: 900,
+                  letterSpacing: 1,
+                  color: "#FF3B30",
+                }}
+              >
+                SMASH TRACKER
+              </span>
+            </div>
+            <button
+              onClick={() => setShowSettings(true)}
+              style={{
+                width: 36,
+                height: 36,
+                border: "none",
+                background: T.inp,
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 18,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              ⚙️
+            </button>
+          </div>
+
+          <div style={{ display: "flex", position: "relative", marginTop: 10 }}>
+            {TABS.map((t, i) => (
+              <button
+                key={i}
+                onClick={() => setTabIdx(i)}
+                style={{
+                  flex: 1,
+                  padding: "12px 0",
+                  background: "transparent",
+                  border: "none",
+                  fontSize: 14,
+                  fontWeight: tabIdx === i ? 700 : 500,
+                  color: tabIdx === i ? T.text : T.dim,
+                  cursor: "pointer",
+                }}
+              >
+                {t}
+              </button>
+            ))}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: `${(tabIdx * 100) / 3}%`,
+                width: `${100 / 3}%`,
+                height: 3,
+                background: "#FF3B30",
+                borderRadius: "3px 3px 0 0",
+                transition: "left .25s cubic-bezier(.4,0,.2,1)",
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ padding: "14px 16px 40px" }}>
+          <div key={tabIdx} style={{ animation: "fadeUp .2s ease" }}>
+            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
+            {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} />}
+            {tabIdx === 2 && <AnalysisTab data={data} T={T} isPC={false} />}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // PC layout
   return (
     <div
-      onTouchStart={onTS}
-      onTouchMove={onTM}
-      onTouchEnd={onTE}
       style={{
+        display: "flex",
         minHeight: "100vh",
         background: T.bg,
-        maxWidth: 480,
-        margin: "0 auto",
-        overflow: "hidden",
-        touchAction: "pan-y",
         fontFamily:
           "-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif",
         color: T.text,
@@ -71,100 +204,134 @@ export default function App() {
         />
       )}
 
-      {/* Header */}
-      <div
+      {/* Sidebar */}
+      <nav
         style={{
-          background: T.hdr,
-          paddingTop: "env(safe-area-inset-top, 8px)",
+          width: 220,
+          minHeight: "100vh",
+          background: T.card,
+          borderRight: `1px solid ${T.brd !== "transparent" ? T.brd : T.inp}`,
+          padding: "24px 0",
+          display: "flex",
+          flexDirection: "column",
+          flexShrink: 0,
           position: "sticky",
           top: 0,
-          zIndex: 50,
-          boxShadow: "0 1px 0 rgba(0,0,0,.06)",
+          height: "100vh",
+          overflowY: "auto",
         }}
       >
         <div
           style={{
-            padding: "12px 20px 0",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            gap: 10,
+            padding: "0 20px",
+            marginBottom: 32,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 22 }}>⚔️</span>
-            <span
-              style={{
-                fontSize: 17,
-                fontWeight: 900,
-                letterSpacing: 1,
-                color: "#FF3B30",
-              }}
-            >
-              SMASH TRACKER
-            </span>
-          </div>
-          <button
-            onClick={() => setShowSettings(true)}
+          <span style={{ fontSize: 26 }}>⚔️</span>
+          <span
             style={{
-              width: 36,
-              height: 36,
-              border: "none",
-              background: T.inp,
-              borderRadius: 10,
-              cursor: "pointer",
               fontSize: 18,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              fontWeight: 900,
+              letterSpacing: 1,
+              color: "#FF3B30",
             }}
           >
-            ⚙️
-          </button>
+            SMASH TRACKER
+          </span>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", position: "relative", marginTop: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "0 12px" }}>
           {TABS.map((t, i) => (
             <button
               key={i}
               onClick={() => setTabIdx(i)}
               style={{
-                flex: 1,
-                padding: "12px 0",
-                background: "transparent",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "12px 16px",
+                background: tabIdx === i
+                  ? (data.dark ? "rgba(255,59,48,.15)" : "rgba(255,59,48,.08)")
+                  : "transparent",
                 border: "none",
-                fontSize: 14,
+                borderRadius: 12,
+                fontSize: 15,
                 fontWeight: tabIdx === i ? 700 : 500,
-                color: tabIdx === i ? T.text : T.dim,
+                color: tabIdx === i ? "#FF3B30" : T.sub,
                 cursor: "pointer",
+                textAlign: "left",
+                transition: "all .15s ease",
               }}
             >
+              <span style={{ fontSize: 18 }}>{TAB_ICONS[i]}</span>
               {t}
             </button>
           ))}
+        </div>
+
+        <div style={{ flex: 1 }} />
+
+        <div style={{ padding: "0 12px" }}>
+          <button
+            onClick={() => setShowSettings(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "12px 16px",
+              background: "transparent",
+              border: "none",
+              borderRadius: 12,
+              fontSize: 15,
+              fontWeight: 500,
+              color: T.sub,
+              cursor: "pointer",
+              width: "100%",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ fontSize: 18 }}>⚙️</span>
+            設定
+          </button>
+        </div>
+      </nav>
+
+      {/* Main content */}
+      <main
+        style={{
+          flex: 1,
+          minHeight: "100vh",
+          overflowY: "auto",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 960,
+            margin: "0 auto",
+            padding: "28px 32px 48px",
+          }}
+        >
           <div
             style={{
-              position: "absolute",
-              bottom: 0,
-              left: `${(tabIdx * 100) / 3}%`,
-              width: `${100 / 3}%`,
-              height: 3,
-              background: "#FF3B30",
-              borderRadius: "3px 3px 0 0",
-              transition: "left .25s cubic-bezier(.4,0,.2,1)",
+              fontSize: 24,
+              fontWeight: 900,
+              color: T.text,
+              marginBottom: 24,
             }}
-          />
-        </div>
-      </div>
+          >
+            {TAB_ICONS[tabIdx]} {TABS[tabIdx]}
+          </div>
 
-      {/* Content */}
-      <div style={{ padding: "14px 16px 40px" }}>
-        <div key={tabIdx} style={{ animation: "fadeUp .2s ease" }}>
-          {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
-          {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} />}
-          {tabIdx === 2 && <AnalysisTab data={data} T={T} />}
+          <div key={tabIdx} style={{ animation: "fadeUp .2s ease" }}>
+            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
+            {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC />}
+            {tabIdx === 2 && <AnalysisTab data={data} T={T} isPC />}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

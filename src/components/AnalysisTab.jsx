@@ -10,7 +10,7 @@ import {
   formatHour,
 } from "../utils/format";
 
-export default function AnalysisTab({ data, T }) {
+export default function AnalysisTab({ data, T, isPC }) {
   const [aMode, setAMode] = useState("myChar");
   const [period, setPeriod] = useState("all");
   const [charDetail, setCharDetail] = useState(null);
@@ -408,7 +408,8 @@ export default function AnalysisTab({ data, T }) {
           </div>
           {mCS.length === 0
             ? emptyMsg("対戦を記録するとキャラ別の戦績が表示されます")
-            : mCS.map((s) => {
+            : <div style={isPC ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } : undefined}>
+              {mCS.map((s) => {
                 const r = s.t ? s.w / s.t : 0;
                 return (
                   <button
@@ -416,7 +417,7 @@ export default function AnalysisTab({ data, T }) {
                     onClick={() => setCharDetail(s.c)}
                     style={{
                       ...cd,
-                      marginBottom: 8,
+                      marginBottom: isPC ? 0 : 8,
                       padding: "14px 18px",
                       width: "100%",
                       cursor: "pointer",
@@ -467,6 +468,7 @@ export default function AnalysisTab({ data, T }) {
                   </button>
                 );
               })}
+            </div>}
         </div>
       )}
 
@@ -604,12 +606,13 @@ export default function AnalysisTab({ data, T }) {
           </div>
           {oCS.length === 0
             ? emptyMsg("対戦を記録するとマッチアップが表示されます")
-            : oCS.map((s) => {
+            : <div style={isPC ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } : undefined}>
+              {oCS.map((s) => {
                 const r = s.t ? s.w / s.t : 0;
                 return (
                   <div
                     key={s.c}
-                    style={{ ...cd, marginBottom: 8, padding: "14px 18px" }}
+                    style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "14px 18px" }}
                   >
                     <div
                       style={{
@@ -654,6 +657,7 @@ export default function AnalysisTab({ data, T }) {
                   </div>
                 );
               })}
+            </div>}
         </div>
       )}
 

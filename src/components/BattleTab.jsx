@@ -14,7 +14,7 @@ import {
   lastEndPower,
 } from "../utils/format";
 
-export default function BattleTab({ data, onSave, T }) {
+export default function BattleTab({ data, onSave, T, isPC }) {
   const [phase, setPhase] = useState("setup");
   const [myChar, setMyChar] = useState(data.settings.myChar || "");
   const [result, setResult] = useState(null);
@@ -164,7 +164,23 @@ export default function BattleTab({ data, onSave, T }) {
     />
   );
 
-  return (
+  const recentMatchList = tM.length === 0
+    ? emptyMsg("今日の対戦記録がここに表示されます")
+    : tM
+        .slice()
+        .reverse()
+        .slice(0, 10)
+        .map((m, i) => (
+          <MatchRow
+            key={i}
+            m={m}
+            onDelete={() => deleteMatch(data.matches.length - 1 - i)}
+            showTime
+            T={T}
+          />
+        ));
+
+  const mainContent = (
     <div>
       {/* Today summary card */}
       <div
@@ -1033,30 +1049,48 @@ export default function BattleTab({ data, onSave, T }) {
         </div>
       )}
 
-      {/* Recent matches */}
-      <div style={{ marginTop: 16 }}>
+      {/* Recent matches - shown here only on mobile */}
+      {!isPC && (
+        <div style={{ marginTop: 16 }}>
+          <div
+            style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}
+          >
+            直近の対戦
+          </div>
+          {recentMatchList}
+        </div>
+      )}
+    </div>
+  );
+
+  if (!isPC) return mainContent;
+
+  return (
+    <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {mainContent}
+      </div>
+      <div
+        style={{
+          width: 340,
+          flexShrink: 0,
+          position: "sticky",
+          top: 28,
+          maxHeight: "calc(100vh - 56px)",
+          overflowY: "auto",
+        }}
+      >
         <div
-          style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}
+          style={{
+            fontSize: 15,
+            fontWeight: 700,
+            color: T.sub,
+            marginBottom: 12,
+          }}
         >
           直近の対戦
         </div>
-        {tM.length === 0
-          ? emptyMsg("今日の対戦記録がここに表示されます")
-          : tM
-              .slice()
-              .reverse()
-              .slice(0, 10)
-              .map((m, i) => (
-                <MatchRow
-                  key={i}
-                  m={m}
-                  onDelete={() =>
-                    deleteMatch(data.matches.length - 1 - i)
-                  }
-                  showTime
-                  T={T}
-                />
-              ))}
+        {recentMatchList}
       </div>
     </div>
   );

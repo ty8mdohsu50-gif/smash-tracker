@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import HistRow from "./HistRow";
 import { formatDateLong, numFormat, percentStr } from "../utils/format";
 
-export default function HistoryTab({ data, onSave, T }) {
+export default function HistoryTab({ data, onSave, T, isPC }) {
   const [histDate, setHistDate] = useState(null);
 
   const dGroups = useMemo(() => {
@@ -57,7 +57,7 @@ export default function HistoryTab({ data, onSave, T }) {
       </div>
 
       {!histDate ? (
-        <div>
+        <div style={isPC ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } : undefined}>
           {dGroups.length === 0
             ? emptyMsg("対戦を記録すると日別の戦績が表示されます")
             : dGroups.map(([dt, ms]) => {
@@ -74,7 +74,7 @@ export default function HistoryTab({ data, onSave, T }) {
                       width: "100%",
                       cursor: "pointer",
                       textAlign: "left",
-                      marginBottom: 8,
+                      marginBottom: isPC ? 0 : 8,
                     }}
                   >
                     <div style={{ flex: 1 }}>
@@ -152,6 +152,7 @@ export default function HistoryTab({ data, onSave, T }) {
               </div>
             );
           })()}
+          <div style={isPC ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } : undefined}>
           {selDay.map((m, i) => {
             let ri = -1;
             let c = 0;
@@ -173,6 +174,7 @@ export default function HistoryTab({ data, onSave, T }) {
               />
             );
           })}
+          </div>
         </div>
       )}
     </div>
