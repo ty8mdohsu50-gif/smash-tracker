@@ -1065,32 +1065,195 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
   if (!isPC) return mainContent;
 
+  // PC: full dashboard layout
+  const winRate = tM.length > 0 ? Math.round((tW / tM.length) * 100) : 0;
+  const statCard = (label, value, color) => (
+    <div style={{ ...cd, flex: 1, marginBottom: 0, padding: "20px 24px", minWidth: 0 }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 8, letterSpacing: 0.5 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 900, color: color || T.text, letterSpacing: -1 }}>{value}</div>
+    </div>
+  );
+
   return (
-    <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {mainContent}
+    <div>
+      {/* Stats row */}
+      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+        {statCard("今日の戦績", tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
+        {statCard("勝率", tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? "#34C759" : winRate >= 40 ? "#FF9F0A" : "#FF3B30") : T.dim)}
+        {statCard("対戦数", `${tM.length}戦`)}
+        {statCard("戦闘力変動", pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? "#34C759" : "#FF3B30") : T.dim)}
+        {streak.count >= 2 && statCard(streak.type === "win" ? "連勝中" : "連敗中", `${streak.count}`, streak.type === "win" ? "#34C759" : "#FF9F0A")}
       </div>
-      <div
-        style={{
-          width: 340,
-          flexShrink: 0,
-          position: "sticky",
-          top: 28,
-          maxHeight: "calc(100vh - 56px)",
-          overflowY: "auto",
-        }}
-      >
+
+      {/* Goals progress */}
+      {(goals.games || goals.winRate) && (
+        <div style={{ ...cd, marginBottom: 24, padding: "18px 24px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 12 }}>目標進捗</div>
+          <div style={{ display: "flex", gap: 24 }}>
+            {goals.games ? (
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.dim, marginBottom: 6 }}>
+                  <span>対戦数 {tM.length}/{goals.games}</span>
+                  <span>{Math.min(100, Math.round((tM.length / goals.games) * 100))}%</span>
+                </div>
+                <div style={{ height: 8, background: T.inp, borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: "#34C759", borderRadius: 4, transition: "width .3s ease" }} />
+                </div>
+              </div>
+            ) : null}
+            {goals.winRate && tM.length > 0 ? (
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.dim, marginBottom: 6 }}>
+                  <span>勝率目標 {goals.winRate}%</span>
+                  <span style={{ color: winRate >= goals.winRate ? "#34C759" : "#FF9F0A" }}>{winRate}%</span>
+                </div>
+                <div style={{ height: 8, background: T.inp, borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? "#34C759" : "#FF9F0A", borderRadius: 4, transition: "width .3s ease" }} />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Main area: form + recent matches */}
+      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+        {/* Left: battle controls */}
+        <div style={{ flex: 3, minWidth: 0 }}>
+          {phase === "setup" && (
+            <div style={{ display: "flex", gap: 16 }}>
+              <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
+                <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>開始時の戦闘力</div>
+                {prevEnd && !todayDaily.start && (
+                  <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>前回から自動引き継ぎ</div>
+                )}
+                {pwrInput(pStart, setPStart, "14,000,000", true)}
+              </div>
+              <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
+                {showMyPicker ? (
+                  <CharPicker value={myChar} onChange={(c) => { setMyChar(c); setShowMyPicker(false); }} label="使用キャラ" placeholder="ファイターを選択" recent={recMy} T={T} />
+                ) : (
+                  <div>
+                    <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>使用キャラ</div>
+                    {myChar ? (
+                      <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginBottom: 8 }}>{myChar}</div>
+                    ) : (
+                      <div style={{ fontSize: 15, color: T.dim, marginBottom: 8 }}>未選択</div>
+                    )}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button onClick={() => setShowMyPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.dimmer}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>変更</button>
+                      {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
+                        <button key={c} onClick={() => setMyChar(c)} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{c}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {phase === "setup" && (
+            <button onClick={startBattle} disabled={!pStart || !myChar} style={{ width: "100%", padding: 18, border: "none", borderRadius: 14, marginTop: 16, background: (!pStart || !myChar) ? "#E5E5EA" : "linear-gradient(135deg,#FF3B30,#FF6B6B)", color: (!pStart || !myChar) ? T.dim : "#fff", fontSize: 17, fontWeight: 800, cursor: "pointer", boxShadow: (!pStart || !myChar) ? "none" : "0 4px 16px rgba(255,59,48,.3)" }}>
+              対戦開始
+            </button>
+          )}
+
+          {phase === "fighting" && (
+            <div>
+              <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+                <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
+                  <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 6 }}>開始戦闘力</div>
+                  {pwrInput(pStart, setPStart, "", false)}
+                </div>
+                <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
+                  <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 6 }}>現在の戦闘力</div>
+                  {pwrInput(pEnd, setPEnd, "終了後", false)}
+                </div>
+              </div>
+              <div style={{ ...cd, padding: "20px 24px", marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, color: T.sub, fontWeight: 600 }}>相手キャラ</div>
+                  {oppChar && <button onClick={() => setOppChar("")} style={{ border: "none", background: "transparent", color: "#FF3B30", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>クリア</button>}
+                </div>
+                {oppChar && !showOppPicker && <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginBottom: 8 }}>{oppChar}</div>}
+                {showOppPicker ? (
+                  <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder="相手を選択" recent={recOpp} T={T} />
+                ) : (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {recOpp.slice(0, 5).map((c) => (
+                      <button key={c} onClick={() => setOppChar(c)} style={{ padding: "8px 16px", borderRadius: 10, border: oppChar === c ? "2px solid #FF3B30" : "none", background: oppChar === c ? "rgba(255,59,48,.08)" : T.inp, color: oppChar === c ? "#FF3B30" : T.text, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{c}</button>
+                    ))}
+                    <button onClick={() => setShowOppPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>他…</button>
+                  </div>
+                )}
+              </div>
+              <div style={{ display: "flex", gap: 16 }}>
+                <button onClick={() => selectRes("win")} style={{ flex: 1, padding: "24px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg,#34C759,#30D158)", color: "#fff", fontSize: 22, fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 16px rgba(52,199,89,.3)" }}>勝ち</button>
+                <button onClick={() => selectRes("lose")} style={{ flex: 1, padding: "24px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg,#FF3B30,#FF6B6B)", color: "#fff", fontSize: 22, fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 16px rgba(255,59,48,.3)" }}>負け</button>
+              </div>
+              <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }} style={{ width: "100%", padding: 12, marginTop: 12, border: "none", background: "transparent", color: T.dim, fontSize: 13, cursor: "pointer" }}>← 設定に戻る</button>
+            </div>
+          )}
+
+          {phase === "pickOpp" && (
+            <div>
+              <div style={{ ...cd, textAlign: "center", padding: "24px", background: result === "win" ? "rgba(52,199,89,.08)" : "rgba(255,59,48,.08)", marginBottom: 16 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: result === "win" ? "#16a34a" : "#dc2626" }}>{result === "win" ? "WIN" : "LOSE"}</div>
+              </div>
+              <div style={{ ...cd, padding: "20px 24px", marginBottom: 16 }}>
+                <CharPicker value={oppChar} onChange={setOppChar} label="相手キャラ" placeholder="相手を選択" recent={recOpp} T={T} />
+              </div>
+              <button onClick={confirmOpp} disabled={!oppChar} style={{ width: "100%", padding: 18, border: "none", borderRadius: 14, background: !oppChar ? "#E5E5EA" : "#1c1c1e", color: !oppChar ? T.dim : "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>記録する</button>
+            </div>
+          )}
+
+          {phase === "postMatch" && (
+            <div>
+              <div style={{ ...cd, textAlign: "center", padding: "28px 24px", marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, letterSpacing: 1, marginBottom: 12 }}>RECORDED</div>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16 }}>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{myChar}</span>
+                  <span style={{ fontSize: 14, color: T.dim }}>vs</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{oppChar}</span>
+                </div>
+                <div style={{ marginTop: 12 }}>
+                  <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? "rgba(52,199,89,.15)" : "rgba(255,59,48,.15)", color: lastRes === "win" ? "#16a34a" : "#dc2626" }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
+                </div>
+                <input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} onBlur={saveMemo} onKeyDown={(e) => { if (e.key === "Enter") { saveMemo(); e.target.blur(); } }} placeholder="メモ（任意）" style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center" }} />
+              </div>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: "linear-gradient(135deg,#FF3B30,#FF6B6B)", color: "#fff", fontSize: 17, fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 16px rgba(255,59,48,.3)" }}>連戦する</button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.dimmer}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>次の試合</button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.dimmer}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>キャラ変更</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: recent matches panel */}
         <div
           style={{
-            fontSize: 15,
-            fontWeight: 700,
-            color: T.sub,
-            marginBottom: 12,
+            flex: 2,
+            minWidth: 300,
+            background: T.card,
+            borderRadius: 20,
+            padding: "24px",
+            border: T.brd !== "transparent" ? `1px solid ${T.brd}` : "none",
+            boxShadow: T.sh,
+            position: "sticky",
+            top: 90,
+            maxHeight: "calc(100vh - 140px)",
+            overflowY: "auto",
           }}
         >
-          直近の対戦
+          <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>
+            直近の対戦
+          </div>
+          <div style={{ fontSize: 12, color: T.dim, marginBottom: 16 }}>
+            {formatDateWithDay(today())} · {tM.length}戦
+          </div>
+          {recentMatchList}
         </div>
-        {recentMatchList}
       </div>
     </div>
   );

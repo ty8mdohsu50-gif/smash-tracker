@@ -32,10 +32,10 @@ export default function AnalysisTab({ data, T, isPC }) {
       key={k}
       onClick={() => fn(k)}
       style={{
-        padding: "7px 14px",
+        padding: isPC ? "10px 20px" : "7px 14px",
         borderRadius: 20,
         border: "none",
-        fontSize: 11,
+        fontSize: isPC ? 13 : 11,
         fontWeight: cur === k ? 700 : 500,
         cursor: "pointer",
         background:
@@ -52,6 +52,7 @@ export default function AnalysisTab({ data, T, isPC }) {
               ? "#000"
               : "#fff"
             : T.sub,
+        transition: "all .15s ease",
       }}
     >
       {l}
@@ -256,7 +257,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           style={{
             ...cd,
             display: "flex",
-            padding: "18px 12px",
+            padding: isPC ? "24px 20px" : "18px 12px",
             textAlign: "center",
           }}
         >
@@ -408,7 +409,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           </div>
           {mCS.length === 0
             ? emptyMsg("対戦を記録するとキャラ別の戦績が表示されます")
-            : <div style={isPC ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } : undefined}>
+            : <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
               {mCS.map((s) => {
                 const r = s.t ? s.w / s.t : 0;
                 return (
@@ -606,7 +607,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           </div>
           {oCS.length === 0
             ? emptyMsg("対戦を記録するとマッチアップが表示されます")
-            : <div style={isPC ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } : undefined}>
+            : <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
               {oCS.map((s) => {
                 const r = s.t ? s.w / s.t : 0;
                 return (
@@ -673,7 +674,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: isPC ? "repeat(4, 1fr)" : "1fr 1fr",
               gap: 8,
               marginBottom: 12,
             }}
@@ -773,7 +774,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           >
             直近の勝率
           </div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: isPC ? 16 : 8, marginBottom: isPC ? 20 : 14 }}>
             {[20, 50].map((n) => {
               const d = rolling[n];
               const r = d.t ? d.w / d.t : 0;
@@ -843,7 +844,7 @@ export default function AnalysisTab({ data, T, isPC }) {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)",
                   gap: 6,
                 }}
               >
