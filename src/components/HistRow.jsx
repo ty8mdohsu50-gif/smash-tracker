@@ -1,0 +1,89 @@
+import { formatTime } from "../utils/format";
+
+export default function HistRow({ m, onDelete, T }) {
+  return (
+    <div
+      style={{
+        background: T.card,
+        borderRadius: 16,
+        padding: "12px 16px",
+        marginBottom: 6,
+        boxShadow: T.sh,
+        border: T.brd !== "transparent" ? `1px solid ${T.brd}` : "none",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span
+          style={{
+            padding: "3px 10px",
+            borderRadius: 8,
+            fontSize: 11,
+            fontWeight: 800,
+            background:
+              m.result === "win"
+                ? "rgba(52,199,89,.15)"
+                : "rgba(255,59,48,.15)",
+            color: m.result === "win" ? "#16a34a" : "#dc2626",
+            flexShrink: 0,
+          }}
+        >
+          {m.result === "win" ? "WIN" : "LOSE"}
+        </span>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: T.text,
+            flex: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {m.myChar}
+        </span>
+        <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>vs</span>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: T.text,
+            flex: 1,
+            textAlign: "right",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {m.oppChar}
+        </span>
+        <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>
+          {formatTime(m.time)}
+        </span>
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: T.dimmer,
+              fontSize: 16,
+              cursor: "pointer",
+              padding: "4px",
+              flexShrink: 0,
+            }}
+          >
+            ×
+          </button>
+        )}
+      </div>
+      {m.memo && (
+        <div
+          style={{ fontSize: 11, color: T.sub, marginTop: 3, paddingLeft: 4 }}
+        >
+          {m.memo}
+        </div>
+      )}
+    </div>
+  );
+}
