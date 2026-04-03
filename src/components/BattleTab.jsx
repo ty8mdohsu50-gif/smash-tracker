@@ -611,17 +611,17 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 {lastRes === "win" ? "WIN" : "LOSE"}
               </span>
             </div>
-            <input
-              type="text"
+            <textarea
               value={memo}
-              onChange={(e) => setMemo(e.target.value)}
+              onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
               onBlur={saveMemo}
-              onKeyDown={(e) => { if (e.key === "Enter") { saveMemo(); e.target.blur(); } }}
               placeholder="メモ（任意）"
+              rows={1}
               style={{
                 width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp,
                 border: "none", borderRadius: 10, color: T.text, fontSize: 13,
                 outline: "none", boxSizing: "border-box", textAlign: "center",
+                resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5,
               }}
             />
           </div>
@@ -806,7 +806,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <div style={{ marginTop: 12 }}>
                   <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
                 </div>
-                <input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} onBlur={saveMemo} onKeyDown={(e) => { if (e.key === "Enter") { saveMemo(); e.target.blur(); } }} placeholder="メモ（任意）" style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center" }} />
+                <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder="メモ（任意）" rows={1} style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
               <div style={{ display: "flex", gap: 12 }}>
                 <button onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: "0 4px 16px rgba(124,58,237,.35)" }}>連戦する</button>
