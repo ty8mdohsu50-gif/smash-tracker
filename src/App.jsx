@@ -120,11 +120,11 @@ export default function App() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+                  background: "#111",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow: "0 2px 8px rgba(124,58,237,.3)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,.25)",
                 }}
               >
                 <Swords size={18} color="#fff" strokeWidth={2.5} />
@@ -223,11 +223,11 @@ export default function App() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+              background: "#111",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(124,58,237,.35)",
+              boxShadow: "0 4px 12px rgba(0,0,0,.3)",
             }}
           >
             <Swords size={20} color="#fff" strokeWidth={2.5} />
