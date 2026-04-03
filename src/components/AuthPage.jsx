@@ -196,19 +196,20 @@ function translateError(msg) {
 }
 
 const containerStyle = {
-  minHeight: "100vh",
+  minHeight: "100dvh",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   background: "linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)",
-  padding: 20,
+  padding: "16px",
   fontFamily: FONT,
+  boxSizing: "border-box",
 };
 
 const cardStyle = {
   background: "#fff",
   borderRadius: 20,
-  padding: "36px 28px",
+  padding: "32px 24px",
   width: "100%",
   maxWidth: 400,
   display: "flex",

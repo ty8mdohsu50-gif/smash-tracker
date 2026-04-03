@@ -12,16 +12,26 @@ import AnalysisTab from "./components/AnalysisTab";
 
 const TABS = ["対戦", "履歴", "分析"];
 const TAB_ICONS = [Swords, ClipboardList, BarChart3];
-const PC_BREAKPOINT = 768;
+const PC_BREAKPOINT = 1024;
 
 function useIsPC() {
-  const [isPC, setIsPC] = useState(
-    () => window.innerWidth >= PC_BREAKPOINT,
-  );
+  const query = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
+  const [isPC, setIsPC] = useState(() => {
+    if (typeof window.matchMedia === "function") {
+      return window.matchMedia(query).matches;
+    }
+    return window.innerWidth >= PC_BREAKPOINT;
+  });
   useEffect(() => {
-    const onResize = () => setIsPC(window.innerWidth >= PC_BREAKPOINT);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    if (typeof window.matchMedia !== "function") {
+      const onResize = () => setIsPC(window.innerWidth >= PC_BREAKPOINT);
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }
+    const mql = window.matchMedia(query);
+    const onChange = (e) => setIsPC(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
   }, []);
   return isPC;
 }
@@ -182,7 +192,7 @@ export default function App() {
         style={{
           minHeight: "100vh",
           background: T.bg,
-          maxWidth: 480,
+          maxWidth: 640,
           margin: "0 auto",
           overflow: "hidden",
           touchAction: "pan-y",
