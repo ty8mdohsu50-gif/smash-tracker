@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabase";
 import { today, formatTime } from "./format";
 
 const STORAGE_KEY = "smash-tracker-v4";
@@ -8,6 +9,8 @@ const DEFAULT_DATA = {
   daily: {},
   goals: {},
 };
+
+/* ── localStorage (offline / anonymous) ── */
 
 export function load() {
   try {
@@ -35,9 +38,69 @@ export function save(d) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
   } catch {
-    // storage full - silently fail
+    // storage full
   }
 }
+
+/* ── Supabase (cloud) ── */
+
+export async function cloudLoad(userId) {
+  const { data, error } = await supabase
+    .from("user_data")
+    .select("data")
+    .eq("user_id", userId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    return null;
+  }
+
+  if (data?.data) {
+    return {
+      ...DEFAULT_DATA,
+      ...data.data,
+    };
+  }
+
+  return null;
+}
+
+export async function cloudSave(userId, d) {
+  const payload = {
+    matches: d.matches,
+    settings: d.settings,
+    daily: d.daily,
+    goals: d.goals,
+    dark: d.dark,
+    themeColor: d.themeColor,
+  };
+
+  const { error } = await supabase
+    .from("user_data")
+    .upsert(
+      { user_id: userId, data: payload, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" },
+    );
+
+  return !error;
+}
+
+export async function migrateLocalToCloud(userId) {
+  const local = load();
+  if (!local.matches.length && !Object.keys(local.daily || {}).length) {
+    return false;
+  }
+
+  const cloud = await cloudLoad(userId);
+  if (cloud && cloud.matches.length > 0) {
+    return false;
+  }
+
+  await cloudSave(userId, local);
+  return true;
+}
+
+/* ── CSV ── */
 
 export function csvDownload(data) {
   const hdr = "\uFEFF日付,時刻,使用キャラ,相手キャラ,結果,メモ\n";

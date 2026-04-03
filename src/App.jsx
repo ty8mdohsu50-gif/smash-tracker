@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon } from "lucide-react";
+import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { getTheme } from "./styles/theme";
-import { load, save } from "./utils/storage";
+import { load, save, cloudLoad, cloudSave, migrateLocalToCloud } from "./utils/storage";
+import { supabase } from "./lib/supabase";
+import AuthPage from "./components/AuthPage";
 import Settings from "./components/Settings";
 import LegalPage from "./components/LegalPage";
 import BattleTab from "./components/BattleTab";
@@ -25,13 +27,51 @@ function useIsPC() {
 }
 
 export default function App() {
+  const [user, setUser] = useState(undefined);
+  const [skippedAuth, setSkippedAuth] = useState(
+    () => localStorage.getItem("smash-skipped-auth") === "1",
+  );
   const [data, setData] = useState(() => load());
+  const [loading, setLoading] = useState(true);
   const T = getTheme(data.dark, data.themeColor || "purple");
   const [tabIdx, setTabIdx] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
   const isPC = useIsPC();
+  const saveTimerRef = useRef(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      },
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+    const init = async () => {
+      await migrateLocalToCloud(user.id);
+      const cloud = await cloudLoad(user.id);
+      if (cloud && !cancelled) {
+        setData(cloud);
+        save(cloud);
+      }
+    };
+    init();
+
+    return () => { cancelled = true; };
+  }, [user]);
 
   useEffect(() => {
     document
@@ -46,7 +86,51 @@ export default function App() {
   const sv = useCallback((d) => {
     setData(d);
     save(d);
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          cloudSave(session.user.id, d);
+        }
+      });
+    }, 1000);
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSkippedAuth(false);
+    localStorage.removeItem("smash-skipped-auth");
+  };
+
+  const handleSkip = () => {
+    setSkippedAuth(true);
+    localStorage.setItem("smash-skipped-auth", "1");
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#0f0f23",
+        color: "#7C3AED",
+        fontFamily: "'Chakra Petch', sans-serif",
+        fontSize: 18,
+        fontWeight: 700,
+        letterSpacing: 2,
+      }}>
+        SMASH TRACKER
+      </div>
+    );
+  }
+
+  if (!user && !skippedAuth) {
+    return <AuthPage onSkip={handleSkip} />;
+  }
 
   const onTS = (e) => {
     const t = e.touches[0];
@@ -73,6 +157,8 @@ export default function App() {
       onSave={sv}
       onClose={() => setShowSettings(false)}
       onOpenLegal={(page) => setLegalPage(page)}
+      onLogout={handleLogout}
+      user={user}
       T={T}
     />
   );
@@ -215,6 +301,7 @@ export default function App() {
       }}
     >
       {settingsModal}
+      {legalModal}
 
       <nav
         style={{

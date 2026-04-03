@@ -15,7 +15,7 @@ const SWATCH_COLORS = {
   black: "#1F2937",
 };
 
-export default function Settings({ data, onSave, onClose, onOpenLegal, T }) {
+export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout, user, T }) {
   const [step, setStep] = useState(0);
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
@@ -350,6 +350,61 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, T }) {
             </div>
           )}
         </div>
+
+        {/* Account */}
+        {user && (
+          <div style={{ padding: "14px 0", borderTop: `1px solid ${T.inp}` }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 8 }}>
+              アカウント
+            </div>
+            <div style={{ fontSize: 12, color: T.dim, marginBottom: 10, wordBreak: "break-all" }}>
+              {user.email}
+            </div>
+            <button
+              onClick={() => { handleClose(); onLogout(); }}
+              style={{
+                width: "100%",
+                padding: 12,
+                border: `1px solid ${T.dimmer}`,
+                borderRadius: 12,
+                background: "transparent",
+                color: T.sub,
+                fontSize: 13,
+                fontWeight: 600,
+                textAlign: "left",
+              }}
+            >
+              ログアウト
+            </button>
+          </div>
+        )}
+        {!user && (
+          <div style={{ padding: "14px 0", borderTop: `1px solid ${T.inp}` }}>
+            <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>
+              ログインするとデータがクラウドに保存され、他の端末でも利用できます
+            </div>
+            <button
+              onClick={() => {
+                handleClose();
+                localStorage.removeItem("smash-skipped-auth");
+                window.location.reload();
+              }}
+              style={{
+                width: "100%",
+                padding: 12,
+                border: "none",
+                borderRadius: 12,
+                background: T.inp,
+                color: T.text,
+                fontSize: 13,
+                fontWeight: 600,
+                textAlign: "left",
+              }}
+            >
+              ログイン / アカウント作成
+            </button>
+          </div>
+        )}
 
         {/* Legal links */}
         <div
