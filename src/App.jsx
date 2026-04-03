@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon } from "lucide-react";
-import { LT, DT } from "./styles/theme";
+import { getTheme } from "./styles/theme";
 import { load, save } from "./utils/storage";
 import Settings from "./components/Settings";
 import BattleTab from "./components/BattleTab";
@@ -25,7 +25,7 @@ function useIsPC() {
 
 export default function App() {
   const [data, setData] = useState(() => load());
-  const T = data.dark ? DT : LT;
+  const T = getTheme(data.dark, data.themeColor || "purple");
   const [tabIdx, setTabIdx] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
@@ -34,8 +34,12 @@ export default function App() {
   useEffect(() => {
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", data.dark ? "#0F0F23" : "#F1F0FB");
-  }, [data.dark]);
+      ?.setAttribute("content", T.bg);
+    const root = document.documentElement;
+    root.style.setProperty("--accent", T.accent);
+    root.style.setProperty("--accent-scroll", `${T.accent}33`);
+    root.style.setProperty("--accent-scroll-hover", `${T.accent}59`);
+  }, [T]);
 
   const sv = useCallback((d) => {
     setData(d);

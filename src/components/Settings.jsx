@@ -1,10 +1,26 @@
 import { useState } from "react";
 import { csvDownload } from "../utils/storage";
+import { THEME_KEYS, getThemeLabel, getTheme } from "../styles/theme";
+
+const SWATCH_COLORS = {
+  purple: "#7C3AED",
+  blue: "#2563EB",
+  cyan: "#0891B2",
+  emerald: "#059669",
+  orange: "#EA580C",
+  rose: "#E11D48",
+  amber: "#D97706",
+  red: "#DC2626",
+  white: "#E5E7EB",
+  black: "#1F2937",
+};
 
 export default function Settings({ data, onSave, onClose, T }) {
   const [step, setStep] = useState(0);
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
+
+  const currentColor = data.themeColor || "purple";
 
   const saveGoals = () =>
     onSave({
@@ -15,6 +31,10 @@ export default function Settings({ data, onSave, onClose, T }) {
   const handleClose = () => {
     setStep(0);
     onClose();
+  };
+
+  const setThemeColor = (key) => {
+    onSave({ ...data, themeColor: key });
   };
 
   return (
@@ -41,10 +61,10 @@ export default function Settings({ data, onSave, onClose, T }) {
           background: T.card,
           borderRadius: 16,
           padding: 20,
-          width: 300,
+          width: 320,
           boxShadow: "0 16px 48px rgba(0,0,0,.3)",
           animation: "fadeUp .2s ease",
-          maxHeight: "80vh",
+          maxHeight: "85vh",
           overflowY: "auto",
         }}
       >
@@ -74,8 +94,7 @@ export default function Settings({ data, onSave, onClose, T }) {
               height: 28,
               borderRadius: 14,
               border: "none",
-              background: data.dark ? "#34C759" : "#E5E5EA",
-              cursor: "pointer",
+              background: data.dark ? T.accent : "#E5E5EA",
               position: "relative",
             }}
           >
@@ -93,6 +112,71 @@ export default function Settings({ data, onSave, onClose, T }) {
               }}
             />
           </button>
+        </div>
+
+        {/* Theme color picker */}
+        <div style={{ padding: "14px 0", borderBottom: `1px solid ${T.inp}` }}>
+          <div
+            style={{ fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 12 }}
+          >
+            テーマカラー
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(5, 1fr)",
+              gap: 8,
+            }}
+          >
+            {THEME_KEYS.map((key) => {
+              const active = currentColor === key;
+              const swatchColor = SWATCH_COLORS[key];
+              const isLight = key === "white";
+              return (
+                <button
+                  key={key}
+                  onClick={() => setThemeColor(key)}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "8px 4px",
+                    borderRadius: 12,
+                    border: active
+                      ? `2px solid ${T.accent}`
+                      : `1px solid ${T.inp}`,
+                    background: active ? T.accentSoft : "transparent",
+                    transition: "all .15s ease",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: swatchColor,
+                      border: isLight ? `2px solid ${T.dimmer}` : "none",
+                      boxShadow: active
+                        ? `0 0 0 2px ${T.card}, 0 0 0 4px ${swatchColor}`
+                        : "none",
+                      transition: "box-shadow .15s ease",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: active ? 700 : 500,
+                      color: active ? T.accent : T.dim,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {getThemeLabel(key)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Goals */}
@@ -166,7 +250,6 @@ export default function Settings({ data, onSave, onClose, T }) {
               color: T.text,
               fontSize: 14,
               fontWeight: 600,
-              cursor: "pointer",
               marginBottom: 8,
               textAlign: "left",
             }}
@@ -193,7 +276,6 @@ export default function Settings({ data, onSave, onClose, T }) {
                 color: "#dc2626",
                 fontSize: 14,
                 fontWeight: 600,
-                cursor: "pointer",
                 textAlign: "left",
               }}
             >
@@ -234,7 +316,6 @@ export default function Settings({ data, onSave, onClose, T }) {
                     color: T.text,
                     fontSize: 13,
                     fontWeight: 600,
-                    cursor: "pointer",
                   }}
                 >
                   やめる
@@ -247,6 +328,7 @@ export default function Settings({ data, onSave, onClose, T }) {
                       daily: {},
                       goals: data.goals || {},
                       dark: data.dark,
+                      themeColor: data.themeColor,
                     });
                     setStep(0);
                     onClose();
@@ -260,7 +342,6 @@ export default function Settings({ data, onSave, onClose, T }) {
                     color: "#fff",
                     fontSize: 13,
                     fontWeight: 600,
-                    cursor: "pointer",
                   }}
                 >
                   削除する
@@ -279,7 +360,6 @@ export default function Settings({ data, onSave, onClose, T }) {
             background: "transparent",
             color: T.dim,
             fontSize: 13,
-            cursor: "pointer",
             marginTop: 12,
           }}
         >
