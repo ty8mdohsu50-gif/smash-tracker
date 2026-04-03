@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import HistRow from "./HistRow";
+import FighterIcon from "./FighterIcon";
 import { formatDateLong, formatTime, numFormat, percentStr, barColor } from "../utils/format";
 
 export default function HistoryTab({ data, onSave, T, isPC }) {
@@ -185,8 +186,8 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
                             {m.result === "win" ? "WIN" : "LOSE"}
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}>{m.myChar}</td>
-                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}>{m.oppChar}</td>
+                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.myChar} size={24} />{m.myChar}</span></td>
+                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.oppChar} size={24} />{m.oppChar}</span></td>
                         <td style={{ ...tdStyle, color: T.dim, fontSize: 13 }}>{formatTime(m.time)}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>

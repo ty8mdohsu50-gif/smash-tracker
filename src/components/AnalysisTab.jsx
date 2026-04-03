@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import Chart from "./Chart";
+import FighterIcon from "./FighterIcon";
 import { shortName } from "../constants/fighters";
 import {
   today,
@@ -330,8 +331,9 @@ export default function AnalysisTab({ data, T, isPC }) {
             return (
               <div style={cd}>
                 <div
-                  style={{ fontSize: 20, fontWeight: 800, color: T.text }}
+                  style={{ fontSize: 20, fontWeight: 800, color: T.text, display: "flex", alignItems: "center", gap: 10 }}
                 >
+                  <FighterIcon name={charDetail} size={36} />
                   {charDetail}
                 </div>
                 <div
@@ -365,8 +367,9 @@ export default function AnalysisTab({ data, T, isPC }) {
                   }}
                 >
                   <span
-                    style={{ fontSize: 14, fontWeight: 700, color: T.text }}
+                    style={{ fontSize: 14, fontWeight: 700, color: T.text, display: "flex", alignItems: "center", gap: 8 }}
                   >
+                    <FighterIcon name={s.c} size={24} />
                     {s.c}
                   </span>
                   <div
@@ -429,7 +432,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "baseline",
+                        alignItems: "center",
                         marginBottom: 8,
                       }}
                     >
@@ -438,8 +441,12 @@ export default function AnalysisTab({ data, T, isPC }) {
                           fontSize: 15,
                           fontWeight: 700,
                           color: T.text,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
                         }}
                       >
+                        <FighterIcon name={s.c} size={28} />
                         {s.c}
                       </span>
                       <span
@@ -628,8 +635,12 @@ export default function AnalysisTab({ data, T, isPC }) {
                           fontSize: 15,
                           fontWeight: 700,
                           color: T.text,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
                         }}
                       >
+                        <FighterIcon name={s.c} size={28} />
                         {s.c}
                       </span>
                       <div

@@ -1,4 +1,5 @@
 import { formatTime, formatDateWithDay } from "../utils/format";
+import FighterIcon from "./FighterIcon";
 
 export default function MatchRow({ m, onDelete, showTime, T }) {
   return (
@@ -22,6 +23,7 @@ export default function MatchRow({ m, onDelete, showTime, T }) {
             flexShrink: 0,
           }}
         />
+        <FighterIcon name={m.myChar} size={24} />
         <span
           style={{
             fontSize: 13,
@@ -36,6 +38,7 @@ export default function MatchRow({ m, onDelete, showTime, T }) {
           {m.myChar}
         </span>
         <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>vs</span>
+        <FighterIcon name={m.oppChar} size={24} />
         <span
           style={{
             fontSize: 13,

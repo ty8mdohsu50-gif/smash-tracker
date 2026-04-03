@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { FIGHTERS } from "../constants/fighters";
 import { toHiragana } from "../utils/format";
+import FighterIcon from "./FighterIcon";
 
 export default function CharPicker({
   value,
@@ -67,8 +68,12 @@ export default function CharPicker({
           cursor: "pointer",
           fontSize: 15,
           fontWeight: value ? 600 : 400,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
         }}
       >
+        {value && <FighterIcon name={value} size={28} />}
         {value || placeholder || "選択"}
       </button>
 
@@ -142,7 +147,7 @@ export default function CharPicker({
                       setOpen(false);
                     }}
                     style={{
-                      padding: "5px 10px",
+                      padding: "4px 10px 4px 4px",
                       borderRadius: 8,
                       border: "none",
                       background: c === value ? "#FF3B30" : T.inp,
@@ -150,8 +155,12 @@ export default function CharPicker({
                       fontSize: 12,
                       fontWeight: 600,
                       cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
+                    <FighterIcon name={c} size={20} />
                     {c}
                   </button>
                 ))}
@@ -168,15 +177,19 @@ export default function CharPicker({
                   setOpen(false);
                 }}
                 style={{
-                  padding: "12px 16px",
+                  padding: "10px 16px",
                   cursor: "pointer",
                   fontSize: 14,
                   fontWeight: f === value ? 700 : 400,
                   color: f === value ? "#FF3B30" : T.text,
                   background:
                     f === value ? "rgba(255,59,48,.08)" : "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
                 }}
               >
+                <FighterIcon name={f} size={28} />
                 {f}
               </div>
             ))}
