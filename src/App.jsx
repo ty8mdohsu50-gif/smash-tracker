@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import { LT, DT } from "./styles/theme";
 import { load, save } from "./utils/storage";
 import Settings from "./components/Settings";
@@ -7,7 +8,7 @@ import HistoryTab from "./components/HistoryTab";
 import AnalysisTab from "./components/AnalysisTab";
 
 const TABS = ["対戦", "履歴", "分析"];
-const TAB_ICONS = ["⚔️", "📋", "📊"];
+const TAB_ICONS = [Swords, ClipboardList, BarChart3];
 const PC_BREAKPOINT = 768;
 
 function useIsPC() {
@@ -33,7 +34,7 @@ export default function App() {
   useEffect(() => {
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", data.dark ? "#1c1c1e" : "#ffffff");
+      ?.setAttribute("content", data.dark ? "#0F0F23" : "#F1F0FB");
   }, [data.dark]);
 
   const sv = useCallback((d) => {
@@ -69,7 +70,8 @@ export default function App() {
     />
   );
 
-  // Mobile layout
+  const fontFamily = "'Chakra Petch', 'Noto Sans JP', -apple-system, 'Hiragino Sans', sans-serif";
+
   if (!isPC) {
     return (
       <div
@@ -83,7 +85,7 @@ export default function App() {
           margin: "0 auto",
           overflow: "hidden",
           touchAction: "pan-y",
-          fontFamily: "-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif",
+          fontFamily,
           color: T.text,
         }}
       >
@@ -91,11 +93,13 @@ export default function App() {
         <div
           style={{
             background: T.hdr,
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             paddingTop: "env(safe-area-inset-top, 8px)",
             position: "sticky",
             top: 0,
             zIndex: 50,
-            boxShadow: "0 1px 0 rgba(0,0,0,.06)",
+            borderBottom: `1px solid ${T.brd}`,
           }}
         >
           <div
@@ -106,49 +110,74 @@ export default function App() {
               justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 22 }}>⚔️</span>
-              <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: 1, color: "#FF3B30" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 2px 8px rgba(124,58,237,.3)",
+                }}
+              >
+                <Swords size={18} color="#fff" strokeWidth={2.5} />
+              </div>
+              <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
                 SMASH TRACKER
               </span>
             </div>
             <button
               onClick={() => setShowSettings(true)}
+              aria-label="設定を開く"
               style={{
                 width: 36, height: 36, border: "none", background: T.inp,
-                borderRadius: 10, cursor: "pointer", fontSize: 18,
+                borderRadius: 10, fontSize: 18,
                 display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background .15s ease",
+                color: T.sub,
               }}
             >
-              ⚙️
+              <SettingsIcon size={18} strokeWidth={2} />
             </button>
           </div>
           <div style={{ display: "flex", position: "relative", marginTop: 10 }}>
-            {TABS.map((t, i) => (
-              <button
-                key={i}
-                onClick={() => setTabIdx(i)}
-                style={{
-                  flex: 1, padding: "12px 0", background: "transparent", border: "none",
-                  fontSize: 14, fontWeight: tabIdx === i ? 700 : 500,
-                  color: tabIdx === i ? T.text : T.dim, cursor: "pointer",
-                }}
-              >
-                {t}
-              </button>
-            ))}
+            {TABS.map((t, i) => {
+              const Icon = TAB_ICONS[i];
+              return (
+                <button
+                  key={i}
+                  onClick={() => setTabIdx(i)}
+                  style={{
+                    flex: 1, padding: "12px 0", background: "transparent", border: "none",
+                    fontSize: 13, fontWeight: tabIdx === i ? 700 : 500,
+                    color: tabIdx === i ? T.accent : T.dim,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    transition: "color .15s ease",
+                  }}
+                >
+                  <Icon size={15} strokeWidth={tabIdx === i ? 2.5 : 2} />
+                  {t}
+                </button>
+              );
+            })}
             <div
               style={{
                 position: "absolute", bottom: 0,
                 left: `${(tabIdx * 100) / 3}%`, width: `${100 / 3}%`,
-                height: 3, background: "#FF3B30", borderRadius: "3px 3px 0 0",
+                height: 3,
+                background: "linear-gradient(90deg, #7C3AED, #A78BFA)",
+                borderRadius: "3px 3px 0 0",
                 transition: "left .25s cubic-bezier(.4,0,.2,1)",
+                boxShadow: "0 0 8px rgba(124,58,237,.4)",
               }}
             />
           </div>
         </div>
         <div style={{ padding: "14px 16px 40px" }}>
-          <div key={tabIdx} style={{ animation: "fadeUp .2s ease" }}>
+          <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} />}
             {tabIdx === 2 && <AnalysisTab data={data} T={T} />}
@@ -158,7 +187,6 @@ export default function App() {
     );
   }
 
-  // PC layout - full dashboard
   return (
     <div
       style={{
@@ -166,43 +194,54 @@ export default function App() {
         height: "100vh",
         overflow: "hidden",
         background: T.bg,
-        fontFamily: "-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif",
+        fontFamily,
         color: T.text,
       }}
     >
       {settingsModal}
 
-      {/* Sidebar */}
       <nav
         style={{
           width: 240,
           height: "100vh",
           background: T.card,
-          borderRight: `1px solid ${T.brd !== "transparent" ? T.brd : T.inp}`,
+          borderRight: `1px solid ${T.brd}`,
           padding: "28px 0",
           display: "flex",
           flexDirection: "column",
           flexShrink: 0,
-          boxShadow: "2px 0 12px rgba(0,0,0,.04)",
+          boxShadow: T.glow,
         }}
       >
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 24px", marginBottom: 40 }}>
-          <span style={{ fontSize: 28 }}>⚔️</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 24px", marginBottom: 40 }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(124,58,237,.35)",
+            }}
+          >
+            <Swords size={20} color="#fff" strokeWidth={2.5} />
+          </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, letterSpacing: 1, color: "#FF3B30", lineHeight: 1 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: 2, color: T.accent, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
               SMASH
             </div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.dim, marginTop: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 3, color: T.dim, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>
               TRACKER
             </div>
           </div>
         </div>
 
-        {/* Nav items */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: "0 12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "0 12px" }}>
           {TABS.map((t, i) => {
             const active = tabIdx === i;
+            const Icon = TAB_ICONS[i];
             return (
               <button
                 key={i}
@@ -210,21 +249,18 @@ export default function App() {
                 style={{
                   display: "flex", alignItems: "center", gap: 14,
                   padding: "14px 18px",
-                  background: active
-                    ? "linear-gradient(135deg, rgba(255,59,48,.12), rgba(255,59,48,.06))"
-                    : "transparent",
+                  background: active ? T.accentSoft : "transparent",
                   border: "none",
-                  borderRadius: 14,
-                  fontSize: 15,
+                  borderRadius: 12,
+                  fontSize: 14,
                   fontWeight: active ? 700 : 500,
-                  color: active ? "#FF3B30" : T.sub,
-                  cursor: "pointer",
+                  color: active ? T.accent : T.sub,
                   textAlign: "left",
-                  transition: "all .15s ease",
-                  borderLeft: active ? "3px solid #FF3B30" : "3px solid transparent",
+                  transition: "all .2s ease",
+                  borderLeft: active ? `3px solid ${T.accent}` : "3px solid transparent",
                 }}
               >
-                <span style={{ fontSize: 20, width: 24, textAlign: "center" }}>{TAB_ICONS[i]}</span>
+                <Icon size={20} strokeWidth={active ? 2.5 : 2} />
                 {t}
               </button>
             );
@@ -233,32 +269,31 @@ export default function App() {
 
         <div style={{ flex: 1 }} />
 
-        {/* Settings */}
-        <div style={{ padding: "0 12px", borderTop: `1px solid ${T.inp}`, paddingTop: 16 }}>
+        <div style={{ padding: "0 12px", borderTop: `1px solid ${T.brd}`, paddingTop: 16 }}>
           <button
             onClick={() => setShowSettings(true)}
             style={{
               display: "flex", alignItems: "center", gap: 14,
               padding: "14px 18px", background: "transparent", border: "none",
-              borderRadius: 14, fontSize: 15, fontWeight: 500, color: T.sub,
-              cursor: "pointer", width: "100%", textAlign: "left",
+              borderRadius: 12, fontSize: 14, fontWeight: 500, color: T.sub,
+              width: "100%", textAlign: "left",
               transition: "all .15s ease",
             }}
           >
-            <span style={{ fontSize: 20, width: 24, textAlign: "center" }}>⚙️</span>
+            <SettingsIcon size={20} strokeWidth={2} />
             設定
           </button>
         </div>
       </nav>
 
-      {/* Main content - fills remaining space */}
       <main style={{ flex: 1, height: "100vh", overflowY: "auto", overflowX: "hidden" }}>
-        {/* Top header bar */}
         <div
           style={{
             padding: "20px 40px",
-            borderBottom: `1px solid ${T.brd !== "transparent" ? T.brd : T.inp}`,
-            background: T.card,
+            borderBottom: `1px solid ${T.brd}`,
+            background: T.hdr,
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -267,36 +302,41 @@ export default function App() {
             zIndex: 10,
           }}
         >
-          <div style={{ fontSize: 22, fontWeight: 900, color: T.text, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 24 }}>{TAB_ICONS[tabIdx]}</span>
+          <div style={{ fontSize: 22, fontWeight: 800, color: T.text, display: "flex", alignItems: "center", gap: 12 }}>
+            {(() => { const Icon = TAB_ICONS[tabIdx]; return <Icon size={24} strokeWidth={2.5} color={T.accent} />; })()}
             {TABS[tabIdx]}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            {TABS.map((t, i) => (
-              <button
-                key={i}
-                onClick={() => setTabIdx(i)}
-                style={{
-                  padding: "8px 18px",
-                  borderRadius: 10,
-                  border: tabIdx === i ? "2px solid #FF3B30" : `1px solid ${T.dimmer}`,
-                  background: tabIdx === i ? "rgba(255,59,48,.08)" : T.card,
-                  color: tabIdx === i ? "#FF3B30" : T.sub,
-                  fontSize: 13,
-                  fontWeight: tabIdx === i ? 700 : 500,
-                  cursor: "pointer",
-                  transition: "all .15s ease",
-                }}
-              >
-                {TAB_ICONS[i]} {t}
-              </button>
-            ))}
+            {TABS.map((t, i) => {
+              const Icon = TAB_ICONS[i];
+              return (
+                <button
+                  key={i}
+                  onClick={() => setTabIdx(i)}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 10,
+                    border: tabIdx === i ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
+                    background: tabIdx === i ? T.accentSoft : T.card,
+                    color: tabIdx === i ? T.accent : T.sub,
+                    fontSize: 13,
+                    fontWeight: tabIdx === i ? 700 : 500,
+                    transition: "all .2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <Icon size={14} strokeWidth={2} />
+                  {t}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Tab content */}
         <div style={{ padding: "32px 40px 48px" }}>
-          <div key={tabIdx} style={{ animation: "fadeUp .2s ease" }}>
+          <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC />}
             {tabIdx === 2 && <AnalysisTab data={data} T={T} isPC />}
