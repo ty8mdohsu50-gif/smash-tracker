@@ -3,6 +3,7 @@ import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon } from "luci
 import { getTheme } from "./styles/theme";
 import { load, save } from "./utils/storage";
 import Settings from "./components/Settings";
+import LegalPage from "./components/LegalPage";
 import BattleTab from "./components/BattleTab";
 import HistoryTab from "./components/HistoryTab";
 import AnalysisTab from "./components/AnalysisTab";
@@ -28,6 +29,7 @@ export default function App() {
   const T = getTheme(data.dark, data.themeColor || "purple");
   const [tabIdx, setTabIdx] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [legalPage, setLegalPage] = useState(null);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
   const isPC = useIsPC();
 
@@ -70,7 +72,16 @@ export default function App() {
       data={data}
       onSave={sv}
       onClose={() => setShowSettings(false)}
+      onOpenLegal={(page) => setLegalPage(page)}
       T={T}
+    />
+  );
+
+  const legalModal = legalPage && (
+    <LegalPage
+      T={T}
+      page={legalPage}
+      onClose={() => setLegalPage(null)}
     />
   );
 
@@ -94,6 +105,7 @@ export default function App() {
         }}
       >
         {settingsModal}
+        {legalModal}
         <div
           style={{
             background: T.hdr,

@@ -15,7 +15,7 @@ const SWATCH_COLORS = {
   black: "#1F2937",
 };
 
-export default function Settings({ data, onSave, onClose, T }) {
+export default function Settings({ data, onSave, onClose, onOpenLegal, T }) {
   const [step, setStep] = useState(0);
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
@@ -349,6 +349,45 @@ export default function Settings({ data, onSave, onClose, T }) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Legal links */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 16,
+            padding: "14px 0 0",
+            marginTop: 14,
+            borderTop: `1px solid ${T.inp}`,
+          }}
+        >
+          <button
+            onClick={() => { handleClose(); onOpenLegal("terms"); }}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: T.dim,
+              fontSize: 11,
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            利用規約
+          </button>
+          <button
+            onClick={() => { handleClose(); onOpenLegal("privacy"); }}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: T.dim,
+              fontSize: 11,
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            プライバシーポリシー
+          </button>
         </div>
 
         <button
