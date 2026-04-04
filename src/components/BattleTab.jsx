@@ -442,42 +442,46 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "fighting" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
-          {/* Compact status bar */}
+          {/* Status bar - larger */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "10px 14px",
-              background: T.card,
-              borderRadius: 12,
-              marginBottom: 12,
-              border: `1px solid ${T.brd}`,
+              ...cd,
+              padding: "14px 16px",
+              marginBottom: 14,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <FighterIcon name={myChar} size={30} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{myChar}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {tM.length > 0 && (
-                <span style={{ fontSize: 13, fontWeight: 700 }}>
-                  <span style={{ color: "#16a34a" }}>{tW}</span>
-                  <span style={{ color: T.dimmer }}> : </span>
-                  <span style={{ color: "#dc2626" }}>{tL}</span>
-                </span>
-              )}
-              <button
-                onClick={() => setShowPowerEdit(!showPowerEdit)}
-                style={{
-                  border: "none", background: T.inp, borderRadius: 8,
-                  padding: "4px 10px", fontSize: 12, fontWeight: 600,
-                  color: T.sub, display: "flex", alignItems: "center", gap: 4,
-                }}
-              >
-                {numFormat(pStart)}{pEnd ? " → " + numFormat(pEnd) : ""}
-                {showPowerEdit ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-              </button>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <FighterIcon name={myChar} size={36} />
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{myChar}</div>
+                  {tM.length > 0 && (
+                    <div style={{ fontSize: 13, color: T.dim, marginTop: 2 }}>
+                      {tM.length}戦 {percentStr(tW, tM.length)}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                {tM.length > 0 && (
+                  <div style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    <span style={{ color: "#16a34a" }}>{tW}</span>
+                    <span style={{ color: T.dimmer, fontSize: 16, margin: "0 4px" }}>:</span>
+                    <span style={{ color: "#dc2626" }}>{tL}</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowPowerEdit(!showPowerEdit)}
+                  style={{
+                    border: "none", background: T.inp, borderRadius: 8,
+                    padding: "4px 10px", fontSize: 13, fontWeight: 600,
+                    color: T.sub, display: "flex", alignItems: "center", gap: 4, marginTop: 4,
+                  }}
+                >
+                  {numFormat(pStart)}{pEnd ? " → " + numFormat(pEnd) : ""}
+                  {showPowerEdit ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -485,63 +489,69 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <div style={{ ...cd, animation: "fadeUp .15s ease" }}>
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4, fontWeight: 600 }}>開始</div>
+                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>開始</div>
                   {pwrInput(pStart, setPStart, "", false)}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4, fontWeight: 600 }}>現在</div>
+                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>現在</div>
                   {pwrInput(pEnd, setPEnd, "終了後", false)}
                 </div>
               </div>
             </div>
           )}
 
-          <div style={{ ...cd, padding: "12px 16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: 13, color: T.sub, fontWeight: 600 }}>相手キャラ</div>
+          {/* Opponent char selection - FIRST */}
+          <div style={{ ...cd, padding: "14px 16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <div style={{ fontSize: 15, color: T.text, fontWeight: 700 }}>相手キャラ</div>
               {oppChar && (
                 <button
                   onClick={() => setOppChar("")}
-                  style={{ border: "none", background: "transparent", color: T.lose, fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 2 }}
+                  style={{ border: "none", background: "rgba(220,38,38,.1)", color: "#dc2626", fontSize: 13, fontWeight: 600, padding: "6px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 4 }}
                 >
-                  <X size={12} /> クリア
+                  <X size={14} /> クリア
                 </button>
               )}
             </div>
             {oppChar && !showOppPicker && (
-              <div style={{ fontSize: 17, fontWeight: 800, color: T.text, marginTop: 4 }}>{oppChar}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <FighterIcon name={oppChar} size={32} />
+                <span style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{oppChar}</span>
+              </div>
             )}
             {showOppPicker ? (
-              <div style={{ marginTop: 8 }}>
+              <div>
                 <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder="相手を選択" recent={recOpp} autoOpen T={T} />
               </div>
             ) : (
               !showOppPicker && (
-                <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-                  {recOpp.slice(0, 3).map((c) => (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {recOpp.slice(0, 4).map((c) => (
                     <button
                       key={c}
                       onClick={() => setOppChar(c)}
                       style={{
-                        padding: "7px 14px", borderRadius: 10,
-                        border: oppChar === c ? `2px solid ${T.accent}` : "none",
-                        background: oppChar === c ? T.accentSoft : T.inp,
+                        padding: "10px 14px 10px 8px", borderRadius: 12,
+                        border: oppChar === c ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
+                        background: oppChar === c ? T.accentSoft : T.card,
                         color: oppChar === c ? T.accent : T.text,
-                        fontSize: 13, fontWeight: 600,
+                        fontSize: 14, fontWeight: 600,
+                        display: "flex", alignItems: "center", gap: 6,
                         transition: "all .15s ease",
                       }}
                     >
+                      <FighterIcon name={c} size={24} />
                       {c}
                     </button>
                   ))}
                   <button
                     onClick={() => setShowOppPicker(true)}
                     style={{
-                      padding: "7px 14px", borderRadius: 10, border: `1px dashed ${T.dimmer}`,
-                      background: "transparent", color: T.sub, fontSize: 12, fontWeight: 600,
+                      padding: "10px 18px", borderRadius: 12, border: `1px dashed ${T.dimmer}`,
+                      background: "transparent", color: T.sub, fontSize: 14, fontWeight: 600,
                     }}
                   >
-                    他…
+                    他...
                   </button>
                 </div>
               )
@@ -552,37 +562,37 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
           )}
 
-          <div style={{ fontSize: 13, color: T.sub, textAlign: "center", margin: "12px 0 8px" }}>試合結果を選択</div>
-          <div style={{ display: "flex", gap: 12 }}>
-            <button
-              onClick={() => selectRes("win")}
-              style={{
-                flex: 1, padding: "22px 0", border: "none", borderRadius: 16,
-                background: "linear-gradient(135deg, #16A34A, #22C55E)",
-                color: "#fff", fontSize: 20, fontWeight: 800,
-                boxShadow: "0 4px 16px rgba(34,197,94,.3)",
-                transition: "transform .1s ease",
-              }}
-            >
-              勝ち
-            </button>
-            <button
-              onClick={() => selectRes("lose")}
-              style={{
-                flex: 1, padding: "22px 0", border: "none", borderRadius: 16,
-                background: "linear-gradient(135deg, #E11D48, #F43F5E)",
-                color: "#fff", fontSize: 20, fontWeight: 800,
-                boxShadow: "0 4px 16px rgba(244,63,94,.3)",
-                transition: "transform .1s ease",
-              }}
-            >
-              負け
-            </button>
+          {/* Win/Lose buttons - SECOND, larger */}
+          <div style={{ marginTop: 14 }}>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => selectRes("win")}
+                style={{
+                  flex: 1, padding: "26px 0", border: "none", borderRadius: 16,
+                  background: "linear-gradient(135deg, #16A34A, #22C55E)",
+                  color: "#fff", fontSize: 22, fontWeight: 900,
+                  boxShadow: "0 4px 16px rgba(34,197,94,.3)",
+                }}
+              >
+                勝ち
+              </button>
+              <button
+                onClick={() => selectRes("lose")}
+                style={{
+                  flex: 1, padding: "26px 0", border: "none", borderRadius: 16,
+                  background: "linear-gradient(135deg, #E11D48, #F43F5E)",
+                  color: "#fff", fontSize: 22, fontWeight: 900,
+                  boxShadow: "0 4px 16px rgba(244,63,94,.3)",
+                }}
+              >
+                負け
+              </button>
+            </div>
           </div>
 
           <button
             onClick={() => setPhase("endSession")}
-            style={{ width: "100%", padding: 12, marginTop: 10, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}
+            style={{ width: "100%", padding: 14, marginTop: 12, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}
           >
             対戦を終了する
           </button>

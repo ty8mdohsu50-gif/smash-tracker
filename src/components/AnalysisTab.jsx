@@ -15,6 +15,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   const [aMode, setAMode] = useState("myChar");
   const [period, setPeriod] = useState("all");
   const [charDetail, setCharDetail] = useState(null);
+  const [charTab, setCharTab] = useState("matchup");
 
   const totalW = data.matches.filter((m) => m.result === "win").length;
   const totalL = data.matches.length - totalW;
@@ -310,99 +311,47 @@ export default function AnalysisTab({ data, T, isPC }) {
       {/* My char detail */}
       {aMode === "myChar" && charDetail && (
         <div>
-          <button
-            onClick={() => setCharDetail(null)}
-            style={{
-              width: "100%",
-              padding: "12px 16px",
-              background: T.card,
-              border: `1px solid ${T.brd}`,
-              borderRadius: 12,
-              color: T.sub,
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              marginBottom: 14,
-              textAlign: "left",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            ← キャラ一覧に戻る
-          </button>
-          {(() => {
-            const tt = charMatchups.reduce(
-              (a, s) => ({ w: a.w + s.w, l: a.l + s.l }),
-              { w: 0, l: 0 },
-            );
-            return (
-              <div style={cd}>
-                <div
-                  style={{ fontSize: 20, fontWeight: 800, color: T.text, display: "flex", alignItems: "center", gap: 12 }}
-                >
-                  <FighterIcon name={charDetail} size={40} />
-                  {charDetail}
-                </div>
-                <div
-                  style={{ fontSize: 14, color: T.sub, marginTop: 6 }}
-                >
-                  {tt.w + tt.l}戦 {tt.w}W {tt.l}L ({percentStr(tt.w, tt.w + tt.l)})
-                </div>
+          {/* Header with back + stats */}
+          <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
+            <button
+              onClick={() => { setCharDetail(null); setCharTab("matchup"); }}
+              style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}
+            >
+              ← 戻る
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <FighterIcon name={charDetail} size={36} />
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{charDetail}</div>
+                {(() => {
+                  const tt = charMatchups.reduce((a, s) => ({ w: a.w + s.w, l: a.l + s.l }), { w: 0, l: 0 });
+                  return <div style={{ fontSize: 12, color: T.dim }}>{tt.w + tt.l}戦 {tt.w}W {tt.l}L ({percentStr(tt.w, tt.w + tt.l)})</div>;
+                })()}
               </div>
-            );
-          })()}
-
-          {/* Daily record with this char */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10, marginTop: 4 }}>
-            日別戦績
+            </div>
           </div>
-          {(() => {
-            const dailyMap = {};
-            data.matches
-              .filter((m) => m.myChar === charDetail)
-              .forEach((m) => {
-                if (!dailyMap[m.date]) dailyMap[m.date] = { w: 0, l: 0 };
-                m.result === "win" ? dailyMap[m.date].w++ : dailyMap[m.date].l++;
-              });
-            const days = Object.entries(dailyMap).sort((a, b) => b[0].localeCompare(a[0]));
-            if (days.length === 0) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>データなし</div>;
-            return (
-              <div style={{ ...cd, padding: "10px 14px" }}>
-                {days.map(([date, d]) => {
-                  const t = d.w + d.l;
-                  const r = t ? d.w / t : 0;
-                  return (
-                    <div key={date} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${T.inp}` }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontSize: 12, color: T.dim }}>{t}戦</span>
-                        <span style={{ fontSize: 14, fontWeight: 800 }}>
-                          <span style={{ color: "#16a34a" }}>{d.w}</span>
-                          <span style={{ color: T.dimmer }}> : </span>
-                          <span style={{ color: "#dc2626" }}>{d.l}</span>
-                        </span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: barColor(r), minWidth: 36, textAlign: "right" }}>{percentStr(d.w, t)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
 
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: T.sub,
-              marginBottom: 10,
-              marginTop: 16,
-            }}
-          >
-            vs 相手キャラ（苦手順）
+          {/* Tab switcher */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            {[["matchup", "vs 相手キャラ"], ["daily", "日別戦績"]].map(([k, l]) => (
+              <button
+                key={k}
+                onClick={() => setCharTab(k)}
+                style={{
+                  flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+                  fontSize: 13, fontWeight: charTab === k ? 700 : 500, textAlign: "center",
+                  background: charTab === k ? (data.dark ? "#fff" : "#1c1c1e") : (data.dark ? "#2c2c2e" : "#F2F2F7"),
+                  color: charTab === k ? (data.dark ? "#000" : "#fff") : T.sub,
+                  transition: "all .15s ease",
+                }}
+              >
+                {l}
+              </button>
+            ))}
           </div>
-          {charMatchups.slice().sort((a, b) => {
+
+          {/* Matchup tab */}
+          {charTab === "matchup" && charMatchups.slice().sort((a, b) => {
             const ra = a.t ? a.w / a.t : 0;
             const rb = b.t ? b.w / b.t : 0;
             return ra - rb;
@@ -410,14 +359,7 @@ export default function AnalysisTab({ data, T, isPC }) {
             const r = s.t ? s.w / s.t : 0;
             return (
               <div key={s.c} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 6,
-                  }}
-                >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FighterIcon name={s.c} size={32} />
                     <div>
@@ -426,9 +368,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
-                      {percentStr(s.w, s.t)}
-                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</div>
                     {renderLabel(r)}
                   </div>
                 </div>
@@ -436,6 +376,35 @@ export default function AnalysisTab({ data, T, isPC }) {
               </div>
             );
           })}
+
+          {/* Daily tab */}
+          {charTab === "daily" && (() => {
+            const dailyMap = {};
+            data.matches.filter((m) => m.myChar === charDetail).forEach((m) => {
+              if (!dailyMap[m.date]) dailyMap[m.date] = { w: 0, l: 0 };
+              m.result === "win" ? dailyMap[m.date].w++ : dailyMap[m.date].l++;
+            });
+            const days = Object.entries(dailyMap).sort((a, b) => b[0].localeCompare(a[0]));
+            if (days.length === 0) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>データなし</div>;
+            return days.map(([date, d]) => {
+              const t = d.w + d.l;
+              const r = t ? d.w / t : 0;
+              return (
+                <div key={date} style={{ ...cd, marginBottom: 8, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 13, color: T.dim }}>{t}戦</span>
+                    <span style={{ fontSize: 16, fontWeight: 800 }}>
+                      <span style={{ color: "#16a34a" }}>{d.w}</span>
+                      <span style={{ color: T.dimmer }}> : </span>
+                      <span style={{ color: "#dc2626" }}>{d.l}</span>
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r) }}>{percentStr(d.w, t)}</span>
+                  </div>
+                </div>
+              );
+            });
+          })()}
         </div>
       )}
 
@@ -581,24 +550,6 @@ export default function AnalysisTab({ data, T, isPC }) {
                   </div>
                 ) : (
                   <div>
-                    {/* Selected char header */}
-                    <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <FighterIcon name={charDetail} size={32} />
-                        <div>
-                          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{charDetail}</div>
-                          {(() => {
-                            const tt = charMatchups.reduce((a, s) => ({ w: a.w + s.w, l: a.l + s.l }), { w: 0, l: 0 });
-                            return <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>{tt.w + tt.l}戦 {tt.w}W {tt.l}L ({percentStr(tt.w, tt.w + tt.l)})</div>;
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Matchup list - sorted by weakness */}
-                    <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10, marginTop: 12 }}>
-                      相手キャラ別（苦手順）
-                    </div>
                     <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 } : undefined}>
                       {charMatchups.slice().sort((a, b) => {
                         const ra = a.t ? a.w / a.t : 0;
