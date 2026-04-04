@@ -197,160 +197,134 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         border: "none",
         position: "relative",
         overflow: "hidden",
+        padding: "20px 20px",
       }}
     >
+      {/* Header */}
       <div
         style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: 120,
-          height: 120,
-          background: "radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%)",
-          borderRadius: "50%",
-          transform: "translate(30%, -30%)",
-        }}
-      />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          position: "relative",
+          fontSize: 13,
+          fontWeight: 700,
+          color: "rgba(255,255,255,.5)",
+          letterSpacing: 1.5,
+          fontFamily: "'Chakra Petch', sans-serif",
+          marginBottom: 12,
         }}
       >
+        TODAY  {formatDateWithDay(today())}
+      </div>
+
+      {tM.length > 0 ? (
         <div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "rgba(255,255,255,.5)",
-              letterSpacing: 1.5,
-              fontFamily: "'Chakra Petch', sans-serif",
-            }}
-          >
-            TODAY  {formatDateWithDay(today())}
-          </div>
-          {tM.length > 0 ? (
+          {/* Main stats row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            {/* W : L */}
+            <div style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
+              <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: -2, lineHeight: 1 }}>
+                <span style={{ color: "#22C55E" }}>{tW}</span>
+                <span style={{ color: "rgba(255,255,255,.25)", margin: "0 6px", fontSize: 28 }}>:</span>
+                <span style={{ color: "#F43F5E" }}>{tL}</span>
+              </div>
+            </div>
+            {/* Donut */}
             <div
               style={{
-                fontSize: 36,
-                fontWeight: 900,
-                marginTop: 4,
-                letterSpacing: -1,
-                fontFamily: "'Chakra Petch', sans-serif",
-              }}
-            >
-              {tW}
-              <span style={{ color: "rgba(255,255,255,.3)", margin: "0 4px", fontSize: 24 }}>:</span>
-              {tL}
-            </div>
-          ) : (
-            <div style={{ fontSize: 20, fontWeight: 700, marginTop: 6, color: "rgba(255,255,255,.4)" }}>
-              対戦データなし
-            </div>
-          )}
-          {streak.count >= 2 && (
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                marginTop: 4,
-                color: streak.type === "win" ? "#34C759" : "#FF9F0A",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <Zap size={14} fill="currentColor" />
-              {streak.count}{streak.type === "win" ? "連勝中" : "連敗中"}
-            </div>
-          )}
-          {tM.length > 0 && (
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,.6)", marginTop: 2 }}>
-              {tM.length}戦  {percentStr(tW, tM.length)}
-            </div>
-          )}
-          {pwrDelta !== null ? (
-            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 2, color: pwrDelta >= 0 ? "#34C759" : "#F43F5E" }}>
-              戦闘力 {pwrDelta >= 0 ? "+" : ""}{numFormat(pwrDelta)}
-            </div>
-          ) : todayDaily.start ? (
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", marginTop: 2 }}>
-              戦闘力 {numFormat(todayDaily.start)}
-            </div>
-          ) : null}
-        </div>
-        {tM.length > 0 ? (
-          <div
-            style={{
-              width: 68,
-              height: 68,
-              borderRadius: "50%",
-              background: `conic-gradient(#22C55E ${(tW / tM.length) * 360}deg, #F43F5E 0deg)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 4px 16px rgba(0,0,0,.2)",
-            }}
-          >
-            <div
-              style={{
-                width: 52,
-                height: 52,
+                width: 80,
+                height: 80,
                 borderRadius: "50%",
-                background: T.tC,
+                background: `conic-gradient(#22C55E ${(tW / tM.length) * 360}deg, #F43F5E 0deg)`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#fff",
-                fontFamily: "'Chakra Petch', sans-serif",
+                boxShadow: "0 4px 16px rgba(0,0,0,.2)",
               }}
             >
-              {percentStr(tW, tM.length)}
+              <div
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: "50%",
+                  background: T.tC,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 17,
+                  fontWeight: 800,
+                  color: "#fff",
+                  fontFamily: "'Chakra Petch', sans-serif",
+                }}
+              >
+                {percentStr(tW, tM.length)}
+              </div>
             </div>
           </div>
-        ) : (
-          <div
-            style={{
-              width: 68,
-              height: 68,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,.06)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid rgba(255,255,255,.1)",
-            }}
-          >
+
+          {/* Detail stats */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "8px 14px", fontSize: 14, fontWeight: 600 }}>
+              {tM.length}戦
+            </div>
+            {streak.count >= 2 && (
+              <div
+                style={{
+                  background: streak.type === "win" ? "rgba(34,197,94,.2)" : "rgba(255,159,10,.2)",
+                  borderRadius: 10,
+                  padding: "8px 14px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: streak.type === "win" ? "#34C759" : "#FF9F0A",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <Zap size={16} fill="currentColor" />
+                {streak.count}{streak.type === "win" ? "連勝中" : "連敗中"}
+              </div>
+            )}
+            {pwrDelta !== null ? (
+              <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "8px 14px", fontSize: 14, fontWeight: 700, color: pwrDelta >= 0 ? "#34C759" : "#F43F5E" }}>
+                {pwrDelta >= 0 ? "+" : ""}{numFormat(pwrDelta)}
+              </div>
+            ) : todayDaily.start ? (
+              <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "8px 14px", fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,.7)" }}>
+                {numFormat(todayDaily.start)}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "rgba(255,255,255,.4)" }}>
+            対戦データなし
+          </div>
+          <div style={{ width: 68, height: 68, borderRadius: "50%", background: "rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,.1)" }}>
             <Trophy size={28} color="rgba(255,255,255,.25)" />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {(goals.games || goals.winRate) ? (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,.1)" }}>
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,.12)" }}>
           {goals.games ? (
-            <div style={{ marginBottom: 6 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(255,255,255,.6)", marginBottom: 3 }}>
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "rgba(255,255,255,.6)", marginBottom: 4, fontWeight: 600 }}>
                 <span>目標 {goals.games}戦</span>
                 <span>{tM.length}/{goals.games}</span>
               </div>
-              <div style={{ height: 4, background: "rgba(255,255,255,.15)", borderRadius: 2, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: "#22C55E", borderRadius: 2, transition: "width .3s ease" }} />
+              <div style={{ height: 6, background: "rgba(255,255,255,.15)", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: "#22C55E", borderRadius: 3, transition: "width .3s ease" }} />
               </div>
             </div>
           ) : null}
           {goals.winRate && tM.length > 0 ? (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(255,255,255,.6)", marginBottom: 3 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "rgba(255,255,255,.6)", marginBottom: 4, fontWeight: 600 }}>
                 <span>目標勝率 {goals.winRate}%</span>
                 <span style={{ color: winRate >= goals.winRate ? "#22C55E" : "#FF9F0A" }}>{winRate}%</span>
               </div>
-              <div style={{ height: 4, background: "rgba(255,255,255,.15)", borderRadius: 2, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? "#22C55E" : "#FF9F0A", borderRadius: 2, transition: "width .3s ease" }} />
+              <div style={{ height: 6, background: "rgba(255,255,255,.15)", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? "#22C55E" : "#FF9F0A", borderRadius: 3, transition: "width .3s ease" }} />
               </div>
             </div>
           ) : null}
