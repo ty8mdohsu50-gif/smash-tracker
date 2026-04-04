@@ -230,7 +230,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 style={{
                   ...cd,
                   flex: 1,
-                  padding: "12px 16px",
+                  padding: "14px 16px",
                   marginBottom: 0,
                   background: streak.type === "win" ? T.win : T.lose,
                   color: "#fff",
@@ -238,15 +238,13 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                   textAlign: "center",
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <Zap size={16} fill="#fff" />
-                    <span style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
-                      {streak.count}
-                    </span>
-                  </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.9, letterSpacing: 0.5 }}>
-                    {streak.type === "win" ? "連勝中" : "連敗中"}
+                <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.8, marginBottom: 6 }}>
+                  {streak.type === "win" ? "連勝中" : "連敗中"}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  <Zap size={18} fill="#fff" />
+                  <span style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    {streak.count}
                   </span>
                 </div>
               </div>
