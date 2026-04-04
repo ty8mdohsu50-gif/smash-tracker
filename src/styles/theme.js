@@ -49,6 +49,12 @@ function buildLight(accent) {
     loseBg: "rgba(225,29,72,.1)",
     glow: "none",
     cardHover: isNeutral ? "#F3F4F6" : hsl(h, 30, 98),
+    accentGrad: isNeutral
+      ? "linear-gradient(135deg, #374151, #1F2937)"
+      : `linear-gradient(135deg, ${c}, ${hsl(h, 75, 38)})`,
+    accentGlow: isNeutral
+      ? "0 4px 16px rgba(55,65,81,.35)"
+      : `0 4px 16px ${c}55`,
   };
 }
 
@@ -83,6 +89,12 @@ function buildDark(accent) {
     loseBg: "rgba(244,63,94,.15)",
     glow: isNeutral ? "none" : `0 0 20px ${accent.light}26`,
     cardHover: isBlack ? "#1A1A1A" : "#252342",
+    accentGrad: isNeutral
+      ? "linear-gradient(135deg, #6B7280, #4B5563)"
+      : `linear-gradient(135deg, ${c}, ${accent.light})`,
+    accentGlow: isNeutral
+      ? "0 4px 16px rgba(107,114,128,.3)"
+      : `0 4px 16px ${accent.light}55`,
   };
 }
 

@@ -280,10 +280,10 @@ export default function App() {
                 position: "absolute", bottom: 0,
                 left: `${(tabIdx * 100) / 3}%`, width: `${100 / 3}%`,
                 height: 3,
-                background: "linear-gradient(90deg, #7C3AED, #A78BFA)",
+                background: T.accentGrad,
                 borderRadius: "3px 3px 0 0",
                 transition: "left .25s cubic-bezier(.4,0,.2,1)",
-                boxShadow: "0 0 8px rgba(124,58,237,.4)",
+                boxShadow: T.accentGlow,
               }}
             />
           </div>

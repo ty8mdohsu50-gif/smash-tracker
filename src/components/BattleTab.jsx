@@ -364,11 +364,11 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     padding: 16,
     border: "none",
     borderRadius: 14,
-    background: disabled ? T.inp : "linear-gradient(135deg, #7C3AED, #6D28D9)",
+    background: disabled ? T.inp : T.accentGrad,
     color: disabled ? T.dim : "#fff",
     fontSize: 17,
     fontWeight: 800,
-    boxShadow: disabled ? "none" : "0 4px 16px rgba(124,58,237,.35)",
+    boxShadow: disabled ? "none" : T.accentGlow,
     transition: "all .2s ease",
   });
 
@@ -606,9 +606,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             }}
             style={{
               width: "100%", padding: 16, border: "none", borderRadius: 14,
-              background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+              background: T.accentGrad,
               color: "#fff", fontSize: 16, fontWeight: 800,
-              boxShadow: "0 4px 16px rgba(124,58,237,.35)",
+              boxShadow: T.accentGlow,
             }}
           >
             保存して終了
@@ -698,9 +698,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }}
               style={{
                 width: "100%", padding: 20, border: "none", borderRadius: 14,
-                background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+                background: T.accentGrad,
                 color: "#fff", fontSize: 17, fontWeight: 800,
-                boxShadow: "0 4px 16px rgba(124,58,237,.35)",
+                boxShadow: T.accentGlow,
               }}
             >
               連戦する
@@ -876,7 +876,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder="メモ（任意）" rows={1} style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
               <div style={{ display: "flex", gap: 12 }}>
-                <button onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: "0 4px 16px rgba(124,58,237,.35)" }}>連戦する</button>
+                <button onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>連戦する</button>
                 <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>次の試合</button>
                 <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>キャラ変更</button>
               </div>
