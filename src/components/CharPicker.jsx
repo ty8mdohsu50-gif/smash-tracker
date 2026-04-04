@@ -9,9 +9,10 @@ export default function CharPicker({
   placeholder,
   label,
   recent = [],
+  autoOpen = false,
   T,
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpen);
   const [q, setQ] = useState("");
   const ref = useRef(null);
   const inputRef = useRef(null);

@@ -33,12 +33,14 @@ export default function AnalysisTab({ data, T, isPC }) {
       key={k}
       onClick={() => fn(k)}
       style={{
-        padding: isPC ? "10px 20px" : "7px 14px",
-        borderRadius: 20,
+        flex: 1,
+        padding: isPC ? "10px 0" : "9px 0",
+        borderRadius: 10,
         border: "none",
-        fontSize: isPC ? 13 : 11,
+        fontSize: isPC ? 13 : 12,
         fontWeight: cur === k ? 700 : 500,
         cursor: "pointer",
+        textAlign: "center",
         background:
           cur === k
             ? data.dark
@@ -244,7 +246,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   return (
     <div>
       <div
-        style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap" }}
+        style={{ display: "flex", gap: 6, marginBottom: 16 }}
       >
         {pill("myChar", "キャラ別", aMode, setAMode)}
         {pill("oppChar", "マッチアップ", aMode, setAMode)}
@@ -483,193 +485,101 @@ export default function AnalysisTab({ data, T, isPC }) {
       {/* Matchup */}
       {aMode === "oppChar" && (
         <div>
-          {matrix.myCs.length > 0 && (
-            <div>
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: T.sub,
-                  marginBottom: 10,
-                }}
-              >
-                マッチアップ表
-              </div>
-              <div style={{ ...cd, padding: 10, overflowX: "auto" }}>
-                <table
-                  style={{
-                    borderCollapse: "collapse",
-                    fontSize: 10,
-                    minWidth: "100%",
-                  }}
-                >
-                  <thead>
-                    <tr>
-                      <th
-                        style={{
-                          padding: "4px 6px",
-                          textAlign: "left",
-                          color: T.sub,
-                          fontWeight: 600,
-                          position: "sticky",
-                          left: 0,
-                          background: T.card,
-                          zIndex: 1,
-                          fontSize: 10,
-                        }}
-                      />
-                      {matrix.opCs.map((oc) => (
-                        <th
-                          key={oc}
-                          style={{
-                            padding: "4px 4px",
-                            textAlign: "center",
-                            color: T.sub,
-                            fontWeight: 600,
-                            whiteSpace: "nowrap",
-                            fontSize: 9,
-                            maxWidth: 48,
-                          }}
-                        >
-                          {shortName(oc)}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {matrix.myCs.map((mc) => (
-                      <tr key={mc}>
-                        <td
-                          style={{
-                            padding: "4px 6px",
-                            fontWeight: 700,
-                            color: T.text,
-                            whiteSpace: "nowrap",
-                            position: "sticky",
-                            left: 0,
-                            background: T.card,
-                            zIndex: 1,
-                            fontSize: 10,
-                          }}
-                        >
-                          {shortName(mc)}
-                        </td>
-                        {matrix.opCs.map((oc) => {
-                          const d = matrix.data[`${mc}|${oc}`];
-                          if (!d)
-                            return (
-                              <td
-                                key={oc}
-                                style={{
-                                  padding: 4,
-                                  textAlign: "center",
-                                  color: T.dimmer,
-                                  fontSize: 9,
-                                }}
-                              >
-                                –
-                              </td>
-                            );
-                          const r = d.w / (d.w + d.l);
-                          return (
-                            <td
-                              key={oc}
-                              style={{
-                                padding: 4,
-                                textAlign: "center",
-                                fontWeight: 700,
-                                fontSize: 10,
-                                color: barColor(r),
-                                background:
-                                  r >= 0.6
-                                    ? "rgba(52,199,89,.08)"
-                                    : r <= 0.4
-                                      ? "rgba(255,59,48,.08)"
-                                      : "transparent",
-                                borderRadius: 3,
-                              }}
-                            >
-                              {percentStr(d.w, d.w + d.l)}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: T.sub,
-              marginBottom: 10,
-              marginTop: 8,
-            }}
-          >
-            苦手順
-          </div>
-          {oCS.length === 0
+          {mCS.length === 0
             ? emptyMsg("対戦を記録するとマッチアップが表示されます")
-            : <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
-              {oCS.map((s) => {
-                const r = s.t ? s.w / s.t : 0;
-                return (
-                  <div
-                    key={s.c}
-                    style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "14px 18px" }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 8,
-                      }}
-                    >
-                      <span
+            : (
+              <div>
+                {/* Character selector */}
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>
+                  使用キャラを選択
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+                  {mCS.map((s) => {
+                    const active = charDetail === s.c;
+                    return (
+                      <button
+                        key={s.c}
+                        onClick={() => setCharDetail(active ? null : s.c)}
                         style={{
-                          fontSize: 15,
-                          fontWeight: 700,
-                          color: T.text,
+                          padding: "8px 14px 8px 8px",
+                          borderRadius: 10,
+                          border: active ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
+                          background: active ? T.accentSoft : T.card,
+                          color: active ? T.accent : T.text,
+                          fontSize: 13,
+                          fontWeight: active ? 700 : 500,
                           display: "flex",
                           alignItems: "center",
-                          gap: 8,
+                          gap: 6,
+                          transition: "all .15s ease",
                         }}
                       >
-                        <FighterIcon name={s.c} size={28} />
+                        <FighterIcon name={s.c} size={22} />
                         {s.c}
-                      </span>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                      >
-                        {renderLabel(r)}
-                        <span
-                          style={{
-                            fontSize: 18,
-                            fontWeight: 800,
-                            color: barColor(r),
-                          }}
-                        >
-                          {percentStr(s.w, s.t)}
-                        </span>
-                      </div>
-                    </div>
-                    {renderBar(r)}
-                    <div style={{ fontSize: 12, color: T.dim }}>
-                      {s.w}W {s.l}L · {s.t}戦
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {!charDetail ? (
+                  <div style={{ ...cd, padding: "32px 20px", textAlign: "center" }}>
+                    <div style={{ fontSize: 14, color: T.dim }}>
+                      上からキャラを選ぶと、相手キャラごとの戦績が表示されます
                     </div>
                   </div>
-                );
-              })}
-            </div>}
+                ) : (
+                  <div>
+                    {/* Selected char header */}
+                    <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <FighterIcon name={charDetail} size={32} />
+                        <div>
+                          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{charDetail}</div>
+                          {(() => {
+                            const tt = charMatchups.reduce((a, s) => ({ w: a.w + s.w, l: a.l + s.l }), { w: 0, l: 0 });
+                            return <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>{tt.w + tt.l}戦 {tt.w}W {tt.l}L ({percentStr(tt.w, tt.w + tt.l)})</div>;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Matchup list - sorted by weakness */}
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10, marginTop: 12 }}>
+                      相手キャラ別（苦手順）
+                    </div>
+                    <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 } : undefined}>
+                      {charMatchups.slice().sort((a, b) => {
+                        const ra = a.t ? a.w / a.t : 0;
+                        const rb = b.t ? b.w / b.t : 0;
+                        return ra - rb;
+                      }).map((s) => {
+                        const r = s.t ? s.w / s.t : 0;
+                        return (
+                          <div key={s.c} style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "12px 16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <FighterIcon name={s.c} size={26} />
+                                <div>
+                                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
+                                  <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}戦)</div>
+                                </div>
+                              </div>
+                              <div style={{ textAlign: "right" }}>
+                                <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                                  {percentStr(s.w, s.t)}
+                                </div>
+                                {renderLabel(r)}
+                              </div>
+                            </div>
+                            {renderBar(r)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       )}
 

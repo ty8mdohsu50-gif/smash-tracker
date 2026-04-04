@@ -513,7 +513,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             )}
             {showOppPicker ? (
               <div style={{ marginTop: 8 }}>
-                <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder="相手を選択" recent={recOpp} T={T} />
+                <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder="相手を選択" recent={recOpp} autoOpen T={T} />
               </div>
             ) : (
               !showOppPicker && (
@@ -581,10 +581,43 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           </div>
 
           <button
-            onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }}
+            onClick={() => setPhase("endSession")}
             style={{ width: "100%", padding: 12, marginTop: 10, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}
           >
-            ← 設定に戻る
+            対戦を終了する
+          </button>
+        </div>
+      )}
+
+      {phase === "endSession" && (
+        <div style={{ animation: "fadeUp .2s ease" }}>
+          {todayCard}
+          <div style={cd}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 12 }}>終了時の戦闘力</div>
+            <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>次回の開始戦闘力に引き継がれます</div>
+            {pwrInput(pEnd, setPEnd, "終了時の戦闘力", true)}
+          </div>
+          <button
+            onClick={() => {
+              savePower(pStart, pEnd);
+              setPhase("setup");
+              setShowPowerEdit(false);
+              setShowOppPicker(false);
+            }}
+            style={{
+              width: "100%", padding: 16, border: "none", borderRadius: 14,
+              background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+              color: "#fff", fontSize: 16, fontWeight: 800,
+              boxShadow: "0 4px 16px rgba(124,58,237,.35)",
+            }}
+          >
+            保存して終了
+          </button>
+          <button
+            onClick={() => setPhase("fighting")}
+            style={{ width: "100%", padding: 12, marginTop: 8, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}
+          >
+            ← 対戦に戻る
           </button>
         </div>
       )}

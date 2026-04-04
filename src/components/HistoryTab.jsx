@@ -15,10 +15,16 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
     return Object.entries(g).sort((a, b) => b[0].localeCompare(a[0]));
   }, [data]);
 
-  const selDay = useMemo(
-    () => histDate ? data.matches.filter((m) => m.date === histDate) : [],
-    [data, histDate],
-  );
+  const selDayWithIdx = useMemo(() => {
+    if (!histDate) return [];
+    const result = [];
+    data.matches.forEach((m, idx) => {
+      if (m.date === histDate) result.push({ m, idx });
+    });
+    return result.reverse();
+  }, [data, histDate]);
+
+  const selDay = useMemo(() => selDayWithIdx.map((e) => e.m), [selDayWithIdx]);
 
   const deleteMatch = (idx) => {
     const nm = [...data.matches];
@@ -73,7 +79,7 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
             <button onClick={() => setHistDate(null)} style={{ background: "transparent", border: "none", color: "#FF3B30", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 14 }}>← 戻る</button>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.text }}>{formatDateLong(histDate)}</div>
             {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 16 }}>{selDay.length}戦 · <span style={{ color: "#34C759", fontWeight: 700 }}>{w}W</span> - <span style={{ color: "#FF3B30", fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
-            {selDay.map((m, i) => { let ri = -1, c = 0; for (let j = 0; j < data.matches.length; j++) { if (data.matches[j].date === histDate) { if (c === i) { ri = j; break; } c++; } } return <HistRow key={i} m={m} onDelete={ri >= 0 ? () => deleteMatch(ri) : null} T={T} />; })}
+            {selDayWithIdx.map((e, i) => <HistRow key={i} m={e.m} onDelete={() => deleteMatch(e.idx)} T={T} />)}
           </div>
         )}
       </div>
@@ -169,14 +175,11 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {selDay.map((m, i) => {
-                    let ri = -1, c = 0;
-                    for (let j = 0; j < data.matches.length; j++) {
-                      if (data.matches[j].date === histDate) { if (c === i) { ri = j; break; } c++; }
-                    }
+                  {selDayWithIdx.map((e, i) => {
+                    const m = e.m;
                     return (
-                      <tr key={i} style={{ transition: "background .1s" }} onMouseEnter={(e) => e.currentTarget.style.background = T.inp} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                        <td style={{ ...tdStyle, color: T.dim, fontSize: 12, fontWeight: 600 }}>{i + 1}</td>
+                      <tr key={i} style={{ transition: "background .1s" }} onMouseEnter={(ev) => ev.currentTarget.style.background = T.inp} onMouseLeave={(ev) => ev.currentTarget.style.background = "transparent"}>
+                        <td style={{ ...tdStyle, color: T.dim, fontSize: 12, fontWeight: 600 }}>{selDayWithIdx.length - i}</td>
                         <td style={tdStyle}>
                           <span style={{
                             padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 800,
@@ -191,9 +194,7 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
                         <td style={{ ...tdStyle, color: T.dim, fontSize: 13 }}>{formatTime(m.time)}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
-                          {ri >= 0 && (
-                            <button onClick={() => deleteMatch(ri)} style={{ border: "none", background: "rgba(220,38,38,.1)", color: "#dc2626", fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>削除</button>
-                          )}
+                          <button onClick={() => deleteMatch(e.idx)} style={{ border: "none", background: "rgba(220,38,38,.1)", color: "#dc2626", fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>削除</button>
                         </td>
                       </tr>
                     );
