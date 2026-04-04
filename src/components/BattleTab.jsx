@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { Trophy, X, ChevronUp, ChevronDown, Zap } from "lucide-react";
 import CharPicker from "./CharPicker";
 import MatchRow from "./MatchRow";
+import MatchupBadge from "./MatchupBadge";
+import FighterIcon from "./FighterIcon";
 import {
   today,
   formatDateWithDay,
@@ -372,7 +374,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
   const mainContent = (
     <div>
-      {todayCard}
+      {phase === "setup" && todayCard}
 
       {phase === "setup" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
@@ -440,22 +442,44 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "fighting" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
-          <button
-            onClick={() => setShowPowerEdit(!showPowerEdit)}
+          {/* Compact status bar */}
+          <div
             style={{
-              ...cd, width: "100%", textAlign: "left",
-              display: "flex", justifyContent: "space-between", alignItems: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 14px",
+              background: T.card,
+              borderRadius: 12,
+              marginBottom: 12,
+              border: `1px solid ${T.brd}`,
             }}
           >
-            <div>
-              <div style={{ fontSize: 11, color: T.sub, fontWeight: 600 }}>{myChar}</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginTop: 2, fontFamily: "'Chakra Petch', sans-serif" }}>
-                開始 {numFormat(pStart)}
-                {pEnd && <span style={{ color: T.sub, fontWeight: 500 }}> → {numFormat(pEnd)}</span>}
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <FighterIcon name={myChar} size={24} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{myChar}</span>
             </div>
-            {showPowerEdit ? <ChevronUp size={16} color={T.dim} /> : <ChevronDown size={16} color={T.dim} />}
-          </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {tM.length > 0 && (
+                <span style={{ fontSize: 13, fontWeight: 700 }}>
+                  <span style={{ color: "#16a34a" }}>{tW}</span>
+                  <span style={{ color: T.dimmer }}> : </span>
+                  <span style={{ color: "#dc2626" }}>{tL}</span>
+                </span>
+              )}
+              <button
+                onClick={() => setShowPowerEdit(!showPowerEdit)}
+                style={{
+                  border: "none", background: T.inp, borderRadius: 8,
+                  padding: "4px 10px", fontSize: 12, fontWeight: 600,
+                  color: T.sub, display: "flex", alignItems: "center", gap: 4,
+                }}
+              >
+                {numFormat(pStart)}{pEnd ? " → " + numFormat(pEnd) : ""}
+                {showPowerEdit ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+            </div>
+          </div>
 
           {showPowerEdit && (
             <div style={{ ...cd, animation: "fadeUp .15s ease" }}>
@@ -524,6 +548,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             )}
           </div>
 
+          {oppChar && myChar && (
+            <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+          )}
+
           <div style={{ fontSize: 13, color: T.sub, textAlign: "center", margin: "12px 0 8px" }}>試合結果を選択</div>
           <div style={{ display: "flex", gap: 12 }}>
             <button
@@ -584,7 +612,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               </div>
             )}
           </div>
-          <button onClick={confirmOpp} disabled={!oppChar} style={activeBtn(!oppChar)}>
+          {oppChar && myChar && (
+            <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+          )}
+          <button onClick={confirmOpp} disabled={!oppChar} style={{ ...activeBtn(!oppChar), marginTop: 12 }}>
             記録する
           </button>
         </div>
@@ -592,24 +623,23 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "postMatch" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
-          <div style={{ ...cd, textAlign: "center", padding: "24px 18px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, letterSpacing: 1.5, fontFamily: "'Chakra Petch', sans-serif" }}>RECORDED</div>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginTop: 8 }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{myChar}</span>
-              <span style={{ fontSize: 13, color: T.dim }}>vs</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{oppChar}</span>
+          <div style={{ ...cd, textAlign: "center", padding: "20px 18px" }}>
+            <div
+              style={{
+                display: "inline-block", padding: "6px 24px", borderRadius: 10,
+                fontSize: 18, fontWeight: 800,
+                background: lastRes === "win" ? T.winBg : T.loseBg,
+                color: lastRes === "win" ? T.win : T.lose,
+              }}
+            >
+              {lastRes === "win" ? "WIN" : "LOSE"}
             </div>
-            <div style={{ marginTop: 8 }}>
-              <span
-                style={{
-                  display: "inline-block", padding: "4px 16px", borderRadius: 8,
-                  fontSize: 14, fontWeight: 800,
-                  background: lastRes === "win" ? T.winBg : T.loseBg,
-                  color: lastRes === "win" ? T.win : T.lose,
-                }}
-              >
-                {lastRes === "win" ? "WIN" : "LOSE"}
-              </span>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 12 }}>
+              <FighterIcon name={myChar} size={28} />
+              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{myChar}</span>
+              <span style={{ fontSize: 12, color: T.dim }}>vs</span>
+              <FighterIcon name={oppChar} size={28} />
+              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{oppChar}</span>
             </div>
             <textarea
               value={memo}
@@ -626,7 +656,11 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {myChar && oppChar && (
+            <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
             <button
               onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }}
               style={{
@@ -656,7 +690,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         </div>
       )}
 
-      {!isPC && (
+      {!isPC && phase === "setup" && (
         <div style={{ marginTop: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>直近の対戦</div>
           {recentMatchList}
