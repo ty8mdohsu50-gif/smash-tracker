@@ -188,143 +188,104 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
   const winRate = tM.length > 0 ? Math.round((tW / tM.length) * 100) : 0;
 
+  const statBox = (label, value, color) => (
+    <div style={{ ...cd, flex: 1, padding: "14px 16px", marginBottom: 0, textAlign: "center" }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 900, color: color || T.text, fontFamily: "'Chakra Petch', sans-serif" }}>{value}</div>
+    </div>
+  );
+
   const todayCard = (
-    <div
-      style={{
-        ...cd,
-        background: T.tBg,
-        color: "#fff",
-        border: "none",
-        position: "relative",
-        overflow: "hidden",
-        padding: "20px 20px",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          fontSize: 13,
-          fontWeight: 700,
-          color: "rgba(255,255,255,.5)",
-          letterSpacing: 1.5,
-          fontFamily: "'Chakra Petch', sans-serif",
-          marginBottom: 12,
-        }}
-      >
+    <div>
+      {/* Date header */}
+      <div style={{ fontSize: 13, fontWeight: 700, color: T.dim, letterSpacing: 1, marginBottom: 10, fontFamily: "'Chakra Petch', sans-serif" }}>
         TODAY  {formatDateWithDay(today())}
       </div>
 
       {tM.length > 0 ? (
         <div>
-          {/* Main stats row */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            {/* W : L */}
-            <div style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
-              <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: -2, lineHeight: 1 }}>
-                <span style={{ color: "#22C55E" }}>{tW}</span>
-                <span style={{ color: "rgba(255,255,255,.25)", margin: "0 6px", fontSize: 28 }}>:</span>
-                <span style={{ color: "#F43F5E" }}>{tL}</span>
+          {/* Top row: W:L and Win Rate */}
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+            <div style={{ ...cd, flex: 2, padding: "18px 16px", marginBottom: 0, textAlign: "center" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 8 }}>勝敗</div>
+              <div style={{ fontSize: 40, fontWeight: 900, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
+                <span style={{ color: "#16a34a" }}>{tW}</span>
+                <span style={{ color: T.dimmer, fontSize: 24, margin: "0 6px" }}>:</span>
+                <span style={{ color: "#dc2626" }}>{tL}</span>
               </div>
+              <div style={{ fontSize: 13, color: T.dim, marginTop: 6 }}>{tM.length}戦</div>
             </div>
-            {/* Donut */}
-            <div
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: `conic-gradient(#22C55E ${(tW / tM.length) * 360}deg, #F43F5E 0deg)`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 4px 16px rgba(0,0,0,.2)",
-              }}
-            >
-              <div
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: "50%",
-                  background: T.tC,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 17,
-                  fontWeight: 800,
-                  color: "#fff",
-                  fontFamily: "'Chakra Petch', sans-serif",
-                }}
-              >
+            <div style={{ ...cd, flex: 1, padding: "18px 16px", marginBottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 8 }}>勝率</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: T.text, fontFamily: "'Chakra Petch', sans-serif" }}>
                 {percentStr(tW, tM.length)}
               </div>
             </div>
           </div>
 
-          {/* Detail stats */}
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "8px 14px", fontSize: 14, fontWeight: 600 }}>
-              {tM.length}戦
-            </div>
+          {/* Second row: streak + power */}
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
             {streak.count >= 2 && (
               <div
                 style={{
-                  background: streak.type === "win" ? "rgba(34,197,94,.2)" : "rgba(255,159,10,.2)",
-                  borderRadius: 10,
-                  padding: "8px 14px",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: streak.type === "win" ? "#34C759" : "#FF9F0A",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
+                  ...cd,
+                  flex: 1,
+                  padding: "12px 16px",
+                  marginBottom: 0,
+                  background: streak.type === "win" ? "#16a34a" : "#dc2626",
+                  color: "#fff",
+                  border: "none",
+                  textAlign: "center",
                 }}
               >
-                <Zap size={16} fill="currentColor" />
-                {streak.count}{streak.type === "win" ? "連勝中" : "連敗中"}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  <Zap size={18} fill="#fff" />
+                  <span style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    {streak.count}
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>
+                    {streak.type === "win" ? "連勝中" : "連敗中"}
+                  </span>
+                </div>
               </div>
             )}
             {pwrDelta !== null ? (
-              <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "8px 14px", fontSize: 14, fontWeight: 700, color: pwrDelta >= 0 ? "#34C759" : "#F43F5E" }}>
-                {pwrDelta >= 0 ? "+" : ""}{numFormat(pwrDelta)}
-              </div>
+              statBox("戦闘力変動", `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}`, pwrDelta >= 0 ? "#16a34a" : "#dc2626")
             ) : todayDaily.start ? (
-              <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "8px 14px", fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,.7)" }}>
-                {numFormat(todayDaily.start)}
-              </div>
+              statBox("戦闘力", numFormat(todayDaily.start), T.text)
             ) : null}
           </div>
         </div>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "rgba(255,255,255,.4)" }}>
-            対戦データなし
-          </div>
-          <div style={{ width: 68, height: 68, borderRadius: "50%", background: "rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,.1)" }}>
-            <Trophy size={28} color="rgba(255,255,255,.25)" />
-          </div>
+        <div style={{ ...cd, padding: "28px 20px", textAlign: "center", marginBottom: 10 }}>
+          <Trophy size={32} color={T.dimmer} style={{ marginBottom: 8 }} />
+          <div style={{ fontSize: 16, fontWeight: 600, color: T.dim }}>対戦データなし</div>
         </div>
       )}
 
+      {/* Goals */}
       {(goals.games || goals.winRate) ? (
-        <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,.12)" }}>
+        <div style={{ ...cd, padding: "14px 16px", marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 10 }}>目標</div>
           {goals.games ? (
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "rgba(255,255,255,.6)", marginBottom: 4, fontWeight: 600 }}>
-                <span>目標 {goals.games}戦</span>
-                <span>{tM.length}/{goals.games}</span>
+            <div style={{ marginBottom: goals.winRate && tM.length > 0 ? 10 : 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 5, fontWeight: 600 }}>
+                <span>対戦数 {goals.games}戦</span>
+                <span style={{ color: T.text, fontWeight: 700 }}>{tM.length}/{goals.games}</span>
               </div>
-              <div style={{ height: 6, background: "rgba(255,255,255,.15)", borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: "#22C55E", borderRadius: 3, transition: "width .3s ease" }} />
+              <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: "#16a34a", borderRadius: 3, transition: "width .3s ease" }} />
               </div>
             </div>
           ) : null}
           {goals.winRate && tM.length > 0 ? (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "rgba(255,255,255,.6)", marginBottom: 4, fontWeight: 600 }}>
-                <span>目標勝率 {goals.winRate}%</span>
-                <span style={{ color: winRate >= goals.winRate ? "#22C55E" : "#FF9F0A" }}>{winRate}%</span>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 5, fontWeight: 600 }}>
+                <span>勝率目標 {goals.winRate}%</span>
+                <span style={{ color: winRate >= goals.winRate ? "#16a34a" : "#dc2626", fontWeight: 700 }}>{winRate}%</span>
               </div>
-              <div style={{ height: 6, background: "rgba(255,255,255,.15)", borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? "#22C55E" : "#FF9F0A", borderRadius: 3, transition: "width .3s ease" }} />
+              <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? "#16a34a" : "#dc2626", borderRadius: 3, transition: "width .3s ease" }} />
               </div>
             </div>
           ) : null}
