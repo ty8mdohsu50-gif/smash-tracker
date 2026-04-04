@@ -19,7 +19,7 @@ export default function MatchRow({ m, onDelete, showTime, T }) {
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: m.result === "win" ? "#34C759" : "#FF3B30",
+            background: m.result === "win" ? T.win : T.lose,
             flexShrink: 0,
           }}
         />

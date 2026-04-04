@@ -34,8 +34,8 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
   }
 
   const rate = stats.w / stats.t;
-  const rateColor = rate >= 0.6 ? "#16a34a" : rate >= 0.4 ? "#a16207" : "#dc2626";
-  const rateBg = rate >= 0.6 ? "rgba(52,199,89,.12)" : rate >= 0.4 ? "rgba(255,159,10,.12)" : "rgba(255,59,48,.12)";
+  const rateColor = rate >= 0.6 ? T.win : rate >= 0.4 ? "#a16207" : T.lose;
+  const rateBg = rate >= 0.6 ? T.winBg : rate >= 0.4 ? "rgba(255,159,10,.12)" : T.loseBg;
   const pct = Math.round(rate * 100) + "%";
 
   return (
@@ -106,8 +106,8 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
                 width: 18,
                 height: 18,
                 borderRadius: 4,
-                background: r === "win" ? "rgba(52,199,89,.15)" : "rgba(255,59,48,.15)",
-                color: r === "win" ? "#16a34a" : "#dc2626",
+                background: r === "win" ? T.winBg : T.loseBg,
+                color: r === "win" ? T.win : T.lose,
                 fontSize: 8,
                 fontWeight: 800,
                 display: "flex",

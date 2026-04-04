@@ -66,7 +66,7 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
                         <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>{ms.length}戦{dp?.start ? ` · ${numFormat(dp.start)}${dp.end ? "→" + numFormat(dp.end) : ""}` : ""}</div>
                       </div>
                       <div style={{ textAlign: "right", marginRight: 8 }}>
-                        <div style={{ fontSize: 18, fontWeight: 800 }}><span style={{ color: "#34C759" }}>{w}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: "#FF3B30" }}>{ms.length - w}</span></div>
+                        <div style={{ fontSize: 18, fontWeight: 800 }}><span style={{ color: T.win }}>{w}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{ms.length - w}</span></div>
                         <div style={{ fontSize: 12, color: T.dim }}>{percentStr(w, ms.length)}</div>
                       </div>
                       <span style={{ color: T.dimmer, fontSize: 20 }}>›</span>
@@ -76,9 +76,9 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
           </div>
         ) : (
           <div>
-            <button onClick={() => setHistDate(null)} style={{ background: "transparent", border: "none", color: "#FF3B30", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 14 }}>← 戻る</button>
+            <button onClick={() => setHistDate(null)} style={{ background: "transparent", border: "none", color: T.accent, fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 14 }}>← 戻る</button>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.text }}>{formatDateLong(histDate)}</div>
-            {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 16 }}>{selDay.length}戦 · <span style={{ color: "#34C759", fontWeight: 700 }}>{w}W</span> - <span style={{ color: "#FF3B30", fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
+            {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 16 }}>{selDay.length}戦 · <span style={{ color: T.win, fontWeight: 700 }}>{w}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
             {selDayWithIdx.map((e, i) => <HistRow key={i} m={e.m} onDelete={() => deleteMatch(e.idx)} T={T} />)}
           </div>
         )}
@@ -115,26 +115,26 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
                       alignItems: "center",
                       padding: "14px 18px",
                       marginBottom: 4,
-                      background: active ? (data.dark ? "rgba(255,59,48,.12)" : "rgba(255,59,48,.06)") : T.card,
-                      border: active ? "2px solid #FF3B30" : (T.brd !== "transparent" ? `1px solid ${T.brd}` : `1px solid ${T.inp}`),
+                      background: active ? T.accentSoft : T.card,
+                      border: active ? `2px solid ${T.accent}` : (T.brd !== "transparent" ? `1px solid ${T.brd}` : `1px solid ${T.inp}`),
                       borderRadius: 14,
                       cursor: "pointer",
                       textAlign: "left",
-                      boxShadow: active ? "0 2px 12px rgba(255,59,48,.15)" : T.sh,
+                      boxShadow: active ? T.accentGlow : T.sh,
                       transition: "all .15s ease",
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: active ? "#FF3B30" : T.text }}>{formatDateLong(dt)}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: active ? T.accent : T.text }}>{formatDateLong(dt)}</div>
                       <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>
                         {ms.length}戦{dp?.start ? ` · ${numFormat(dp.start)}${dp.end ? " → " + numFormat(dp.end) : ""}` : ""}
                       </div>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
                       <div style={{ fontSize: 16, fontWeight: 800 }}>
-                        <span style={{ color: "#34C759" }}>{w}</span>
+                        <span style={{ color: T.win }}>{w}</span>
                         <span style={{ color: T.dimmer }}> : </span>
-                        <span style={{ color: "#FF3B30" }}>{ms.length - w}</span>
+                        <span style={{ color: T.lose }}>{ms.length - w}</span>
                       </div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: barColor(r) }}>{percentStr(w, ms.length)}</div>
                     </div>
@@ -148,7 +148,6 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         {!histDate ? (
           <div style={{ ...cd, padding: "60px 40px", textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 8 }}>日付を選択してください</div>
             <div style={{ fontSize: 13, color: T.dim }}>左のリストから日付をクリックすると詳細が表示されます</div>
           </div>
@@ -157,7 +156,7 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
             <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
               <div style={{ fontSize: 22, fontWeight: 900, color: T.text }}>{formatDateLong(histDate)}</div>
               <div style={{ fontSize: 14, color: T.sub }}>
-                {selDay.length}戦 · <span style={{ color: "#34C759", fontWeight: 700 }}>{selW}W</span> - <span style={{ color: "#FF3B30", fontWeight: 700 }}>{selDay.length - selW}L</span> · {percentStr(selW, selDay.length)}
+                {selDay.length}戦 · <span style={{ color: T.win, fontWeight: 700 }}>{selW}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - selW}L</span> · {percentStr(selW, selDay.length)}
               </div>
             </div>
 
@@ -183,8 +182,8 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
                         <td style={tdStyle}>
                           <span style={{
                             padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 800,
-                            background: m.result === "win" ? "rgba(52,199,89,.15)" : "rgba(255,59,48,.15)",
-                            color: m.result === "win" ? "#16a34a" : "#dc2626",
+                            background: m.result === "win" ? T.winBg : T.loseBg,
+                            color: m.result === "win" ? T.win : T.lose,
                           }}>
                             {m.result === "win" ? "WIN" : "LOSE"}
                           </span>
@@ -194,7 +193,7 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
                         <td style={{ ...tdStyle, color: T.dim, fontSize: 13 }}>{formatTime(m.time)}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
-                          <button onClick={() => deleteMatch(e.idx)} style={{ border: "none", background: "rgba(220,38,38,.1)", color: "#dc2626", fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>削除</button>
+                          <button onClick={() => deleteMatch(e.idx)} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>削除</button>
                         </td>
                       </tr>
                     );

@@ -127,7 +127,7 @@ export default function App() {
         alignItems: "center",
         justifyContent: "center",
         background: "#0f0f23",
-        color: "#7C3AED",
+        color: "#A78BFA",
         fontFamily: "'Chakra Petch', sans-serif",
         fontSize: 18,
         fontWeight: 700,
@@ -228,11 +228,11 @@ export default function App() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  background: "#111",
+                  background: T.accentGrad,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow: "0 2px 8px rgba(0,0,0,.25)",
+                  boxShadow: T.accentGlow,
                 }}
               >
                 <Swords size={18} color="#fff" strokeWidth={2.5} />
@@ -332,11 +332,11 @@ export default function App() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              background: "#111",
+              background: T.accentGrad,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(0,0,0,.3)",
+              boxShadow: T.accentGlow,
             }}
           >
             <Swords size={20} color="#fff" strokeWidth={2.5} />

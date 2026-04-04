@@ -22,9 +22,9 @@ export default function HistRow({ m, onDelete, T }) {
             fontWeight: 800,
             background:
               m.result === "win"
-                ? "rgba(52,199,89,.15)"
-                : "rgba(255,59,48,.15)",
-            color: m.result === "win" ? "#16a34a" : "#dc2626",
+                ? T.winBg
+                : T.loseBg,
+            color: m.result === "win" ? T.win : T.lose,
             flexShrink: 0,
           }}
         >

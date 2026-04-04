@@ -209,9 +209,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <div style={{ ...cd, flex: 2, padding: "18px 16px", marginBottom: 0, textAlign: "center" }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 8 }}>勝敗</div>
               <div style={{ fontSize: 40, fontWeight: 900, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
-                <span style={{ color: "#16a34a" }}>{tW}</span>
+                <span style={{ color: T.win }}>{tW}</span>
                 <span style={{ color: T.dimmer, fontSize: 24, margin: "0 6px" }}>:</span>
-                <span style={{ color: "#dc2626" }}>{tL}</span>
+                <span style={{ color: T.lose }}>{tL}</span>
               </div>
               <div style={{ fontSize: 13, color: T.dim, marginTop: 6 }}>{tM.length}戦</div>
             </div>
@@ -232,25 +232,27 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                   flex: 1,
                   padding: "12px 16px",
                   marginBottom: 0,
-                  background: streak.type === "win" ? "#16a34a" : "#dc2626",
+                  background: streak.type === "win" ? T.win : T.lose,
                   color: "#fff",
                   border: "none",
                   textAlign: "center",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                  <Zap size={18} fill="#fff" />
-                  <span style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
-                    {streak.count}
-                  </span>
-                  <span style={{ fontSize: 14, fontWeight: 700 }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Zap size={16} fill="#fff" />
+                    <span style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
+                      {streak.count}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, opacity: 0.9, letterSpacing: 0.5 }}>
                     {streak.type === "win" ? "連勝中" : "連敗中"}
                   </span>
                 </div>
               </div>
             )}
             {pwrDelta !== null ? (
-              statBox("戦闘力変動", `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}`, pwrDelta >= 0 ? "#16a34a" : "#dc2626")
+              statBox("戦闘力変動", `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}`, pwrDelta >= 0 ? T.win : T.lose)
             ) : todayDaily.start ? (
               statBox("戦闘力", numFormat(todayDaily.start), T.text)
             ) : null}
@@ -274,7 +276,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <span style={{ color: T.text, fontWeight: 700 }}>{tM.length}/{goals.games}</span>
               </div>
               <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: "#16a34a", borderRadius: 3, transition: "width .3s ease" }} />
+                <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3, transition: "width .3s ease" }} />
               </div>
             </div>
           ) : null}
@@ -282,10 +284,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 5, fontWeight: 600 }}>
                 <span>勝率目標 {goals.winRate}%</span>
-                <span style={{ color: winRate >= goals.winRate ? "#16a34a" : "#dc2626", fontWeight: 700 }}>{winRate}%</span>
+                <span style={{ color: winRate >= goals.winRate ? T.win : T.lose, fontWeight: 700 }}>{winRate}%</span>
               </div>
               <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? "#16a34a" : "#dc2626", borderRadius: 3, transition: "width .3s ease" }} />
+                <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : T.lose, borderRadius: 3, transition: "width .3s ease" }} />
               </div>
             </div>
           ) : null}
@@ -400,9 +402,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               <div style={{ textAlign: "right" }}>
                 {tM.length > 0 && (
                   <div style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
-                    <span style={{ color: "#16a34a" }}>{tW}</span>
+                    <span style={{ color: T.win }}>{tW}</span>
                     <span style={{ color: T.dimmer, fontSize: 16, margin: "0 4px" }}>:</span>
-                    <span style={{ color: "#dc2626" }}>{tL}</span>
+                    <span style={{ color: T.lose }}>{tL}</span>
                   </div>
                 )}
                 <button
@@ -442,7 +444,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               {oppChar && (
                 <button
                   onClick={() => setOppChar("")}
-                  style={{ border: "none", background: "rgba(220,38,38,.1)", color: "#dc2626", fontSize: 13, fontWeight: 600, padding: "6px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 4 }}
+                  style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 13, fontWeight: 600, padding: "6px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 4 }}
                 >
                   <X size={14} /> クリア
                 </button>

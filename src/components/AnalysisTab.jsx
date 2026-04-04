@@ -42,20 +42,8 @@ export default function AnalysisTab({ data, T, isPC }) {
         fontWeight: cur === k ? 700 : 500,
         cursor: "pointer",
         textAlign: "center",
-        background:
-          cur === k
-            ? data.dark
-              ? "#fff"
-              : "#1c1c1e"
-            : data.dark
-              ? "#2c2c2e"
-              : "#F2F2F7",
-        color:
-          cur === k
-            ? data.dark
-              ? "#000"
-              : "#fff"
-            : T.sub,
+        background: cur === k ? T.accentGrad : T.inp,
+        color: cur === k ? "#fff" : T.sub,
         transition: "all .15s ease",
       }}
     >
@@ -232,12 +220,12 @@ export default function AnalysisTab({ data, T, isPC }) {
         borderRadius: 8,
         background:
           r >= 0.6
-            ? "rgba(52,199,89,.15)"
+            ? T.winBg
             : r >= 0.4
               ? "rgba(255,159,10,.15)"
-              : "rgba(255,59,48,.15)",
+              : T.loseBg,
         color:
-          r >= 0.6 ? "#16a34a" : r >= 0.4 ? "#a16207" : "#dc2626",
+          r >= 0.6 ? T.win : r >= 0.4 ? "#a16207" : T.lose,
       }}
     >
       {r >= 0.6 ? "得意" : r >= 0.4 ? "互角" : "苦手"}
@@ -300,9 +288,9 @@ export default function AnalysisTab({ data, T, isPC }) {
               勝-負
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>
-              <span style={{ color: "#34C759" }}>{totalW}</span>
+              <span style={{ color: T.win }}>{totalW}</span>
               <span style={{ color: T.dimmer }}> : </span>
-              <span style={{ color: "#FF3B30" }}>{totalL}</span>
+              <span style={{ color: T.lose }}>{totalL}</span>
             </div>
           </div>
         </div>
@@ -340,8 +328,8 @@ export default function AnalysisTab({ data, T, isPC }) {
                 style={{
                   flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
                   fontSize: 13, fontWeight: charTab === k ? 700 : 500, textAlign: "center",
-                  background: charTab === k ? (data.dark ? "#fff" : "#1c1c1e") : (data.dark ? "#2c2c2e" : "#F2F2F7"),
-                  color: charTab === k ? (data.dark ? "#000" : "#fff") : T.sub,
+                  background: charTab === k ? T.accentGrad : T.inp,
+                  color: charTab === k ? "#fff" : T.sub,
                   transition: "all .15s ease",
                 }}
               >
@@ -395,9 +383,9 @@ export default function AnalysisTab({ data, T, isPC }) {
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <span style={{ fontSize: 13, color: T.dim }}>{t}戦</span>
                     <span style={{ fontSize: 16, fontWeight: 800 }}>
-                      <span style={{ color: "#16a34a" }}>{d.w}</span>
+                      <span style={{ color: T.win }}>{d.w}</span>
                       <span style={{ color: T.dimmer }}> : </span>
-                      <span style={{ color: "#dc2626" }}>{d.l}</span>
+                      <span style={{ color: T.lose }}>{d.l}</span>
                     </span>
                     <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r) }}>{percentStr(d.w, t)}</span>
                   </div>
@@ -480,7 +468,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                       <span style={{ fontSize: 12, color: T.dim }}>
                         {s.w}W {s.l}L · {s.t}戦
                       </span>
-                      <span style={{ fontSize: 12, color: T.dimmer }}>
+                      <span style={{ fontSize: 12, color: T.accent }}>
                         詳細 ›
                       </span>
                     </div>
@@ -628,9 +616,9 @@ export default function AnalysisTab({ data, T, isPC }) {
                   fontWeight: 800,
                   marginTop: 4,
                   color: trendData.chg > 0
-                    ? "#34C759"
+                    ? T.win
                     : trendData.chg < 0
-                      ? "#FF3B30"
+                      ? T.lose
                       : T.dim,
                 }}
               >
@@ -649,7 +637,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                   fontSize: 18,
                   fontWeight: 700,
                   marginTop: 4,
-                  color: trendData.mx ? "#34C759" : T.dim,
+                  color: trendData.mx ? T.win : T.dim,
                 }}
               >
                 {trendData.mx ? numFormat(trendData.mx) : "\u2014"}
@@ -664,7 +652,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                   fontSize: 18,
                   fontWeight: 700,
                   marginTop: 4,
-                  color: trendData.mn ? "#FF3B30" : T.dim,
+                  color: trendData.mn ? T.lose : T.dim,
                 }}
               >
                 {trendData.mn ? numFormat(trendData.mn) : "\u2014"}
