@@ -25,7 +25,7 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
           marginTop: 8,
         }}
       >
-        <FighterIcon name={oppChar} size={28} />
+        <FighterIcon name={oppChar} size={32} />
         <div style={{ fontSize: 12, color: T.dim }}>
           vs {oppChar} -- 初対戦
         </div>
@@ -51,7 +51,7 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <FighterIcon name={oppChar} size={28} />
+          <FighterIcon name={oppChar} size={32} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>vs {oppChar}</div>
             <div style={{ fontSize: 11, color: T.dim, marginTop: 1 }}>

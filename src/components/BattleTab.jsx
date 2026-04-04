@@ -456,7 +456,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <FighterIcon name={myChar} size={24} />
+              <FighterIcon name={myChar} size={30} />
               <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{myChar}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -668,10 +668,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               {lastRes === "win" ? "WIN" : "LOSE"}
             </div>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 12 }}>
-              <FighterIcon name={myChar} size={28} />
+              <FighterIcon name={myChar} size={32} />
               <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{myChar}</span>
               <span style={{ fontSize: 12, color: T.dim }}>vs</span>
-              <FighterIcon name={oppChar} size={28} />
+              <FighterIcon name={oppChar} size={32} />
               <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{oppChar}</span>
             </div>
             <textarea

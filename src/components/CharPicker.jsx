@@ -74,7 +74,7 @@ export default function CharPicker({
           gap: 10,
         }}
       >
-        {value && <FighterIcon name={value} size={28} />}
+        {value && <FighterIcon name={value} size={32} />}
         {value || placeholder || "選択"}
       </button>
 
@@ -161,7 +161,7 @@ export default function CharPicker({
                       gap: 4,
                     }}
                   >
-                    <FighterIcon name={c} size={20} />
+                    <FighterIcon name={c} size={24} />
                     {c}
                   </button>
                 ))}
@@ -190,7 +190,7 @@ export default function CharPicker({
                   gap: 10,
                 }}
               >
-                <FighterIcon name={f} size={28} />
+                <FighterIcon name={f} size={32} />
                 {f}
               </div>
             ))}

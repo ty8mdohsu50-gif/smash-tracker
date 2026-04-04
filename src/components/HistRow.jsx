@@ -30,7 +30,7 @@ export default function HistRow({ m, onDelete, T }) {
         >
           {m.result === "win" ? "WIN" : "LOSE"}
         </span>
-        <FighterIcon name={m.myChar} size={24} />
+        <FighterIcon name={m.myChar} size={30} />
         <span
           style={{
             fontSize: 13,
@@ -45,7 +45,7 @@ export default function HistRow({ m, onDelete, T }) {
           {m.myChar}
         </span>
         <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>vs</span>
-        <FighterIcon name={m.oppChar} size={24} />
+        <FighterIcon name={m.oppChar} size={30} />
         <span
           style={{
             fontSize: 13,
