@@ -382,8 +382,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               <div style={{ fontSize: 15, fontWeight: 800, color: T.accent, marginBottom: 10 }}>SMASH TRACKERへようこそ</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
-                  "開始時の戦闘力を入力",
                   "使用キャラを選択",
+                  "開始時の戦闘力を入力",
                   "「対戦開始」で記録スタート",
                 ].map((step, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -404,14 +404,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               </div>
             </div>
           )}
-          <div style={cd}>
-            <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>開始時の戦闘力</div>
-            {prevEnd && !todayDaily.start && (
-              <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>前回から自動引き継ぎ</div>
-            )}
-            {pwrInput(pStart, setPStart, "14,000,000", true)}
-          </div>
 
+          {/* 1. キャラ選択（先） */}
           <div style={{ ...cd, paddingBottom: 18 }}>
             {showMyPicker ? (
               <CharPicker
@@ -426,7 +420,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               <div>
                 <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>使用キャラ</div>
                 {myChar ? (
-                  <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginBottom: 4 }}>{myChar}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                    <FighterIcon name={myChar} size={32} />
+                    <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{myChar}</div>
+                  </div>
                 ) : (
                   <div style={{ fontSize: 15, color: T.dim, marginBottom: 4 }}>未選択</div>
                 )}
@@ -459,6 +456,19 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               </div>
             )}
           </div>
+
+          {/* 2. 戦闘力入力（キャラ選択後に表示） */}
+          {myChar && (
+            <div style={cd}>
+              <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
+                {myChar} の開始時戦闘力
+              </div>
+              {prevEnd && !charPower.start && (
+                <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>前回から自動引き継ぎ</div>
+              )}
+              {pwrInput(pStart, setPStart, "14,000,000", true)}
+            </div>
+          )}
 
           <button onClick={startBattle} disabled={!pStart || !myChar} style={activeBtn(!pStart || !myChar)}>
             対戦開始

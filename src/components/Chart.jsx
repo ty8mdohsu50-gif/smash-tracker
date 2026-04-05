@@ -3,9 +3,9 @@ import { formatDateShort } from "../utils/format";
 export default function Chart({ points: pts, T }) {
   if (!pts || pts.length < 2) return null;
 
-  const W = 400;
+  const W = 440;
   const H = 220;
-  const P = { t: 20, r: 16, b: 36, l: 56 };
+  const P = { t: 20, r: 16, b: 36, l: 90 };
   const cW = W - P.l - P.r;
   const cH = H - P.t - P.b;
 
@@ -149,8 +149,5 @@ export default function Chart({ points: pts, T }) {
 }
 
 function formatPower(v) {
-  const abs = Math.abs(v);
-  if (abs >= 10000000) return (v / 10000000).toFixed(1) + "千万";
-  if (abs >= 10000) return Math.round(v / 10000) + "万";
   return Math.round(v).toLocaleString();
 }
