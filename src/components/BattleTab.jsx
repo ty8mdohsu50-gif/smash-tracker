@@ -880,6 +880,12 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 自キャラを変える
               </button>
             </div>
+            <button
+              onClick={() => { saveMemo(); setNewMilestones([]); setPhase("endSession"); }}
+              style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}
+            >
+              対戦を終了する
+            </button>
           </div>
         </div>
       )}
