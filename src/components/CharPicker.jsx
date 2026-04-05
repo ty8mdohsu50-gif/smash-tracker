@@ -40,7 +40,15 @@ export default function CharPicker({
     }
     if (!q) return base;
     const lq = toHiragana(q.toLowerCase());
-    return base.filter((f) => toHiragana(getSearchText(f).toLowerCase()).includes(lq));
+    return base
+      .filter((f) => toHiragana(getSearchText(f).toLowerCase()).includes(lq))
+      .sort((a, b) => {
+        const ah = toHiragana(a.toLowerCase());
+        const bh = toHiragana(b.toLowerCase());
+        const aStart = ah.startsWith(lq) ? 0 : 1;
+        const bStart = bh.startsWith(lq) ? 0 : 1;
+        return aStart - bStart;
+      });
   }, [q, recent]);
 
   return (
