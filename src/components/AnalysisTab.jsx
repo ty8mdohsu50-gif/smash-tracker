@@ -378,8 +378,10 @@ export default function AnalysisTab({ data, T, isPC }) {
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 10, color: T.dim }}>勝率</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                      <span style={{ fontSize: 10, color: T.dim }}>勝率</span>
+                      <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</span>
+                    </div>
                     {renderLabel(r)}
                   </div>
                 </div>
@@ -471,11 +473,11 @@ export default function AnalysisTab({ data, T, isPC }) {
                         <FighterIcon name={s.c} size={28} />
                         {s.c}
                       </span>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>勝率</div>
-                        <div style={{ fontSize: 20, fontWeight: 800, color: barColor(r) }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                        <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>勝率</span>
+                        <span style={{ fontSize: 20, fontWeight: 800, color: barColor(r) }}>
                           {percentStr(s.w, s.t)}
-                        </div>
+                        </span>
                       </div>
                     </div>
                     {renderBar(r)}
@@ -542,11 +544,11 @@ export default function AnalysisTab({ data, T, isPC }) {
                             <div style={{ fontSize: 11, color: active ? T.accent : T.dim, fontWeight: 500, marginTop: 2 }}>{s.t}戦 {s.w}W {s.l}L</div>
                           </div>
                         </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 10, color: active ? T.accent : T.dim }}>勝率</div>
-                          <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                          <span style={{ fontSize: 10, color: active ? T.accent : T.dim }}>勝率</span>
+                          <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
                             {percentStr(s.w, s.t)}
-                          </div>
+                          </span>
                         </div>
                       </button>
                     );
@@ -579,9 +581,11 @@ export default function AnalysisTab({ data, T, isPC }) {
                                 </div>
                               </div>
                               <div style={{ textAlign: "right" }}>
-                                <div style={{ fontSize: 10, color: T.dim }}>勝率</div>
-                                <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
-                                  {percentStr(s.w, s.t)}
+                                <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                                  <span style={{ fontSize: 10, color: T.dim }}>勝率</span>
+                                  <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                                    {percentStr(s.w, s.t)}
+                                  </span>
                                 </div>
                                 {renderLabel(r)}
                               </div>

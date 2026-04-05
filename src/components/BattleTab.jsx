@@ -39,7 +39,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const prevEnd = lastEndPower(data.daily || {}, myChar);
 
   const [pStart, setPStart] = useState(
-    charPower.start || todayDaily.start || prevEnd || "",
+    charPower.start || todayDaily.start || prevEnd || (myChar ? 0 : ""),
   );
   const [pEnd, setPEnd] = useState(charPower.end || todayDaily.end || "");
 
@@ -90,7 +90,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const switchCharPower = (charName) => {
     const cp = todayDaily.chars?.[charName] || {};
     const prev = lastEndPower(data.daily || {}, charName);
-    setPStart(cp.start || prev || "");
+    setPStart(cp.start || prev || 0);
     setPEnd(cp.end || "");
   };
 
