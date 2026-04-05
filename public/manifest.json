@@ -5,8 +5,8 @@
   "start_url": "/smash-tracker/",
   "scope": "/smash-tracker/",
   "display": "standalone",
-  "background_color": "#0F0F23",
-  "theme_color": "#7C3AED",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "/smash-tracker/icon.svg",

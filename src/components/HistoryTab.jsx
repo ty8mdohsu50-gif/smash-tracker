@@ -76,7 +76,18 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                     <button key={dt} onClick={() => setHistDate(dt)} style={{ ...cd, display: "flex", alignItems: "center", width: "100%", cursor: "pointer", textAlign: "left", marginBottom: 8 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{formatDateLong(dt)}</div>
-                        <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>{ms.length}戦{dp?.start ? ` · ${numFormat(dp.start)}${dp.end ? "→" + numFormat(dp.end) : ""}` : ""}</div>
+                        <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>
+                          {ms.length}戦
+                          {dp?.start ? ` · ${numFormat(dp.start)}${dp.end ? " → " + numFormat(dp.end) : ""}` : ""}
+                        </div>
+                        {dp?.start && dp?.end && (() => {
+                          const delta = dp.end - dp.start;
+                          return (
+                            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 2, color: delta >= 0 ? T.win : T.lose }}>
+                              {delta >= 0 ? "+" : ""}{numFormat(delta)}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div style={{ textAlign: "right", marginRight: 8 }}>
                         <div style={{ fontSize: 18, fontWeight: 800 }}><span style={{ color: T.win }}>{w}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{ms.length - w}</span></div>
@@ -142,6 +153,14 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                       <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>
                         {ms.length}戦{dp?.start ? ` · ${numFormat(dp.start)}${dp.end ? " → " + numFormat(dp.end) : ""}` : ""}
                       </div>
+                      {dp?.start && dp?.end && (() => {
+                        const delta = dp.end - dp.start;
+                        return (
+                          <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2, color: delta >= 0 ? T.win : T.lose }}>
+                            {delta >= 0 ? "+" : ""}{numFormat(delta)}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
                       <div style={{ fontSize: 16, fontWeight: 800 }}>

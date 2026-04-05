@@ -43,7 +43,7 @@ export default function App() {
   );
   const [data, setData] = useState(() => load());
   const [loading, setLoading] = useState(true);
-  const T = getTheme(data.dark, data.themeColor || "purple");
+  const T = getTheme(data.dark !== undefined ? data.dark : true, data.themeColor || "black");
   const [tabIdx, setTabIdx] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
@@ -127,7 +127,7 @@ export default function App() {
         alignItems: "center",
         justifyContent: "center",
         background: "#0f0f23",
-        color: "#A78BFA",
+        color: "#D1D5DB",
         fontFamily: "'Chakra Petch', sans-serif",
         fontSize: 18,
         fontWeight: 700,

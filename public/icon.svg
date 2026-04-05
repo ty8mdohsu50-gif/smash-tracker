@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <!-- 角丸正方形の背景 -->
-  <rect width="512" height="512" rx="96" ry="96" fill="#7C3AED"/>
+  <rect width="512" height="512" rx="96" ry="96" fill="#111111"/>
 
   <!-- 剣クロス (Swords) アイコン - シンプルな白い交差剣 -->
   <!-- 左上から右下への剣 -->

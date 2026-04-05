@@ -22,7 +22,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
 
-  const currentColor = data.themeColor || "purple";
+  const currentColor = data.themeColor || "black";
 
   const saveGoals = () =>
     onSave({

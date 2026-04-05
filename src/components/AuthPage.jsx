@@ -54,7 +54,7 @@ export default function AuthPage({ onSkip }) {
     return (
       <div style={containerStyle}>
         <div style={cardStyle}>
-          <Mail size={40} color="#7C3AED" style={{ marginBottom: 16 }} />
+          <Mail size={40} color="#9CA3AF" style={{ marginBottom: 16 }} />
           <div style={{ fontSize: 18, fontWeight: 800, color: "#1c1c1e", marginBottom: 8 }}>
             確認メールを送信しました
           </div>
@@ -82,7 +82,7 @@ export default function AuthPage({ onSkip }) {
               width: 48,
               height: 48,
               borderRadius: 14,
-              background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+              background: "linear-gradient(135deg, #374151, #1F2937)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -92,7 +92,7 @@ export default function AuthPage({ onSkip }) {
             <Swords size={24} color="#fff" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: "#7C3AED", fontFamily: "'Chakra Petch', sans-serif" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: "#9CA3AF", fontFamily: "'Chakra Petch', sans-serif" }}>
               SMASH TRACKER
             </div>
             <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>
@@ -287,7 +287,7 @@ const submitBtnStyle = {
   padding: "14px 20px",
   border: "none",
   borderRadius: 12,
-  background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+  background: "linear-gradient(135deg, #374151, #1F2937)",
   color: "#fff",
   fontSize: 15,
   fontWeight: 700,
@@ -304,7 +304,7 @@ const submitBtnStyle = {
 const linkBtnStyle = {
   background: "transparent",
   border: "none",
-  color: "#7C3AED",
+  color: "#9CA3AF",
   fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",
