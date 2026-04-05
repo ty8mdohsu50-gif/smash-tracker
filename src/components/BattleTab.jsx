@@ -20,7 +20,7 @@ import {
   getDayPowerSummary,
 } from "../utils/format";
 
-export default function BattleTab({ data, onSave, T, isPC }) {
+export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
   const [phase, setPhase] = useState("setup");
   const [myChar, setMyChar] = useState(data.settings.myChar || "");
   const [result, setResult] = useState(null);
@@ -301,11 +301,15 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {/* Goals */}
       {(goals.games || goals.winRate) ? (
-        <div style={{ ...cd, padding: "14px 16px", marginBottom: 10 }}>
+        <div
+          style={{ ...cd, padding: "14px 16px", marginBottom: 10, cursor: onOpenSettings ? "pointer" : "default" }}
+          onClick={onOpenSettings}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: T.dim }}>目標</span>
             <button
-              onClick={async () => {
+              onClick={async (e) => {
+                e.stopPropagation();
                 const lines = [`【SMASH TRACKER】今日の目標`];
                 if (goals.games) lines.push(`${tM.length}/${goals.games}戦 達成${tM.length >= goals.games ? "!" : "まであと" + (goals.games - tM.length) + "戦"}`);
                 if (goals.winRate && tM.length > 0) lines.push(`勝率 ${winRate}% / 目標${goals.winRate}% ${winRate >= goals.winRate ? "達成!" : ""}`);
@@ -414,6 +418,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 label="使用キャラ"
                 placeholder="ファイターを選択"
                 recent={recMy}
+                autoOpen
                 T={T}
               />
             ) : (

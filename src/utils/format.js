@@ -22,8 +22,8 @@ export const formatDateLong = (d) => {
 
 export const formatTime = (iso) => {
   if (!iso) return "";
-  const t = iso.split("T")[1];
-  return t ? t.split(".")[0].substring(0, 5) : "";
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
 export const formatHour = (iso) => {

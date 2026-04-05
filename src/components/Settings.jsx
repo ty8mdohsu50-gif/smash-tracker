@@ -19,6 +19,7 @@ const SWATCH_COLORS = {
 export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout, user, T }) {
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
 
@@ -110,7 +111,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
             <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 14 }}>
               今日の目標
             </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
               <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 52 }}>対戦数</span>
               <input
                 type="number"
@@ -120,12 +121,12 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                 placeholder="10"
                 style={{
                   flex: 1,
-                  padding: "14px 16px",
+                  padding: "12px 14px",
                   background: T.inp,
                   border: "none",
                   borderRadius: 12,
                   color: T.text,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: 700,
                   outline: "none",
                   boxSizing: "border-box",
@@ -144,12 +145,12 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                 placeholder="60"
                 style={{
                   flex: 1,
-                  padding: "14px 16px",
+                  padding: "12px 14px",
                   background: T.inp,
                   border: "none",
                   borderRadius: 12,
                   color: T.text,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: 700,
                   outline: "none",
                   boxSizing: "border-box",
@@ -160,84 +161,66 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
             </div>
           </div>
 
-          {/* Share settings */}
+          {/* Share settings - collapsible */}
           <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 14 }}>
-              シェア設定
-            </div>
-            {[
-              { key: "showChar", label: "使用キャラを表示" },
-              { key: "showOppChar", label: "対戦相手キャラを表示" },
-              { key: "showRecord", label: "勝敗を表示" },
-              { key: "showPower", label: "戦闘力を表示" },
-            ].map(({ key, label }) => {
-              const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
-              const enabled = ss[key];
-              return (
-                <div
-                  key={key}
-                  style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    marginBottom: 12,
-                  }}
-                >
-                  <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{label}</span>
-                  <button
-                    onClick={() =>
-                      onSave({
-                        ...data,
-                        shareSettings: { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}), [key]: !enabled },
-                      })
-                    }
-                    style={{
-                      width: 54, height: 30, borderRadius: 15, border: "none",
-                      background: enabled ? T.accent : "#E5E5EA",
-                      position: "relative", flexShrink: 0,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 26, height: 26, borderRadius: 13, background: "#fff",
-                        position: "absolute", top: 2, left: enabled ? 26 : 2,
-                        transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)",
-                      }}
-                    />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Dark mode */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "16px 0",
-              borderBottom: `1px solid ${T.inp}`,
-            }}
-          >
-            <span style={{ fontSize: 15, fontWeight: 600, color: T.text }}>ダークモード</span>
             <button
-              onClick={() => onSave({ ...data, dark: !data.dark })}
+              onClick={() => setShowShare(!showShare)}
               style={{
-                width: 54, height: 30, borderRadius: 15, border: "none",
-                background: data.dark ? T.accent : "#E5E5EA",
-                position: "relative", flexShrink: 0,
+                width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+                background: "transparent", border: "none", color: T.text, padding: 0,
               }}
             >
-              <div
-                style={{
-                  width: 26, height: 26, borderRadius: 13, background: "#fff",
-                  position: "absolute", top: 2, left: data.dark ? 26 : 2,
-                  transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)",
-                }}
-              />
+              <span style={{ fontSize: 15, fontWeight: 600 }}>シェア設定</span>
+              {showShare ? <ChevronUp size={18} color={T.dim} /> : <ChevronDown size={18} color={T.dim} />}
             </button>
+            {showShare && (
+              <div style={{ marginTop: 14, animation: "fadeUp .15s ease" }}>
+                {[
+                  { key: "showChar", label: "使用キャラを表示" },
+                  { key: "showOppChar", label: "対戦相手キャラを表示" },
+                  { key: "showRecord", label: "勝敗を表示" },
+                  { key: "showPower", label: "戦闘力を表示" },
+                ].map(({ key, label }) => {
+                  const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+                  const enabled = ss[key];
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        marginBottom: 12,
+                      }}
+                    >
+                      <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{label}</span>
+                      <button
+                        onClick={() =>
+                          onSave({
+                            ...data,
+                            shareSettings: { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}), [key]: !enabled },
+                          })
+                        }
+                        style={{
+                          width: 54, height: 30, borderRadius: 15, border: "none",
+                          background: enabled ? T.accent : T.dimmer,
+                          position: "relative", flexShrink: 0,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 26, height: 26, borderRadius: 13, background: "#fff",
+                            position: "absolute", top: 2, left: enabled ? 26 : 2,
+                            transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+                          }}
+                        />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Theme color - collapsible */}
+          {/* Theme color - collapsible (includes dark mode) */}
           <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
             <button
               onClick={() => setShowTheme(!showTheme)}
@@ -258,36 +241,57 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
               {showTheme ? <ChevronUp size={18} color={T.dim} /> : <ChevronDown size={18} color={T.dim} />}
             </button>
             {showTheme && (
-              <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, animation: "fadeUp .15s ease" }}>
-                {THEME_KEYS.map((key) => {
-                  const active = currentColor === key;
-                  const swatchColor = SWATCH_COLORS[key];
-                  const isLight = key === "white";
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setThemeColor(key)}
-                      style={{
-                        display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
-                        padding: "10px 4px", borderRadius: 12,
-                        border: active ? `2px solid ${T.accent}` : `1px solid ${T.inp}`,
-                        background: active ? T.accentSoft : "transparent",
-                        transition: "all .15s ease",
-                      }}
-                    >
-                      <div
+              <div style={{ marginTop: 14, animation: "fadeUp .15s ease" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, marginBottom: 16 }}>
+                  {THEME_KEYS.map((key) => {
+                    const active = currentColor === key;
+                    const swatchColor = SWATCH_COLORS[key];
+                    const isLight = key === "white";
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setThemeColor(key)}
                         style={{
-                          width: 32, height: 32, borderRadius: "50%", background: swatchColor,
-                          border: isLight ? `2px solid ${T.dimmer}` : "none",
-                          boxShadow: active ? `0 0 0 2px ${T.card}, 0 0 0 4px ${swatchColor}` : "none",
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                          padding: "10px 4px", borderRadius: 12,
+                          border: active ? `2px solid ${T.accent}` : `1px solid ${T.inp}`,
+                          background: active ? T.accentSoft : "transparent",
+                          transition: "all .15s ease",
                         }}
-                      />
-                      <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? T.accent : T.dim }}>
-                        {getThemeLabel(key)}
-                      </span>
-                    </button>
-                  );
-                })}
+                      >
+                        <div
+                          style={{
+                            width: 32, height: 32, borderRadius: "50%", background: swatchColor,
+                            border: isLight ? `2px solid ${T.dimmer}` : "none",
+                            boxShadow: active ? `0 0 0 2px ${T.card}, 0 0 0 4px ${swatchColor}` : "none",
+                          }}
+                        />
+                        <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? T.accent : T.dim }}>
+                          {getThemeLabel(key)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>ダークモード</span>
+                  <button
+                    onClick={() => onSave({ ...data, dark: !data.dark })}
+                    style={{
+                      width: 54, height: 30, borderRadius: 15, border: "none",
+                      background: data.dark ? T.accent : T.dimmer,
+                      position: "relative", flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 26, height: 26, borderRadius: 13, background: "#fff",
+                        position: "absolute", top: 2, left: data.dark ? 26 : 2,
+                        transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+                      }}
+                    />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -324,10 +328,41 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
             {step === 1 && (
               <div style={{ background: "rgba(220,38,38,.08)", borderRadius: 14, padding: 16 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#dc2626", marginBottom: 8 }}>
-                  全データを削除しますか？
+                  本当に削除しますか？
                 </div>
                 <div style={{ fontSize: 13, color: T.sub, marginBottom: 14 }}>
-                  CSVダウンロードを先にどうぞ
+                  この操作は取り消せません
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={() => setStep(0)}
+                    style={{
+                      flex: 1, padding: 14, border: `1px solid ${T.dimmer}`, borderRadius: 12,
+                      background: T.card, color: T.text, fontSize: 14, fontWeight: 600,
+                    }}
+                  >
+                    やめる
+                  </button>
+                  <button
+                    onClick={() => setStep(2)}
+                    style={{
+                      flex: 1, padding: 14, border: "none", borderRadius: 12,
+                      background: "rgba(220,38,38,.15)", color: "#dc2626", fontSize: 14, fontWeight: 600,
+                    }}
+                  >
+                    次へ
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div style={{ background: "rgba(220,38,38,.12)", borderRadius: 14, padding: 16 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#dc2626", marginBottom: 8 }}>
+                  最終確認
+                </div>
+                <div style={{ fontSize: 13, color: T.sub, marginBottom: 14 }}>
+                  全てのデータが完全に削除されます。CSVダウンロードは済みましたか？
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-const WEEK_DAYS = ["日", "月", "火", "水", "木", "金", "土"];
+const WEEK_DAYS = ["月", "火", "水", "木", "金", "土", "日"];
 const WEEKS = 13;
 
 function getCellColor(count, T) {
@@ -26,7 +26,7 @@ function buildGrid(matches) {
   today.setHours(0, 0, 0, 0);
 
   const startDay = new Date(today);
-  const dayOfWeek = startDay.getDay();
+  const dayOfWeek = (startDay.getDay() + 6) % 7;
   startDay.setDate(startDay.getDate() - dayOfWeek - (WEEKS - 1) * 7);
 
   const cells = [];
