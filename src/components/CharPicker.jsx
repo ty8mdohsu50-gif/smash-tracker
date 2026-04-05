@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { FIGHTERS } from "../constants/fighters";
+import { FIGHTERS, getSearchText } from "../constants/fighters";
 import { toHiragana } from "../utils/format";
 import FighterIcon from "./FighterIcon";
 
@@ -40,7 +40,7 @@ export default function CharPicker({
     }
     if (!q) return base;
     const lq = toHiragana(q.toLowerCase());
-    return base.filter((f) => toHiragana(f.toLowerCase()).includes(lq));
+    return base.filter((f) => toHiragana(getSearchText(f).toLowerCase()).includes(lq));
   }, [q, recent]);
 
   return (
