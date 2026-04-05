@@ -310,7 +310,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 if (goals.games) lines.push(`${tM.length}/${goals.games}戦 達成${tM.length >= goals.games ? "!" : "まであと" + (goals.games - tM.length) + "戦"}`);
                 if (goals.winRate && tM.length > 0) lines.push(`勝率 ${winRate}% / 目標${goals.winRate}% ${winRate >= goals.winRate ? "達成!" : ""}`);
                 if (!goals.games && !goals.winRate) return;
-                lines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+                lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
                 const text = lines.join("\n");
                 if (navigator.share) {
                   try { await navigator.share({ text }); } catch (_) { /* cancelled */ }
@@ -700,7 +700,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
         if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
         if (todayDaily.vip) shareLines.push("VIP到達!");
-        shareLines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+        shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
         const shareText = shareLines.join("\n");
 
         const handleShare = async () => {
@@ -1218,7 +1218,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
             if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
             if (todayDaily.vip) shareLines.push("VIP到達!");
-            shareLines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+            shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
             const shareText = shareLines.join("\n");
 
             const handleShare = async () => {

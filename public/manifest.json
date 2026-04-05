@@ -2,14 +2,14 @@
   "name": "SMASH TRACKER",
   "short_name": "SmashTracker",
   "description": "スマブラ対戦戦績管理アプリ",
-  "start_url": "/smash-tracker/",
-  "scope": "/smash-tracker/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/smash-tracker/icon.svg",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

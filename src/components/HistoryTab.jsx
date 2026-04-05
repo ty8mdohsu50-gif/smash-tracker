@@ -30,7 +30,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       lines.push(`戦闘力: ${numFormat(ps.start)} → ${numFormat(ps.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
     }
     if (dp?.vip) lines.push("VIP到達!");
-    lines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+    lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
     const text = lines.join("\n");
     if (navigator.share) {
       try { await navigator.share({ text }); } catch (_) { /* cancelled */ }
