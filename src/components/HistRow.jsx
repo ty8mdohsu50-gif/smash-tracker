@@ -1,4 +1,5 @@
 import { formatTime } from "../utils/format";
+import { shortName } from "../constants/fighters";
 import FighterIcon from "./FighterIcon";
 
 export default function HistRow({ m, onDelete, T }) {
@@ -7,60 +8,60 @@ export default function HistRow({ m, onDelete, T }) {
       style={{
         background: T.card,
         borderRadius: 16,
-        padding: "12px 16px",
+        padding: "10px 14px",
         marginBottom: 6,
         boxShadow: T.sh,
         border: T.brd !== "transparent" ? `1px solid ${T.brd}` : "none",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <span
           style={{
-            padding: "3px 10px",
-            borderRadius: 8,
-            fontSize: 11,
+            width: 40,
+            textAlign: "center",
+            padding: "3px 0",
+            borderRadius: 6,
+            fontSize: 10,
             fontWeight: 800,
-            background:
-              m.result === "win"
-                ? T.winBg
-                : T.loseBg,
+            background: m.result === "win" ? T.winBg : T.loseBg,
             color: m.result === "win" ? T.win : T.lose,
             flexShrink: 0,
           }}
         >
           {m.result === "win" ? "WIN" : "LOSE"}
         </span>
-        <FighterIcon name={m.myChar} size={30} />
+        <FighterIcon name={m.myChar} size={26} />
         <span
           style={{
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 600,
             color: T.text,
-            flex: 1,
+            width: 52,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
+            flexShrink: 0,
           }}
         >
-          {m.myChar}
+          {shortName(m.myChar)}
         </span>
-        <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>vs</span>
-        <FighterIcon name={m.oppChar} size={30} />
+        <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>vs</span>
+        <FighterIcon name={m.oppChar} size={26} />
         <span
           style={{
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 600,
             color: T.text,
-            flex: 1,
-            textAlign: "right",
+            width: 52,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
+            flexShrink: 0,
           }}
         >
-          {m.oppChar}
+          {shortName(m.oppChar)}
         </span>
-        <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>
+        <span style={{ fontSize: 10, color: T.dim, flexShrink: 0, marginLeft: "auto" }}>
           {formatTime(m.time)}
         </span>
         {onDelete && (
@@ -81,9 +82,7 @@ export default function HistRow({ m, onDelete, T }) {
         )}
       </div>
       {m.memo && (
-        <div
-          style={{ fontSize: 11, color: T.sub, marginTop: 3, paddingLeft: 4 }}
-        >
+        <div style={{ fontSize: 11, color: T.sub, marginTop: 3, paddingLeft: 46 }}>
           {m.memo}
         </div>
       )}

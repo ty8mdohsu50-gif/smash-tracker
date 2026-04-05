@@ -109,12 +109,12 @@ export default function Heatmap({ matches, T, isPC }) {
                     alignItems: "center",
                     justifyContent: "flex-end",
                     fontSize: 9,
-                    color: (i === 1 || i === 3 || i === 5) ? T.dim : "transparent",
+                    color: T.dim,
                     fontWeight: 600,
                     userSelect: "none",
                   }}
                 >
-                  {(i === 1 || i === 3 || i === 5) ? d : ""}
+                  {d}
                 </div>
               ))}
             </div>

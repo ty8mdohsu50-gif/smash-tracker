@@ -669,11 +669,13 @@ export default function AnalysisTab({ data, T, isPC }) {
             直近の勝率
           </div>
           <div style={{ display: "flex", gap: isPC ? 16 : 8, marginBottom: isPC ? 20 : 14 }}>
-            {[20, 50].map((n) => {
+            {[20, 50].filter((n) => {
+              if (n === 50 && data.matches.length <= 20) return false;
+              return true;
+            }).map((n) => {
               const d = rolling[n];
               const r = d.t ? d.w / d.t : 0;
-              const label =
-                d.t < n ? `直近${d.t}戦` : `直近${n}戦`;
+              const label = `直近${d.t}戦`;
               return (
                 <div
                   key={n}
