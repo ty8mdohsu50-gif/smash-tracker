@@ -73,7 +73,19 @@ export default function App() {
     const init = async () => {
       await migrateLocalToCloud(user.id);
       const cloud = await cloudLoad(user.id);
-      if (cloud && !cancelled) {
+      if (cancelled) return;
+
+      const local = load();
+      const localCount = local.matches?.length || 0;
+      const cloudCount = cloud?.matches?.length || 0;
+
+      if (cloudCount > localCount) {
+        setData(cloud);
+        save(cloud);
+      } else if (localCount > cloudCount) {
+        setData(local);
+        cloudSave(user.id, local);
+      } else if (cloud) {
         setData(cloud);
         save(cloud);
       }
@@ -104,7 +116,7 @@ export default function App() {
           cloudSave(session.user.id, d);
         }
       });
-    }, 1000);
+    }, 500);
   }, []);
 
   const handleLogout = async () => {
