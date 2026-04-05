@@ -128,7 +128,7 @@ export default function Chart({ points: pts, T }) {
         d={pathD}
         fill="none"
         stroke={lineColor}
-        strokeWidth={2.5}
+        strokeWidth={1.5}
         strokeLinejoin="round"
         strokeLinecap="round"
       />

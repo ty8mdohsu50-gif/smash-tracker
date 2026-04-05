@@ -63,13 +63,13 @@ function buildGrid(matches) {
   return { cells, monthLabels };
 }
 
-export default function Heatmap({ matches, T }) {
+export default function Heatmap({ matches, T, isPC }) {
   const [tooltip, setTooltip] = useState(null);
 
   const { cells, monthLabels } = useMemo(() => buildGrid(matches), [matches]);
 
-  const cellSize = 12;
-  const gap = 3;
+  const cellSize = isPC ? 16 : 12;
+  const gap = isPC ? 4 : 3;
 
   return (
     <div>

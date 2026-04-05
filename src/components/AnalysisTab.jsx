@@ -11,6 +11,7 @@ import {
   barColor,
   numFormat,
   formatHour,
+  getDayPowerSummary,
 } from "../utils/format";
 
 export default function AnalysisTab({ data, T, isPC }) {
@@ -105,6 +106,10 @@ export default function AnalysisTab({ data, T, isPC }) {
   const trendData = useMemo(() => {
     const dl = data.daily || {};
     const entries = Object.entries(dl)
+      .map((e) => {
+        const ps = getDayPowerSummary(e[1]);
+        return [e[0], ps];
+      })
       .filter((e) => e[1].start || e[1].end)
       .sort((a, b) => a[0].localeCompare(b[0]));
     if (!entries.length) return { points: [], cur: 0, chg: 0, mx: 0, mn: 0 };
@@ -373,6 +378,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 10, color: T.dim }}>勝率</div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</div>
                     {renderLabel(r)}
                   </div>
@@ -465,15 +471,12 @@ export default function AnalysisTab({ data, T, isPC }) {
                         <FighterIcon name={s.c} size={28} />
                         {s.c}
                       </span>
-                      <span
-                        style={{
-                          fontSize: 20,
-                          fontWeight: 800,
-                          color: barColor(r),
-                        }}
-                      >
-                        {percentStr(s.w, s.t)}
-                      </span>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>勝率</div>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: barColor(r) }}>
+                          {percentStr(s.w, s.t)}
+                        </div>
+                      </div>
                     </div>
                     {renderBar(r)}
                     <div
@@ -539,8 +542,11 @@ export default function AnalysisTab({ data, T, isPC }) {
                             <div style={{ fontSize: 11, color: active ? T.accent : T.dim, fontWeight: 500, marginTop: 2 }}>{s.t}戦 {s.w}W {s.l}L</div>
                           </div>
                         </div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
-                          {percentStr(s.w, s.t)}
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 10, color: active ? T.accent : T.dim }}>勝率</div>
+                          <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                            {percentStr(s.w, s.t)}
+                          </div>
                         </div>
                       </button>
                     );
@@ -573,6 +579,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                                 </div>
                               </div>
                               <div style={{ textAlign: "right" }}>
+                                <div style={{ fontSize: 10, color: T.dim }}>勝率</div>
                                 <div style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
                                   {percentStr(s.w, s.t)}
                                 </div>
@@ -648,7 +655,7 @@ export default function AnalysisTab({ data, T, isPC }) {
             対戦ヒートマップ（過去13週間）
           </div>
           <div style={{ ...cd, padding: "16px 14px", marginBottom: isPC ? 20 : 14 }}>
-            <Heatmap matches={data.matches} T={T} />
+            <Heatmap matches={data.matches} T={T} isPC={isPC} />
           </div>
 
           <div
