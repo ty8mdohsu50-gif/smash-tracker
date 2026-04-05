@@ -17,6 +17,7 @@ import {
   getStreak,
   recentChars,
   lastEndPower,
+  getDayPowerSummary,
 } from "../utils/format";
 
 export default function BattleTab({ data, onSave, T, isPC }) {
@@ -34,17 +35,26 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [shareStatus, setShareStatus] = useState(null);
 
   const todayDaily = data.daily?.[today()] || {};
-  const prevEnd = lastEndPower(data.daily || {});
+  const charPower = todayDaily.chars?.[myChar] || {};
+  const prevEnd = lastEndPower(data.daily || {}, myChar);
 
   const [pStart, setPStart] = useState(
-    todayDaily.start || prevEnd || "",
+    charPower.start || todayDaily.start || prevEnd || "",
   );
-  const [pEnd, setPEnd] = useState(todayDaily.end || "");
+  const [pEnd, setPEnd] = useState(charPower.end || todayDaily.end || "");
 
   const savePower = (s, e) => {
     const d = { ...data };
     if (!d.daily) d.daily = {};
-    d.daily[today()] = { start: s ? Number(s) : null, end: e ? Number(e) : null };
+    if (!d.daily[today()]) d.daily[today()] = {};
+    const day = d.daily[today()];
+    if (!day.chars) day.chars = {};
+    day.chars[myChar] = {
+      start: s ? Number(s) : null,
+      end: e ? Number(e) : null,
+    };
+    if (!day.start) day.start = s ? Number(s) : null;
+    if (e) day.end = Number(e);
     onSave(d);
   };
 
@@ -77,11 +87,21 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     onSave({ ...data, matches: nm });
   };
 
+  const switchCharPower = (charName) => {
+    const cp = todayDaily.chars?.[charName] || {};
+    const prev = lastEndPower(data.daily || {}, charName);
+    setPStart(cp.start || prev || "");
+    setPEnd(cp.end || "");
+  };
+
   const startBattle = () => {
     if (!pStart || !myChar) return;
     const d = { ...data };
     if (!d.daily) d.daily = {};
-    d.daily[today()] = {
+    if (!d.daily[today()]) d.daily[today()] = {};
+    const day = d.daily[today()];
+    if (!day.chars) day.chars = {};
+    day.chars[myChar] = {
       start: Number(pStart),
       end: pEnd ? Number(pEnd) : null,
     };
@@ -396,7 +416,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             {showMyPicker ? (
               <CharPicker
                 value={myChar}
-                onChange={(c) => { setMyChar(c); setShowMyPicker(false); }}
+                onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }}
                 label="使用キャラ"
                 placeholder="ファイターを選択"
                 recent={recMy}
@@ -424,7 +444,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                   {recMy.filter((c) => c !== myChar).slice(0, 2).map((c) => (
                     <button
                       key={c}
-                      onClick={() => setMyChar(c)}
+                      onClick={() => { setMyChar(c); switchCharPower(c); }}
                       style={{
                         padding: "8px 14px", borderRadius: 10, border: "none",
                         background: T.inp, color: T.text, fontSize: 12, fontWeight: 600,
@@ -1049,7 +1069,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 </div>
                 <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
                   {showMyPicker ? (
-                    <CharPicker value={myChar} onChange={(c) => { setMyChar(c); setShowMyPicker(false); }} label="使用キャラ" placeholder="ファイターを選択" recent={recMy} T={T} />
+                    <CharPicker value={myChar} onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }} label="使用キャラ" placeholder="ファイターを選択" recent={recMy} T={T} />
                   ) : (
                     <div>
                       <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>使用キャラ</div>
@@ -1057,7 +1077,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                       <div style={{ display: "flex", gap: 8 }}>
                         <button onClick={() => setShowMyPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>変更</button>
                         {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
-                          <button key={c} onClick={() => setMyChar(c)} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{c}</button>
+                          <button key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{c}</button>
                         ))}
                       </div>
                     </div>

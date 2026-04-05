@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Swords, Share2 } from "lucide-react";
 import HistRow from "./HistRow";
 import FighterIcon from "./FighterIcon";
-import { formatDateLong, formatTime, numFormat, percentStr, barColor } from "../utils/format";
+import { formatDateLong, formatTime, numFormat, percentStr, barColor, getDayPowerSummary } from "../utils/format";
 
 export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   const [histDate, setHistDate] = useState(null);
@@ -12,6 +12,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     const w = matches.filter((m) => m.result === "win").length;
     const l = matches.length - w;
     const dp = data.daily?.[date];
+    const ps = getDayPowerSummary(dp);
     const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
     const myChars = [...new Set(matches.map((m) => m.myChar).filter(Boolean))];
     const topOpp = (() => {
@@ -24,9 +25,9 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     if (ss.showChar && myChars.length > 0) lines.push(`使用: ${myChars.join(" / ")}`);
     if (ss.showRecord) lines.push(`${w}勝${l}敗（勝率${percentStr(w, matches.length)}）`);
     if (ss.showOppChar && topOpp) lines.push(`最多対戦: ${topOpp}`);
-    if (ss.showPower && dp?.start && dp?.end) {
-      const delta = dp.end - dp.start;
-      lines.push(`戦闘力: ${numFormat(dp.start)} → ${numFormat(dp.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
+    if (ss.showPower && ps.start && ps.end) {
+      const delta = ps.end - ps.start;
+      lines.push(`戦闘力: ${numFormat(ps.start)} → ${numFormat(ps.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
     }
     if (dp?.vip) lines.push("VIP到達!");
     lines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
@@ -109,17 +110,17 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
               ? emptyHistoryState(onGoBattle)
               : dGroups.map(([dt, ms]) => {
                   const w = ms.filter((m) => m.result === "win").length;
-                  const dp = data.daily?.[dt];
+                  const ps = getDayPowerSummary(data.daily?.[dt]);
                   return (
                     <button key={dt} onClick={() => setHistDate(dt)} style={{ ...cd, display: "flex", alignItems: "center", width: "100%", cursor: "pointer", textAlign: "left", marginBottom: 8 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{formatDateLong(dt)}</div>
                         <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>
                           {ms.length}戦
-                          {dp?.start ? ` · ${numFormat(dp.start)}${dp.end ? " → " + numFormat(dp.end) : ""}` : ""}
+                          {ps.start ? ` · ${numFormat(ps.start)}${ps.end ? " → " + numFormat(ps.end) : ""}` : ""}
                         </div>
-                        {dp?.start && dp?.end && (() => {
-                          const delta = dp.end - dp.start;
+                        {ps.start && ps.end && (() => {
+                          const delta = ps.end - ps.start;
                           return (
                             <div style={{ fontSize: 12, fontWeight: 700, marginTop: 2, color: delta >= 0 ? T.win : T.lose }}>
                               {delta >= 0 ? "+" : ""}{numFormat(delta)}
@@ -174,7 +175,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
             : dGroups.map(([dt, ms]) => {
                 const w = ms.filter((m) => m.result === "win").length;
                 const r = ms.length ? w / ms.length : 0;
-                const dp = data.daily?.[dt];
+                const ps = getDayPowerSummary(data.daily?.[dt]);
                 const active = histDate === dt;
                 return (
                   <button
@@ -198,10 +199,10 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: active ? T.accent : T.text }}>{formatDateLong(dt)}</div>
                       <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>
-                        {ms.length}戦{dp?.start ? ` · ${numFormat(dp.start)}${dp.end ? " → " + numFormat(dp.end) : ""}` : ""}
+                        {ms.length}戦{ps.start ? ` · ${numFormat(ps.start)}${ps.end ? " → " + numFormat(ps.end) : ""}` : ""}
                       </div>
-                      {dp?.start && dp?.end && (() => {
-                        const delta = dp.end - dp.start;
+                      {ps.start && ps.end && (() => {
+                        const delta = ps.end - ps.start;
                         return (
                           <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2, color: delta >= 0 ? T.win : T.lose }}>
                             {delta >= 0 ? "+" : ""}{numFormat(delta)}

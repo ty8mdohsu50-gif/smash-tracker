@@ -83,11 +83,31 @@ export const recentChars = (ms, field) => {
   return out;
 };
 
-export const lastEndPower = (dl) => {
+export const lastEndPower = (dl, charName) => {
   const ds = Object.keys(dl).sort();
   for (let i = ds.length - 1; i >= 0; i--) {
-    if (dl[ds[i]]?.end) return dl[ds[i]].end;
-    if (dl[ds[i]]?.start) return dl[ds[i]].start;
+    const day = dl[ds[i]];
+    if (day?.chars && charName) {
+      const cd = day.chars[charName];
+      if (cd?.end) return cd.end;
+      if (cd?.start) return cd.start;
+    }
+    if (day?.end) return day.end;
+    if (day?.start) return day.start;
   }
   return "";
+};
+
+export const getDayPowerSummary = (day) => {
+  if (!day) return { start: null, end: null };
+  if (day.chars) {
+    const chars = Object.values(day.chars);
+    const starts = chars.map((c) => c.start).filter(Boolean);
+    const ends = chars.map((c) => c.end).filter(Boolean);
+    return {
+      start: starts.length ? Math.min(...starts) : null,
+      end: ends.length ? Math.max(...ends) : null,
+    };
+  }
+  return { start: day.start || null, end: day.end || null };
 };
