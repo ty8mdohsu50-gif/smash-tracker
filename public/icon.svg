@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- 角丸正方形の背景 -->
+  <rect width="512" height="512" rx="96" ry="96" fill="#7C3AED"/>
+
+  <!-- 剣クロス (Swords) アイコン - シンプルな白い交差剣 -->
+  <!-- 左上から右下への剣 -->
+  <g stroke="white" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 剣1: 左下から右上 -->
+    <line x1="140" y1="372" x2="320" y2="192" stroke-width="28"/>
+    <!-- 剣1 の柄ガード -->
+    <line x1="116" y1="316" x2="196" y2="396" stroke-width="20"/>
+    <!-- 剣1 の刃先 -->
+    <polygon points="320,192 344,152 372,140 360,168 348,196" fill="white" stroke="none"/>
+
+    <!-- 剣2: 右下から左上 -->
+    <line x1="372" y1="372" x2="192" y2="192" stroke-width="28"/>
+    <!-- 剣2 の柄ガード -->
+    <line x1="396" y1="316" x2="316" y2="396" stroke-width="20"/>
+    <!-- 剣2 の刃先 -->
+    <polygon points="192,192 168,152 140,140 152,168 164,196" fill="white" stroke="none"/>
+  </g>
+</svg>

@@ -8,23 +8,47 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Smash記録" />
+    <meta name="apple-mobile-web-app-title" content="SMASH TRACKER" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#0F0F23" />
+    <meta name="theme-color" content="#7C3AED" />
+    <meta name="description" content="対戦戦績を記録・分析して強くなろう。キャラ別勝率、マッチアップ分析、戦闘力推移をトラック。" />
+
+    <!-- OGP -->
+    <meta property="og:title" content="SMASH TRACKER - スマブラ対戦戦績管理" />
+    <meta property="og:description" content="対戦戦績を記録・分析して強くなろう。キャラ別勝率、マッチアップ分析、戦闘力推移をトラック。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ty8mdohsu50-gif.github.io/smash-tracker/" />
+    <meta property="og:image" content="https://ty8mdohsu50-gif.github.io/smash-tracker/ogp.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SMASH TRACKER - スマブラ対戦戦績管理" />
+    <meta name="twitter:description" content="対戦戦績を記録・分析して強くなろう。" />
+    <meta name="twitter:image" content="https://ty8mdohsu50-gif.github.io/smash-tracker/ogp.svg" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/smash-tracker/manifest.json" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>"
-    />
-    <title>Smash Tracker</title>
+    <link rel="icon" href="/smash-tracker/icon.svg" type="image/svg+xml" />
+    <title>SMASH TRACKER</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/smash-tracker/sw.js", { scope: "/smash-tracker/" })
+            .catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
