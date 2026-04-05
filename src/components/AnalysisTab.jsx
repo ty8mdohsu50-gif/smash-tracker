@@ -131,17 +131,9 @@ export default function AnalysisTab({ data, T, isPC }) {
     const pts = [];
     filtered.forEach((e) => {
       if (e[1].start)
-        pts.push({
-          date: e[0],
-          value: e[1].start,
-          label: formatDate(e[0]) + "開始",
-        });
+        pts.push({ date: e[0], value: e[1].start });
       if (e[1].end)
-        pts.push({
-          date: e[0],
-          value: e[1].end,
-          label: formatDate(e[0]) + "終了",
-        });
+        pts.push({ date: e[0], value: e[1].end });
     });
     if (!pts.length) return { points: [], cur: 0, chg: 0, mx: 0, mn: 0 };
 
@@ -625,76 +617,20 @@ export default function AnalysisTab({ data, T, isPC }) {
               marginBottom: 12,
             }}
           >
-            <div style={{ ...cd, marginBottom: 0, padding: "14px 16px" }}>
-              <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>
-                現在
+            {[
+              { label: "現在", value: trendData.cur ? numFormat(trendData.cur) : "\u2014", color: T.text },
+              { label: "変動", value: trendData.chg ? (trendData.chg > 0 ? "+" : "") + numFormat(trendData.chg) : "\u2014", color: trendData.chg > 0 ? T.win : trendData.chg < 0 ? T.lose : T.dim },
+              { label: "最高", value: trendData.mx ? numFormat(trendData.mx) : "\u2014", color: trendData.mx ? T.win : T.dim },
+              { label: "最低", value: trendData.mn ? numFormat(trendData.mn) : "\u2014", color: trendData.mn ? T.lose : T.dim },
+            ].map((s) => (
+              <div key={s.label} style={{ ...cd, marginBottom: 0, padding: "14px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{s.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: s.color, fontFamily: "'Chakra Petch', sans-serif" }}>{s.value}</div>
               </div>
-              <div
-                style={{
-                  fontSize: 20,
-                  fontWeight: 800,
-                  color: T.text,
-                  marginTop: 4,
-                }}
-              >
-                {trendData.cur ? numFormat(trendData.cur) : "\u2014"}
-              </div>
-            </div>
-            <div style={{ ...cd, marginBottom: 0, padding: "14px 16px" }}>
-              <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>
-                変動
-              </div>
-              <div
-                style={{
-                  fontSize: 20,
-                  fontWeight: 800,
-                  marginTop: 4,
-                  color: trendData.chg > 0
-                    ? T.win
-                    : trendData.chg < 0
-                      ? T.lose
-                      : T.dim,
-                }}
-              >
-                {trendData.chg
-                  ? (trendData.chg > 0 ? "+" : "") +
-                    numFormat(trendData.chg)
-                  : "\u2014"}
-              </div>
-            </div>
-            <div style={{ ...cd, marginBottom: 0, padding: "14px 16px" }}>
-              <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>
-                最高
-              </div>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 700,
-                  marginTop: 4,
-                  color: trendData.mx ? T.win : T.dim,
-                }}
-              >
-                {trendData.mx ? numFormat(trendData.mx) : "\u2014"}
-              </div>
-            </div>
-            <div style={{ ...cd, marginBottom: 0, padding: "14px 16px" }}>
-              <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>
-                最低
-              </div>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 700,
-                  marginTop: 4,
-                  color: trendData.mn ? T.lose : T.dim,
-                }}
-              >
-                {trendData.mn ? numFormat(trendData.mn) : "\u2014"}
-              </div>
-            </div>
+            ))}
           </div>
           {trendData.points.length > 1 ? (
-            <div style={{ ...cd, padding: "14px 8px 8px" }}>
+            <div style={{ ...cd, padding: "16px 12px 10px" }}>
               <Chart points={trendData.points} T={T} />
             </div>
           ) : (
