@@ -200,7 +200,7 @@ const PRIVACY_SECTIONS = [
     content: `本プライバシーポリシーに関するご質問、または保有個人データに関する権利の行使については、以下のお問い合わせフォームよりご連絡ください。
 
 お問い合わせフォーム:
-https://docs.google.com/forms/d/e/1FAIpQLSfm529BKsH7JeBw4vq7nsBI1GtpiMkGLhogQb2XDycF_RDUUQ/viewform
+https://forms.gle/KtoWRKo1ciJNd7eS9
 
 お問い合わせ内容によっては、ご本人確認をお願いする場合があります。通常3営業日以内に対応いたします。`,
   },
@@ -382,7 +382,7 @@ export default function LegalPage({ T, onClose, page }) {
               }}
             >
               <div style={{ fontSize: 12, color: T.sub, lineHeight: 1.7 }}>
-                本ポリシーにご不明な点がございましたら、<a href="https://docs.google.com/forms/d/e/1FAIpQLSfm529BKsH7JeBw4vq7nsBI1GtpiMkGLhogQb2XDycF_RDUUQ/viewform" target="_blank" rel="noopener noreferrer" style={{ color: T.accent, fontWeight: 700 }}>お問い合わせフォーム</a>よりお気軽にご連絡ください。
+                本ポリシーにご不明な点がございましたら、<a href="https://forms.gle/KtoWRKo1ciJNd7eS9" target="_blank" rel="noopener noreferrer" style={{ color: T.accent, fontWeight: 700 }}>お問い合わせフォーム</a>よりお気軽にご連絡ください。
               </div>
             </div>
           )}
