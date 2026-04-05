@@ -1,4 +1,4 @@
-import { formatTime, formatDateWithDay } from "../utils/format";
+import { formatTime, formatDateLong } from "../utils/format";
 import FighterIcon from "./FighterIcon";
 
 export default function MatchRow({ m, onDelete, showTime, T }) {
@@ -79,7 +79,7 @@ export default function MatchRow({ m, onDelete, showTime, T }) {
         <div
           style={{ fontSize: 11, color: T.dim, marginTop: 4, paddingLeft: 16 }}
         >
-          {formatDateWithDay(m.date)}
+          {formatDateLong(m.date)}
         </div>
       )}
       {m.memo && (

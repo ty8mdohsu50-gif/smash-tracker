@@ -4,15 +4,20 @@ export const today = () => new Date().toISOString().split("T")[0];
 
 export const formatDate = (d) => {
   const p = d.split("-");
+  return `${p[0]}/${Number(p[1])}/${Number(p[2])}`;
+};
+
+export const formatDateShort = (d) => {
+  const p = d.split("-");
   return `${Number(p[1])}/${Number(p[2])}`;
 };
 
 export const formatDateWithDay = (d) =>
-  `${formatDate(d)}(${DAY_NAMES[new Date(d).getDay()]})`;
+  `${formatDateShort(d)}(${DAY_NAMES[new Date(d).getDay()]})`;
 
 export const formatDateLong = (d) => {
   const p = d.split("-");
-  return `${Number(p[1])}月${Number(p[2])}日(${DAY_NAMES[new Date(d).getDay()]})`;
+  return `${p[0]}年${Number(p[1])}月${Number(p[2])}日(${DAY_NAMES[new Date(d).getDay()]})`;
 };
 
 export const formatTime = (iso) => {

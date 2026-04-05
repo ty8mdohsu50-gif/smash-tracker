@@ -1,4 +1,4 @@
-import { formatDate } from "../utils/format";
+import { formatDateShort } from "../utils/format";
 
 export default function Chart({ points: pts, T }) {
   if (!pts || pts.length < 2) return null;
