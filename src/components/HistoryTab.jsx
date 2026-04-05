@@ -28,6 +28,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       const delta = dp.end - dp.start;
       lines.push(`戦闘力: ${numFormat(dp.start)} → ${numFormat(dp.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
     }
+    if (dp?.vip) lines.push("VIP到達!");
     lines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
     const text = lines.join("\n");
     if (navigator.share) {

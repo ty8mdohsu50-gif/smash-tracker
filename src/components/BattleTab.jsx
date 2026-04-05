@@ -222,11 +222,11 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         <div>
           {/* Top row: W:L and Win Rate */}
           <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-            <div style={{ ...cd, flex: 2, padding: "18px 16px", marginBottom: 0, textAlign: "center" }}>
+            <div style={{ ...cd, flex: 1, padding: "18px 16px", marginBottom: 0, textAlign: "center" }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 8 }}>勝敗</div>
-              <div style={{ fontSize: 40, fontWeight: 900, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
+              <div style={{ fontSize: 36, fontWeight: 900, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
                 <span style={{ color: T.win }}>{tW}</span>
-                <span style={{ color: T.dimmer, fontSize: 24, margin: "0 6px" }}>:</span>
+                <span style={{ color: T.dimmer, fontSize: 20, margin: "0 4px" }}>:</span>
                 <span style={{ color: T.lose }}>{tL}</span>
               </div>
               <div style={{ fontSize: 13, color: T.dim, marginTop: 6 }}>{tM.length}戦</div>
@@ -282,7 +282,27 @@ export default function BattleTab({ data, onSave, T, isPC }) {
       {/* Goals */}
       {(goals.games || goals.winRate) ? (
         <div style={{ ...cd, padding: "14px 16px", marginBottom: 10 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 10 }}>目標</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.dim }}>目標</span>
+            <button
+              onClick={async () => {
+                const lines = [`【SMASH TRACKER】今日の目標`];
+                if (goals.games) lines.push(`${tM.length}/${goals.games}戦 達成${tM.length >= goals.games ? "!" : "まであと" + (goals.games - tM.length) + "戦"}`);
+                if (goals.winRate && tM.length > 0) lines.push(`勝率 ${winRate}% / 目標${goals.winRate}% ${winRate >= goals.winRate ? "達成!" : ""}`);
+                if (!goals.games && !goals.winRate) return;
+                lines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+                const text = lines.join("\n");
+                if (navigator.share) {
+                  try { await navigator.share({ text }); } catch (_) { /* cancelled */ }
+                } else {
+                  try { await navigator.clipboard.writeText(text); } catch (_) { /* */ }
+                }
+              }}
+              style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}
+            >
+              <Share2 size={12} /> シェア
+            </button>
+          </div>
           {goals.games ? (
             <div style={{ marginBottom: goals.winRate && tM.length > 0 ? 10 : 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 5, fontWeight: 600 }}>
@@ -593,6 +613,32 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>次回の開始戦闘力に引き継がれます</div>
             {pwrInput(pEnd, setPEnd, "終了時の戦闘力", true)}
           </div>
+          <div style={{ ...cd, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px" }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>VIP到達</div>
+              <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>シェア時に表示されます</div>
+            </div>
+            <button
+              onClick={() => {
+                const d = { ...data };
+                if (!d.daily) d.daily = {};
+                if (!d.daily[today()]) d.daily[today()] = {};
+                d.daily[today()] = { ...d.daily[today()], vip: !d.daily[today()]?.vip };
+                onSave(d);
+              }}
+              style={{
+                width: 54, height: 30, borderRadius: 15, border: "none",
+                background: todayDaily.vip ? T.accent : "#555",
+                position: "relative", flexShrink: 0,
+              }}
+            >
+              <div style={{
+                width: 26, height: 26, borderRadius: 13, background: "#fff",
+                position: "absolute", top: 2, left: todayDaily.vip ? 26 : 2,
+                transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+              }} />
+            </button>
+          </div>
           <button
             onClick={() => {
               savePower(pStart, pEnd);
@@ -632,7 +678,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         if (ss.showChar && myChar) shareLines.push(`使用: ${myChar}`);
         if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
         if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
-        if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (+${numFormat(pDelta)})`.replace("+-", "-") : ""}`);
+        if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+        if (todayDaily.vip) shareLines.push("VIP到達!");
         shareLines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
         const shareText = shareLines.join("\n");
 
@@ -1149,7 +1196,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             if (ss.showChar && myChar) shareLines.push(`使用: ${myChar}`);
             if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
             if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
-            if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (+${numFormat(pDelta)})`.replace("+-", "-") : ""}`);
+            if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+            if (todayDaily.vip) shareLines.push("VIP到達!");
             shareLines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
             const shareText = shareLines.join("\n");
 

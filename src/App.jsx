@@ -200,7 +200,6 @@ export default function App() {
         style={{
           minHeight: "100vh",
           background: T.bg,
-          maxWidth: 640,
           margin: "0 auto",
           overflow: "hidden",
           touchAction: "pan-y",
