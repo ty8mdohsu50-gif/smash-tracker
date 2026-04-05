@@ -171,7 +171,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   );
 
   const recentMatchList = tM.length === 0
-    ? emptyMsg("今日の対戦記録がここに表示されます")
+    ? emptyMsg("対戦を始めましょう！上の「対戦開始」ボタンから記録できます")
     : tM
         .slice()
         .reverse()
@@ -313,6 +313,41 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "setup" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
+          {data.matches.length === 0 && (
+            <div
+              style={{
+                background: T.accentSoft,
+                borderRadius: 16,
+                padding: "18px 20px",
+                marginBottom: 12,
+                border: `1px solid ${T.accent}33`,
+              }}
+            >
+              <div style={{ fontSize: 15, fontWeight: 800, color: T.accent, marginBottom: 10 }}>SMASH TRACKERへようこそ</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  "開始時の戦闘力を入力",
+                  "使用キャラを選択",
+                  "「対戦開始」で記録スタート",
+                ].map((step, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      style={{
+                        width: 22, height: 22, borderRadius: "50%",
+                        background: T.accent, color: "#fff",
+                        fontSize: 12, fontWeight: 800,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: T.accent }}>{step}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={cd}>
             <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>開始時の戦闘力</div>
             {prevEnd && !todayDaily.start && (
@@ -608,11 +643,12 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 fontSize: 18, fontWeight: 800,
                 background: lastRes === "win" ? T.winBg : T.loseBg,
                 color: lastRes === "win" ? T.win : T.lose,
+                animation: "popIn .3s ease",
               }}
             >
               {lastRes === "win" ? "WIN" : "LOSE"}
             </div>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 12 }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 12, animation: "slideUp .3s ease .1s both" }}>
               <FighterIcon name={myChar} size={32} />
               <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{myChar}</span>
               <span style={{ fontSize: 12, color: T.dim }}>vs</span>
@@ -635,10 +671,12 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           </div>
 
           {myChar && oppChar && (
-            <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+            <div style={{ animation: "slideUp .3s ease .2s both" }}>
+              <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+            </div>
           )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
             <button
               onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }}
               style={{
@@ -730,6 +768,41 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         <div style={{ flex: 3, minWidth: 0 }}>
           {phase === "setup" && (
             <div>
+              {data.matches.length === 0 && (
+                <div
+                  style={{
+                    background: T.accentSoft,
+                    borderRadius: 16,
+                    padding: "20px 24px",
+                    marginBottom: 16,
+                    border: `1px solid ${T.accent}33`,
+                  }}
+                >
+                  <div style={{ fontSize: 16, fontWeight: 800, color: T.accent, marginBottom: 12 }}>SMASH TRACKERへようこそ</div>
+                  <div style={{ display: "flex", gap: 24 }}>
+                    {[
+                      "開始時の戦闘力を入力",
+                      "使用キャラを選択",
+                      "「対戦開始」で記録スタート",
+                    ].map((step, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div
+                          style={{
+                            width: 24, height: 24, borderRadius: "50%",
+                            background: T.accent, color: "#fff",
+                            fontSize: 13, fontWeight: 800,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {i + 1}
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: T.accent }}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div style={{ display: "flex", gap: 16 }}>
                 <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
                   <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>開始時の戦闘力</div>
@@ -810,17 +883,17 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <div>
               <div style={{ ...cd, textAlign: "center", padding: "28px 24px", marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, letterSpacing: 1.5, fontFamily: "'Chakra Petch', sans-serif" }}>RECORDED</div>
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 8 }}>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 8, animation: "slideUp .3s ease .1s both" }}>
                   <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{myChar}</span>
                   <span style={{ fontSize: 14, color: T.dim }}>vs</span>
                   <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{oppChar}</span>
                 </div>
                 <div style={{ marginTop: 12 }}>
-                  <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
+                  <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose, animation: "popIn .3s ease" }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
                 </div>
                 <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder="メモ（任意）" rows={1} style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
-              <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ display: "flex", gap: 12, animation: "slideUp .3s ease .3s both" }}>
                 <button onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>連戦する</button>
                 <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>次の試合</button>
                 <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>キャラ変更</button>

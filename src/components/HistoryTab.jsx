@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
+import { Swords } from "lucide-react";
 import HistRow from "./HistRow";
 import FighterIcon from "./FighterIcon";
 import { formatDateLong, formatTime, numFormat, percentStr, barColor } from "../utils/format";
 
-export default function HistoryTab({ data, onSave, T, isPC }) {
+export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   const [histDate, setHistDate] = useState(null);
 
   const dGroups = useMemo(() => {
@@ -41,9 +42,21 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
     border: T.brd !== "transparent" ? `1px solid ${T.brd}` : "none",
   };
 
-  const emptyMsg = (msg) => (
-    <div style={{ textAlign: "center", padding: "32px 0", color: T.dim, fontSize: 13 }}>
-      {msg}
+  const emptyHistoryState = (onTabClick) => (
+    <div style={{ textAlign: "center", padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+      <div style={{ background: T.accentSoft, borderRadius: "50%", width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Swords size={28} color={T.accent} />
+      </div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>対戦履歴はまだありません</div>
+      <div style={{ fontSize: 13, color: T.dim }}>対戦を記録すると日別の戦績が表示されます</div>
+      {onTabClick && (
+        <button
+          onClick={onTabClick}
+          style={{ marginTop: 4, padding: "8px 20px", borderRadius: 10, border: "none", background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+        >
+          対戦タブへ →
+        </button>
+      )}
     </div>
   );
 
@@ -55,7 +68,7 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
         {!histDate ? (
           <div>
             {dGroups.length === 0
-              ? emptyMsg("対戦を記録すると日別の戦績が表示されます")
+              ? emptyHistoryState(onGoBattle)
               : dGroups.map(([dt, ms]) => {
                   const w = ms.filter((m) => m.result === "win").length;
                   const dp = data.daily?.[dt];
@@ -99,7 +112,7 @@ export default function HistoryTab({ data, onSave, T, isPC }) {
         <div style={{ fontSize: 14, fontWeight: 800, color: T.text, marginBottom: 16 }}>日別戦績</div>
         <div style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
           {dGroups.length === 0
-            ? emptyMsg("対戦を記録すると日別の戦績が表示されます")
+            ? emptyHistoryState(onGoBattle)
             : dGroups.map(([dt, ms]) => {
                 const w = ms.filter((m) => m.result === "win").length;
                 const r = ms.length ? w / ms.length : 0;

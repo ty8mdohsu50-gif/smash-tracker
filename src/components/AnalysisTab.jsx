@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { BarChart3 } from "lucide-react";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import { shortName } from "../constants/fighters";
@@ -231,6 +232,39 @@ export default function AnalysisTab({ data, T, isPC }) {
       {r >= 0.6 ? "得意" : r >= 0.4 ? "互角" : "苦手"}
     </span>
   );
+
+  if (data.matches.length === 0) {
+    return (
+      <div>
+        <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+          {pill("myChar", "キャラ別", aMode, setAMode)}
+          {pill("oppChar", "マッチアップ", aMode, setAMode)}
+          {pill("trend", "推移", aMode, setAMode)}
+          {pill("stats", "統計", aMode, setAMode)}
+        </div>
+        <div
+          style={{
+            background: T.card,
+            borderRadius: 16,
+            padding: "48px 24px",
+            boxShadow: T.sh,
+            border: T.brd !== "transparent" ? `1px solid ${T.brd}` : "none",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 14,
+          }}
+        >
+          <div style={{ background: T.accentSoft, borderRadius: "50%", width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <BarChart3 size={30} color={T.accent} />
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>分析データがありません</div>
+          <div style={{ fontSize: 13, color: T.dim }}>対戦データを記録すると分析結果が表示されます</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
