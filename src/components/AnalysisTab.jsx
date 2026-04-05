@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { BarChart3 } from "lucide-react";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
+import Heatmap from "./Heatmap";
 import { shortName } from "../constants/fighters";
 import {
   today,
@@ -646,6 +647,20 @@ export default function AnalysisTab({ data, T, isPC }) {
       {/* Stats */}
       {aMode === "stats" && (
         <div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: T.sub,
+              marginBottom: 10,
+            }}
+          >
+            対戦ヒートマップ（過去13週間）
+          </div>
+          <div style={{ ...cd, padding: "16px 14px", marginBottom: isPC ? 20 : 14 }}>
+            <Heatmap matches={data.matches} T={T} />
+          </div>
+
           <div
             style={{
               fontSize: 13,

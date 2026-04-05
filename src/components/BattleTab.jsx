@@ -1,12 +1,14 @@
 import { useState, useMemo } from "react";
-import { Trophy, X, ChevronUp, ChevronDown, Zap } from "lucide-react";
+import { Trophy, X, ChevronUp, ChevronDown, Zap, Share2, Copy } from "lucide-react";
 import CharPicker from "./CharPicker";
 import MatchRow from "./MatchRow";
 import MatchupBadge from "./MatchupBadge";
 import FighterIcon from "./FighterIcon";
+import { checkMilestones } from "../constants/milestones";
 import {
   today,
   formatDateWithDay,
+  formatDateLong,
   formatPower,
   rawPower,
   numFormat,
@@ -27,6 +29,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [showOppPicker, setShowOppPicker] = useState(false);
   const [lastRes, setLastRes] = useState(null);
   const [memo, setMemo] = useState("");
+  const [newMilestones, setNewMilestones] = useState([]);
+  const [prevMatchCount, setPrevMatchCount] = useState(data.matches.length);
+  const [shareStatus, setShareStatus] = useState(null);
 
   const todayDaily = data.daily?.[today()] || {};
   const prevEnd = lastEndPower(data.daily || {});
@@ -85,6 +90,19 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     setPhase("fighting");
   };
 
+  const recordMatch = (newMatches, r) => {
+    const newTotal = newMatches.length;
+    const wins = newMatches.filter((m) => m.result === "win").length;
+    const currentStreak = getStreak(newMatches);
+    const winRatePct = newTotal > 0 ? Math.round((wins / newTotal) * 100) : 0;
+    const achieved = checkMilestones(prevMatchCount, newTotal, currentStreak, winRatePct);
+    setPrevMatchCount(newTotal);
+    setNewMilestones(achieved);
+    setLastRes(r);
+    setMemo("");
+    setPhase("postMatch");
+  };
+
   const selectRes = (r) => {
     if (oppChar) {
       const m = {
@@ -95,10 +113,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         result: r,
         memo: "",
       };
-      onSave({ ...data, matches: [...data.matches, m] });
-      setLastRes(r);
-      setMemo("");
-      setPhase("postMatch");
+      const newMatches = [...data.matches, m];
+      onSave({ ...data, matches: newMatches });
+      recordMatch(newMatches, r);
     } else {
       setResult(r);
       setPhase("pickOpp");
@@ -115,10 +132,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
       result,
       memo: "",
     };
-    onSave({ ...data, matches: [...data.matches, m] });
-    setLastRes(result);
-    setMemo("");
-    setPhase("postMatch");
+    const newMatches = [...data.matches, m];
+    onSave({ ...data, matches: newMatches });
+    recordMatch(newMatches, result);
   };
 
   const cd = {
@@ -580,7 +596,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           <button
             onClick={() => {
               savePower(pStart, pEnd);
-              setPhase("setup");
+              setShareStatus(null);
+              setPhase("summary");
               setShowPowerEdit(false);
               setShowOppPicker(false);
             }}
@@ -601,6 +618,140 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           </button>
         </div>
       )}
+
+      {phase === "summary" && (() => {
+        const topOpp = (() => {
+          const cnt = {};
+          tM.forEach((m) => { cnt[m.oppChar] = (cnt[m.oppChar] || 0) + 1; });
+          const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+          return sorted[0] ? sorted[0][0] : null;
+        })();
+        const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
+        const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ`.trim();
+
+        const handleShare = async () => {
+          if (navigator.share) {
+            try {
+              await navigator.share({ text: shareText });
+            } catch (_) { /* user cancelled */ }
+          } else {
+            try {
+              await navigator.clipboard.writeText(shareText);
+              setShareStatus("copied");
+              setTimeout(() => setShareStatus(null), 2000);
+            } catch (_) {
+              setShareStatus("error");
+              setTimeout(() => setShareStatus(null), 2000);
+            }
+          }
+        };
+
+        return (
+          <div style={{ animation: "fadeUp .25s ease" }}>
+            <div
+              style={{
+                background: T.tBg,
+                borderRadius: 20,
+                padding: "28px 22px",
+                marginBottom: 14,
+                boxShadow: T.accentGlow,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)", letterSpacing: 2, marginBottom: 6, fontFamily: "'Chakra Petch', sans-serif" }}>
+                TODAY'S SUMMARY
+              </div>
+              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 20 }}>
+                {formatDateLong(today())}
+              </div>
+
+              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <div style={{ flex: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontWeight: 600, marginBottom: 4 }}>勝敗</div>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: "#fff", fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>
+                    {tW}<span style={{ fontSize: 20, opacity: 0.6, margin: "0 4px" }}>:</span>{tL}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>{tM.length}試合</div>
+                </div>
+                <div style={{ flex: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontWeight: 600, marginBottom: 4 }}>勝率</div>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: "#fff", fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>
+                    {percentStr(tW, tM.length)}
+                  </div>
+                </div>
+              </div>
+
+              {topOpp && (
+                <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>最多対戦相手</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{topOpp}</div>
+                </div>
+              )}
+
+              {pStart && (
+                <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>戦闘力</div>
+                  <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pStart))}</span>
+                    {pEnd && (
+                      <>
+                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>→</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pEnd))}</span>
+                        {pDelta !== null && (
+                          <span style={{
+                            fontSize: 13, fontWeight: 800,
+                            color: pDelta >= 0 ? "#4ade80" : "#f87171",
+                            marginLeft: 4,
+                          }}>
+                            ({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {streak.count >= 2 && (
+                <div style={{ marginTop: 12, background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+                  <Zap size={16} color={streak.type === "win" ? "#4ade80" : "#f87171"} fill={streak.type === "win" ? "#4ade80" : "#f87171"} />
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                    {streak.count}{streak.type === "win" ? "連勝中" : "連敗中"}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <button
+                onClick={handleShare}
+                style={{
+                  flex: 1, padding: "14px 0", border: "none", borderRadius: 12,
+                  background: T.accentGrad, color: "#fff", fontSize: 14, fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  boxShadow: T.accentGlow,
+                }}
+              >
+                {shareStatus === "copied" ? <><Copy size={16} /> コピー済み</> : shareStatus === "error" ? "失敗" : <><Share2 size={16} /> シェア</>}
+              </button>
+              <button
+                onClick={() => {
+                  setPhase("setup");
+                  setShowPowerEdit(false);
+                  setShowOppPicker(false);
+                }}
+                style={{
+                  flex: 1, padding: "14px 0", border: `1px solid ${T.brd}`, borderRadius: 12,
+                  background: T.card, color: T.text, fontSize: 14, fontWeight: 700,
+                }}
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {phase === "pickOpp" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
@@ -670,6 +821,33 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             />
           </div>
 
+          {newMilestones.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, animation: "popIn .4s ease .2s both" }}>
+              {newMilestones.map((m) => (
+                <div
+                  key={m.id}
+                  style={{
+                    background: T.accentGrad,
+                    borderRadius: 14,
+                    padding: "14px 18px",
+                    textAlign: "center",
+                    boxShadow: T.accentGlow,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.75)", letterSpacing: 1.5, marginBottom: 4 }}>
+                    MILESTONE UNLOCKED
+                  </div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>
+                    {m.label}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 4 }}>
+                    {m.condition}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {myChar && oppChar && (
             <div style={{ animation: "slideUp .3s ease .2s both" }}>
               <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
@@ -678,7 +856,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
             <button
-              onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }}
+              onClick={() => { saveMemo(); setNewMilestones([]); setPhase("fighting"); setShowOppPicker(false); }}
               style={{
                 width: "100%", padding: 20, border: "none", borderRadius: 14,
                 background: T.accentGrad,
@@ -690,13 +868,13 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             </button>
             <div style={{ display: "flex", gap: 8 }}>
               <button
-                onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }}
+                onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }}
                 style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 14, fontWeight: 600, transition: "all .15s ease" }}
               >
                 次の試合
               </button>
               <button
-                onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }}
+                onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }}
                 style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 14, fontWeight: 600, transition: "all .15s ease" }}
               >
                 自キャラを変える
@@ -863,7 +1041,34 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <button onClick={() => selectRes("win")} style={{ flex: 1, padding: "24px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 22, fontWeight: 800, boxShadow: "0 4px 16px rgba(34,197,94,.3)" }}>勝ち</button>
                 <button onClick={() => selectRes("lose")} style={{ flex: 1, padding: "24px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 22, fontWeight: 800, boxShadow: "0 4px 16px rgba(244,63,94,.3)" }}>負け</button>
               </div>
-              <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }} style={{ width: "100%", padding: 12, marginTop: 12, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>← 設定に戻る</button>
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button onClick={() => { setShareStatus(null); setPhase("endSession"); }} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>対戦を終了する</button>
+                <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }} style={{ flex: 1, padding: 12, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>← 設定に戻る</button>
+              </div>
+            </div>
+          )}
+
+          {phase === "endSession" && (
+            <div style={{ animation: "fadeUp .2s ease" }}>
+              <div style={{ ...cd, padding: "20px 24px" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 8 }}>終了時の戦闘力</div>
+                <div style={{ fontSize: 12, color: T.dim, marginBottom: 10 }}>次回の開始戦闘力に引き継がれます</div>
+                {pwrInput(pEnd, setPEnd, "終了時の戦闘力", true)}
+              </div>
+              <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                <button
+                  onClick={() => { savePower(pStart, pEnd); setShareStatus(null); setPhase("summary"); setShowPowerEdit(false); setShowOppPicker(false); }}
+                  style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}
+                >
+                  保存して終了
+                </button>
+                <button
+                  onClick={() => setPhase("fighting")}
+                  style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}
+                >
+                  ← 対戦に戻る
+                </button>
+              </div>
             </div>
           )}
 
@@ -893,13 +1098,149 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 </div>
                 <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder="メモ（任意）" rows={1} style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
+              {newMilestones.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16, animation: "popIn .4s ease .2s both" }}>
+                  {newMilestones.map((m) => (
+                    <div
+                      key={m.id}
+                      style={{
+                        background: T.accentGrad, borderRadius: 14,
+                        padding: "16px 24px", textAlign: "center", boxShadow: T.accentGlow,
+                      }}
+                    >
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.75)", letterSpacing: 1.5, marginBottom: 4 }}>MILESTONE UNLOCKED</div>
+                      <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>{m.label}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 4 }}>{m.condition}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div style={{ display: "flex", gap: 12, animation: "slideUp .3s ease .3s both" }}>
-                <button onClick={() => { saveMemo(); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>連戦する</button>
-                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>次の試合</button>
-                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>キャラ変更</button>
+                <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>連戦する</button>
+                <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>次の試合</button>
+                <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>キャラ変更</button>
               </div>
             </div>
           )}
+
+          {phase === "summary" && (() => {
+            const topOpp = (() => {
+              const cnt = {};
+              tM.forEach((m) => { cnt[m.oppChar] = (cnt[m.oppChar] || 0) + 1; });
+              const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+              return sorted[0] ? sorted[0][0] : null;
+            })();
+            const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
+            const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ`.trim();
+
+            const handleShare = async () => {
+              if (navigator.share) {
+                try { await navigator.share({ text: shareText }); } catch (_) { /* cancelled */ }
+              } else {
+                try {
+                  await navigator.clipboard.writeText(shareText);
+                  setShareStatus("copied");
+                  setTimeout(() => setShareStatus(null), 2000);
+                } catch (_) {
+                  setShareStatus("error");
+                  setTimeout(() => setShareStatus(null), 2000);
+                }
+              }
+            };
+
+            return (
+              <div style={{ animation: "fadeUp .25s ease" }}>
+                <div
+                  style={{
+                    background: T.tBg, borderRadius: 20, padding: "32px 28px",
+                    marginBottom: 20, boxShadow: T.accentGlow,
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)", letterSpacing: 2, marginBottom: 6, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    TODAY'S SUMMARY
+                  </div>
+                  <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", marginBottom: 24 }}>
+                    {formatDateLong(today())}
+                  </div>
+
+                  <div style={{ display: "flex", gap: 24, marginBottom: 20 }}>
+                    <div style={{ flex: 1, textAlign: "center" }}>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontWeight: 600, marginBottom: 4 }}>勝敗</div>
+                      <div style={{ fontSize: 44, fontWeight: 900, color: "#fff", fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>
+                        {tW}<span style={{ fontSize: 24, opacity: 0.6, margin: "0 6px" }}>:</span>{tL}
+                      </div>
+                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 6 }}>{tM.length}試合</div>
+                    </div>
+                    <div style={{ flex: 1, textAlign: "center" }}>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", fontWeight: 600, marginBottom: 4 }}>勝率</div>
+                      <div style={{ fontSize: 44, fontWeight: 900, color: "#fff", fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>
+                        {percentStr(tW, tM.length)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {topOpp && (
+                      <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>最多対戦相手</span>
+                        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{topOpp}</span>
+                      </div>
+                    )}
+                    {pStart && (
+                      <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>戦闘力</span>
+                        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pStart))}</span>
+                          {pEnd && (
+                            <>
+                              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>→</span>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pEnd))}</span>
+                              {pDelta !== null && (
+                                <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? "#4ade80" : "#f87171", marginLeft: 4 }}>
+                                  ({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {streak.count >= 2 && (
+                      <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <Zap size={16} color={streak.type === "win" ? "#4ade80" : "#f87171"} fill={streak.type === "win" ? "#4ade80" : "#f87171"} />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                          {streak.count}{streak.type === "win" ? "連勝中" : "連敗中"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    onClick={handleShare}
+                    style={{
+                      flex: 1, padding: "16px 0", border: "none", borderRadius: 12,
+                      background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 700,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      boxShadow: T.accentGlow,
+                    }}
+                  >
+                    {shareStatus === "copied" ? <><Copy size={16} /> コピー済み</> : shareStatus === "error" ? "失敗" : <><Share2 size={16} /> シェア</>}
+                  </button>
+                  <button
+                    onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }}
+                    style={{
+                      flex: 1, padding: "16px 0", border: `1px solid ${T.brd}`, borderRadius: 12,
+                      background: T.card, color: T.text, fontSize: 15, fontWeight: 700,
+                    }}
+                  >
+                    閉じる
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div
