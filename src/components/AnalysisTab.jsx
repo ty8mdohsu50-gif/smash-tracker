@@ -205,26 +205,16 @@ export default function AnalysisTab({ data, T, isPC }) {
     </div>
   );
 
-  const renderLabel = (r) => (
-    <span
-      style={{
-        fontSize: 11,
-        fontWeight: 700,
-        padding: "3px 10px",
-        borderRadius: 8,
-        background:
-          r >= 0.6
-            ? T.winBg
-            : r >= 0.4
-              ? "rgba(255,159,10,.15)"
-              : T.loseBg,
-        color:
-          r >= 0.6 ? T.win : r >= 0.4 ? "#a16207" : T.lose,
-      }}
-    >
-      {r >= 0.6 ? "得意" : r >= 0.4 ? "互角" : "苦手"}
-    </span>
-  );
+  const renderLabel = (r) => {
+    const label = r >= 0.6 ? "勝ち越し" : r >= 0.4 ? "互角" : "負け越し";
+    const bg = r >= 0.6 ? T.winBg : r >= 0.4 ? "rgba(255,159,10,.15)" : T.loseBg;
+    const color = r >= 0.6 ? T.win : r >= 0.4 ? "#a16207" : T.lose;
+    return (
+      <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: bg, color }}>
+        {label}
+      </span>
+    );
+  };
 
   if (data.matches.length === 0) {
     return (

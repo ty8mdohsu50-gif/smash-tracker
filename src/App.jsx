@@ -49,7 +49,6 @@ export default function App() {
   const [legalPage, setLegalPage] = useState(null);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
   const isPC = useIsPC();
-  const saveTimerRef = useRef(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -109,14 +108,11 @@ export default function App() {
     setData(d);
     save(d);
 
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          cloudSave(session.user.id, d);
-        }
-      });
-    }, 500);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        cloudSave(session.user.id, d);
+      }
+    });
   }, []);
 
   const handleLogout = async () => {
