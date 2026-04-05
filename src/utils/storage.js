@@ -73,6 +73,7 @@ export async function cloudSave(userId, d) {
     goals: d.goals,
     dark: d.dark,
     themeColor: d.themeColor,
+    shareSettings: d.shareSettings,
   };
 
   const { error } = await supabase

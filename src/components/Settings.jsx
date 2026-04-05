@@ -160,6 +160,54 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
             </div>
           </div>
 
+          {/* Share settings */}
+          <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 14 }}>
+              シェア設定
+            </div>
+            {[
+              { key: "showChar", label: "使用キャラを表示" },
+              { key: "showOppChar", label: "対戦相手キャラを表示" },
+              { key: "showRecord", label: "勝敗を表示" },
+              { key: "showPower", label: "戦闘力を表示" },
+            ].map(({ key, label }) => {
+              const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+              const enabled = ss[key];
+              return (
+                <div
+                  key={key}
+                  style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    marginBottom: 12,
+                  }}
+                >
+                  <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{label}</span>
+                  <button
+                    onClick={() =>
+                      onSave({
+                        ...data,
+                        shareSettings: { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}), [key]: !enabled },
+                      })
+                    }
+                    style={{
+                      width: 54, height: 30, borderRadius: 15, border: "none",
+                      background: enabled ? T.accent : "#E5E5EA",
+                      position: "relative", flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 26, height: 26, borderRadius: 13, background: "#fff",
+                        position: "absolute", top: 2, left: enabled ? 26 : 2,
+                        transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+                      }}
+                    />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
           {/* Dark mode */}
           <div
             style={{

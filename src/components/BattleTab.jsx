@@ -627,7 +627,14 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           return sorted[0] ? sorted[0][0] : null;
         })();
         const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
-        const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ\nhttps://ty8mdohsu50-gif.github.io/smash-tracker/`.trim();
+        const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+        const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}の結果`];
+        if (ss.showChar && myChar) shareLines.push(`使用: ${myChar}`);
+        if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
+        if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
+        if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (+${numFormat(pDelta)})`.replace("+-", "-") : ""}`);
+        shareLines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+        const shareText = shareLines.join("\n");
 
         const handleShare = async () => {
           if (navigator.share) {
@@ -1137,7 +1144,14 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               return sorted[0] ? sorted[0][0] : null;
             })();
             const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
-            const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ\nhttps://ty8mdohsu50-gif.github.io/smash-tracker/`.trim();
+            const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+            const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}の結果`];
+            if (ss.showChar && myChar) shareLines.push(`使用: ${myChar}`);
+            if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
+            if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
+            if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (+${numFormat(pDelta)})`.replace("+-", "-") : ""}`);
+            shareLines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+            const shareText = shareLines.join("\n");
 
             const handleShare = async () => {
               if (navigator.share) {

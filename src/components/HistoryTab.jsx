@@ -12,12 +12,24 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     const w = matches.filter((m) => m.result === "win").length;
     const l = matches.length - w;
     const dp = data.daily?.[date];
-    let text = `【SMASH TRACKER】${formatDateLong(date)}の結果\n${w}勝${l}敗（勝率${percentStr(w, matches.length)}）`;
-    if (dp?.start && dp?.end) {
+    const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+    const myChars = [...new Set(matches.map((m) => m.myChar).filter(Boolean))];
+    const topOpp = (() => {
+      const cnt = {};
+      matches.forEach((m) => { if (m.oppChar) cnt[m.oppChar] = (cnt[m.oppChar] || 0) + 1; });
+      const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+      return sorted[0] ? sorted[0][0] : null;
+    })();
+    const lines = [`【SMASH TRACKER】${formatDateLong(date)}の結果`];
+    if (ss.showChar && myChars.length > 0) lines.push(`使用: ${myChars.join(" / ")}`);
+    if (ss.showRecord) lines.push(`${w}勝${l}敗（勝率${percentStr(w, matches.length)}）`);
+    if (ss.showOppChar && topOpp) lines.push(`最多対戦: ${topOpp}`);
+    if (ss.showPower && dp?.start && dp?.end) {
       const delta = dp.end - dp.start;
-      text += `\n戦闘力: ${numFormat(dp.start)} → ${numFormat(dp.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`;
+      lines.push(`戦闘力: ${numFormat(dp.start)} → ${numFormat(dp.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
     }
-    text += `\n#SmashTracker #スマブラ\nhttps://ty8mdohsu50-gif.github.io/smash-tracker/`;
+    lines.push("#SmashTracker #スマブラ", "https://ty8mdohsu50-gif.github.io/smash-tracker/");
+    const text = lines.join("\n");
     if (navigator.share) {
       try { await navigator.share({ text }); } catch (_) { /* cancelled */ }
     } else {
