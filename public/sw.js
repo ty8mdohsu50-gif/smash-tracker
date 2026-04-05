@@ -1,13 +1,7 @@
-const CACHE_NAME = "smash-tracker-v1";
-const APP_SHELL = ["/smash-tracker/"];
+const CACHE_NAME = "smash-tracker-v2";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -28,20 +22,18 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
 
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type === "opaque") {
-            return response;
-          }
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
           const cloned = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
-          return response;
-        })
-        .catch(() => caches.match("/smash-tracker/"));
-    })
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
