@@ -1,6 +1,6 @@
 {
   "name": "SMASH TRACKER",
-  "short_name": "SmashTracker",
+  "short_name": "スマトラ",
   "description": "スマブラ対戦戦績管理アプリ",
   "start_url": "/",
   "scope": "/",
