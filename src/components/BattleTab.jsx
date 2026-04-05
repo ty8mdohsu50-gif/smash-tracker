@@ -627,7 +627,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           return sorted[0] ? sorted[0][0] : null;
         })();
         const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
-        const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ`.trim();
+        const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ\nhttps://ty8mdohsu50-gif.github.io/smash-tracker/`.trim();
 
         const handleShare = async () => {
           if (navigator.share) {
@@ -1137,7 +1137,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               return sorted[0] ? sorted[0][0] : null;
             })();
             const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
-            const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ`.trim();
+            const shareText = `【SMASH TRACKER】今日の結果\n${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）\n${pStart ? `戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}` : ""}\n#SmashTracker #スマブラ\nhttps://ty8mdohsu50-gif.github.io/smash-tracker/`.trim();
 
             const handleShare = async () => {
               if (navigator.share) {

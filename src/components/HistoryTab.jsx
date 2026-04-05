@@ -1,11 +1,36 @@
 import { useState, useMemo } from "react";
-import { Swords } from "lucide-react";
+import { Swords, Share2 } from "lucide-react";
 import HistRow from "./HistRow";
 import FighterIcon from "./FighterIcon";
 import { formatDateLong, formatTime, numFormat, percentStr, barColor } from "../utils/format";
 
 export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   const [histDate, setHistDate] = useState(null);
+  const [shareStatus, setShareStatus] = useState(null);
+
+  const shareDay = async (date, matches) => {
+    const w = matches.filter((m) => m.result === "win").length;
+    const l = matches.length - w;
+    const dp = data.daily?.[date];
+    let text = `【SMASH TRACKER】${formatDateLong(date)}の結果\n${w}勝${l}敗（勝率${percentStr(w, matches.length)}）`;
+    if (dp?.start && dp?.end) {
+      const delta = dp.end - dp.start;
+      text += `\n戦闘力: ${numFormat(dp.start)} → ${numFormat(dp.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`;
+    }
+    text += `\n#SmashTracker #スマブラ\nhttps://ty8mdohsu50-gif.github.io/smash-tracker/`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch (_) { /* cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text);
+        setShareStatus("copied");
+        setTimeout(() => setShareStatus(null), 2000);
+      } catch (_) {
+        setShareStatus("error");
+        setTimeout(() => setShareStatus(null), 2000);
+      }
+    }
+  };
 
   const dGroups = useMemo(() => {
     const g = {};
@@ -100,7 +125,16 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
           </div>
         ) : (
           <div>
-            <button onClick={() => setHistDate(null)} style={{ background: "transparent", border: "none", color: T.accent, fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 14 }}>← 戻る</button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <button onClick={() => setHistDate(null)} style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10 }}>← 戻る</button>
+              <button
+                onClick={() => shareDay(histDate, selDay)}
+                style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <Share2 size={14} />
+                {shareStatus === "copied" ? "コピー済み" : "シェア"}
+              </button>
+            </div>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.text }}>{formatDateLong(histDate)}</div>
             {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 16 }}>{selDay.length}戦 · <span style={{ color: T.win, fontWeight: 700 }}>{w}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
             {selDayWithIdx.map((e, i) => <HistRow key={i} m={e.m} onDelete={() => deleteMatch(e.idx)} T={T} />)}
@@ -185,11 +219,20 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
           </div>
         ) : (
           <div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 20 }}>
-              <div style={{ fontSize: 22, fontWeight: 900, color: T.text }}>{formatDateLong(histDate)}</div>
-              <div style={{ fontSize: 14, color: T.sub }}>
-                {selDay.length}戦 · <span style={{ color: T.win, fontWeight: 700 }}>{selW}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - selW}L</span> · {percentStr(selW, selDay.length)}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+                <div style={{ fontSize: 22, fontWeight: 900, color: T.text }}>{formatDateLong(histDate)}</div>
+                <div style={{ fontSize: 14, color: T.sub }}>
+                  {selDay.length}戦 · <span style={{ color: T.win, fontWeight: 700 }}>{selW}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - selW}L</span> · {percentStr(selW, selDay.length)}
+                </div>
               </div>
+              <button
+                onClick={() => shareDay(histDate, selDay)}
+                style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 16px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
+              >
+                <Share2 size={14} />
+                {shareStatus === "copied" ? "コピー済み" : "シェア"}
+              </button>
             </div>
 
             <div style={{ ...cd, padding: 0, overflow: "hidden" }}>
