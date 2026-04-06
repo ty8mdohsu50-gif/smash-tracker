@@ -52,6 +52,8 @@ export default function App() {
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
   const wheelRef = useRef({ acc: 0, cooldown: false });
   const mainRef = useRef(null);
+  const userRef = useRef(user);
+  userRef.current = user;
   const isPC = useIsPC();
 
   useEffect(() => {
@@ -112,10 +114,32 @@ export default function App() {
     setData(d);
     save(d);
 
-    if (user) {
-      cloudSave(user.id, d);
+    if (userRef.current) {
+      cloudSave(userRef.current.id, d);
     }
-  }, [user]);
+  }, []);
+
+  const onWheel = useCallback((e) => {
+    if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
+    e.preventDefault();
+    if (wheelRef.current.cooldown) return;
+    wheelRef.current.acc += e.deltaX;
+    if (Math.abs(wheelRef.current.acc) > 120) {
+      const dir = wheelRef.current.acc > 0 ? 1 : -1;
+      setTabIdx((prev) => Math.max(0, Math.min(2, prev + dir)));
+      wheelRef.current.acc = 0;
+      wheelRef.current.cooldown = true;
+      setTimeout(() => { wheelRef.current.cooldown = false; }, 500);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isPC) return;
+    const el = mainRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [isPC, onWheel]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -170,28 +194,6 @@ export default function App() {
       if (dx > 0 && tabIdx > 0) setTabIdx(tabIdx - 1);
     }
   };
-
-  const onWheel = useCallback((e) => {
-    if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
-    e.preventDefault();
-    if (wheelRef.current.cooldown) return;
-    wheelRef.current.acc += e.deltaX;
-    if (Math.abs(wheelRef.current.acc) > 120) {
-      const dir = wheelRef.current.acc > 0 ? 1 : -1;
-      setTabIdx((prev) => Math.max(0, Math.min(2, prev + dir)));
-      wheelRef.current.acc = 0;
-      wheelRef.current.cooldown = true;
-      setTimeout(() => { wheelRef.current.cooldown = false; }, 500);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isPC) return;
-    const el = mainRef.current;
-    if (!el) return;
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [isPC, onWheel]);
 
   const settingsModal = showSettings && (
     <Settings
