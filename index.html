@@ -45,6 +45,16 @@
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            regs.forEach((r) => {
+              if (r.scope.includes("/smash-tracker/")) r.unregister();
+            });
+          });
+          caches.keys().then((keys) => {
+            keys.forEach((k) => {
+              if (k !== "smash-tracker-v3") caches.delete(k);
+            });
+          });
           navigator.serviceWorker
             .register("/sw.js", { scope: "/" })
             .catch(() => {});
