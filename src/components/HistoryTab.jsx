@@ -36,9 +36,15 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       });
       return stats;
     })();
-    const lines = [`【SMASH TRACKER】${formatDateLong(date)}${t("share.result")}`];
-    if (ss.showChar && myChars.length > 0) lines.push(`${t("share.used")}: ${myChars.map((c) => fighterName(c, lang)).join(" / ")}`);
-    if (ss.showRecord) lines.push(`${w}勝${l}敗（勝率${percentStr(w, matches.length)}）`);
+    const lines = [`【SMASH TRACKER】${formatDateLong(date)}`];
+    if (ss.showChar && myChars.length > 0) {
+      const charLabel = ss.showRecord
+        ? `${t("share.used")}: ${myChars.map((c) => fighterName(c, lang)).join(" / ")} ${w}W ${l}L（勝率 ${percentStr(w, matches.length)}）`
+        : `${t("share.used")}: ${myChars.map((c) => fighterName(c, lang)).join(" / ")}`;
+      lines.push(charLabel);
+    } else if (ss.showRecord) {
+      lines.push(`${w}W ${l}L（勝率 ${percentStr(w, matches.length)}）`);
+    }
     if (ss.showMatchups) {
       Object.entries(oppStats)
         .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
@@ -49,10 +55,11 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     }
     if (ss.showPower && ps.start && ps.end) {
       const delta = ps.end - ps.start;
+      lines.push("");
       lines.push(`${t("battle.power")}: ${numFormat(ps.start)} → ${numFormat(ps.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
     }
     if (dp?.vip) lines.push(t("share.vip"));
-    lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+    lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
     doShare(lines.join("\n"));
   };
 

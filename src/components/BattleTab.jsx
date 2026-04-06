@@ -330,7 +330,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                 if (goals.games) lines.push(`${tM.length}/${goals.games}戦 達成${tM.length >= goals.games ? "!" : "まであと" + (goals.games - tM.length) + "戦"}`);
                 if (goals.winRate && tM.length > 0) lines.push(`勝率 ${winRate}% / 目標${goals.winRate}% ${winRate >= goals.winRate ? "達成!" : ""}`);
                 if (!goals.games && !goals.winRate) return;
-                lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+                lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
                 const text = lines.join("\n");
                 doShare(text);
               }}
@@ -706,9 +706,15 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           <button
             onClick={() => {
               const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
-              const lines = [`【SMASH TRACKER】${formatDateLong(today())}${t("share.result")}`];
-              if (ss.showChar && myChar) lines.push(`${t("share.used")}: ${fighterName(myChar, lang)}`);
-              if (ss.showRecord) lines.push(`${tW}${t("common.win")} ${tL}${t("common.lose")}（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
+              const lines = [`【SMASH TRACKER】${formatDateLong(today())}`];
+              if (ss.showChar && myChar) {
+                const charLabel = ss.showRecord
+                  ? `${t("share.used")}: ${fighterName(myChar, lang)} ${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`
+                  : `${t("share.used")}: ${fighterName(myChar, lang)}`;
+                lines.push(charLabel);
+              } else if (ss.showRecord) {
+                lines.push(`${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
+              }
               if (ss.showMatchups) {
                 const oppStats = {};
                 tM.forEach((m) => {
@@ -722,9 +728,15 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                     lines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
                   });
               }
-              if (ss.showPower && pStart) lines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}`);
+              if (ss.showPower && pStart) {
+                const pStartN = Number(pStart);
+                const pEndN = Number(pEnd || pStart);
+                const delta = pEndN - pStartN;
+                lines.push("");
+                lines.push(`${t("battle.power")}: ${numFormat(pStartN)} → ${numFormat(pEndN)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
+              }
               if (todayDaily.vip) lines.push(t("share.vip"));
-              lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+              lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
               doShare(lines.join("\n"));
             }}
             style={{
@@ -757,9 +769,15 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         const topOpp = topOppEntry ? topOppEntry[0] : null;
         const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
         const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
-        const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}の結果`];
-        if (ss.showChar && myChar) shareLines.push(`使用: ${fighterName(myChar, lang)}`);
-        if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
+        const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}`];
+        if (ss.showChar && myChar) {
+          const charLabel = ss.showRecord
+            ? `使用: ${fighterName(myChar, lang)} ${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`
+            : `使用: ${fighterName(myChar, lang)}`;
+          shareLines.push(charLabel);
+        } else if (ss.showRecord) {
+          shareLines.push(`${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`);
+        }
         if (ss.showMatchups) {
           Object.entries(oppStats)
             .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
@@ -768,9 +786,12 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
               shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
             });
         }
-        if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+        if (ss.showPower && pStart) {
+          shareLines.push("");
+          shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+        }
         if (todayDaily.vip) shareLines.push("VIP到達!");
-        shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+        shareLines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
         const shareText = shareLines.join("\n");
 
         const handleShare = () => doShare(shareText);
@@ -1042,9 +1063,9 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     const len = String(value).length;
     const fs = len > 10 ? 16 : len > 7 ? 20 : 28;
     return (
-      <div style={{ ...cd, flex: 1, marginBottom: 0, padding: "16px 14px", minWidth: 0, overflow: "hidden" }}>
+      <div style={{ ...cd, flex: 1, marginBottom: 0, padding: "16px 14px", minWidth: 0, overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6, letterSpacing: 0.5 }}>{label}</div>
-        <div style={{ fontSize: fs, fontWeight: 900, color: color || T.text, letterSpacing: -1, fontFamily: "'Chakra Petch', sans-serif", whiteSpace: "nowrap" }}>{value}</div>
+        <div style={{ fontSize: fs, fontWeight: 900, color: color || T.text, letterSpacing: -1, fontFamily: "'Chakra Petch', sans-serif", whiteSpace: "nowrap", marginTop: "auto" }}>{value}</div>
       </div>
     );
   };
@@ -1310,9 +1331,15 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             const topOppPC = Object.entries(oppStatsPC).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))[0]?.[0] ?? null;
             const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
             const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
-            const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}の結果`];
-            if (ss.showChar && myChar) shareLines.push(`使用: ${fighterName(myChar, lang)}`);
-            if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
+            const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}`];
+            if (ss.showChar && myChar) {
+              const charLabel = ss.showRecord
+                ? `使用: ${fighterName(myChar, lang)} ${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`
+                : `使用: ${fighterName(myChar, lang)}`;
+              shareLines.push(charLabel);
+            } else if (ss.showRecord) {
+              shareLines.push(`${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`);
+            }
             if (ss.showMatchups) {
               Object.entries(oppStatsPC)
                 .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
@@ -1321,9 +1348,12 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                   shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
                 });
             }
-            if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+            if (ss.showPower && pStart) {
+              shareLines.push("");
+              shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+            }
             if (todayDaily.vip) shareLines.push("VIP到達!");
-            shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+            shareLines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
             const shareText = shareLines.join("\n");
 
             const handleShare = () => doShare(shareText);
