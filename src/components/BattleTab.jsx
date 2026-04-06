@@ -704,6 +704,25 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             {t("battle.saveAndEnd")}
           </button>
           <button
+            onClick={() => {
+              const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+              const lines = [`【SMASH TRACKER】${formatDateLong(today())}${t("share.result")}`];
+              if (ss.showChar && myChar) lines.push(`${t("share.used")}: ${fighterName(myChar, lang)}`);
+              if (ss.showRecord) lines.push(`${tW}${t("common.win")} ${tL}${t("common.lose")}（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
+              if (ss.showPower && pStart) lines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}`);
+              if (todayDaily.vip) lines.push(t("share.vip"));
+              lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+              doShare(lines.join("\n"));
+            }}
+            style={{
+              width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`,
+              borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            }}
+          >
+            <Share2 size={16} /> {t("battle.share")}
+          </button>
+          <button
             onClick={() => setPhase("fighting")}
             style={{ width: "100%", padding: 12, marginTop: 8, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}
           >
