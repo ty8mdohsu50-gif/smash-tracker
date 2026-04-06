@@ -79,7 +79,7 @@ export default function AuthPage({ onSkip }) {
       <div style={cardStyle}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
-          <img src="/icon.png" alt="SMASH TRACKER" style={{ width: 48, height: 48, borderRadius: 14 }} />
+          <img src="/icon.png" alt="SMASH TRACKER" style={{ width: 48, height: 48, borderRadius: 14, objectFit: "contain" }} />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: "#9CA3AF", fontFamily: "'Chakra Petch', sans-serif" }}>
               SMASH TRACKER

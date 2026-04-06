@@ -267,7 +267,7 @@ export default function App() {
                   overflow: "hidden",
                 }}
               >
-                <img src="/icon.png" alt="" style={{ width: 36, height: 36, objectFit: "cover" }} />
+                <img src="/icon.png" alt="" style={{ width: 36, height: 36, objectFit: "contain" }} />
               </div>
               <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
                 SMASH TRACKER
@@ -370,7 +370,7 @@ export default function App() {
               overflow: "hidden",
             }}
           >
-            <img src="/icon.png" alt="" style={{ width: 40, height: 40, objectFit: "cover" }} />
+            <img src="/icon.png" alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
           </div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: 2, color: T.accent, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
