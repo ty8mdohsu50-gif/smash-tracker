@@ -1001,20 +1001,23 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     </div>
   );
 
-  return (
-    <div>
-      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
-        {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
-        {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? "#FF9F0A" : T.lose) : T.dim)}
-        {statCard(t("battle.matches"), `${tM.length}${t("battle.matches")}`)}
-        {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
-        {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
-      </div>
+  if (phase === "setup") {
+    return (
+      <div style={{ display: "flex", gap: 24, alignItems: "stretch", minHeight: "calc(100vh - 200px)" }}>
+        {/* Left column */}
+        <div style={{ flex: 3, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Stats row */}
+          <div style={{ display: "flex", gap: 12 }}>
+            {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
+            {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? "#FF9F0A" : T.lose) : T.dim)}
+            {statCard(t("battle.matches"), `${tM.length}${t("battle.matches")}`)}
+            {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
+            {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
+          </div>
 
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-        <div style={{ flex: 3, minWidth: 0 }}>
+          {/* Goals */}
           {(goals.games || goals.winRate) && (
-            <div style={{ ...cd, marginBottom: 16, padding: "18px 24px" }}>
+            <div style={{ ...cd, padding: "18px 24px" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 12 }}>{t("battle.goal")}</div>
               <div style={{ display: "flex", gap: 24 }}>
                 {goals.games ? (
@@ -1042,70 +1045,96 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
               </div>
             </div>
           )}
-          {phase === "setup" && (
-            <div>
-              {data.matches.length === 0 && (
-                <div
-                  style={{
-                    background: T.accentSoft,
-                    borderRadius: 16,
-                    padding: "20px 24px",
-                    marginBottom: 16,
-                    border: `1px solid ${T.accent}33`,
-                  }}
-                >
-                  <div style={{ fontSize: 16, fontWeight: 800, color: T.accent, marginBottom: 12 }}>{t("battle.welcome")}</div>
-                  <div style={{ display: "flex", gap: 24 }}>
-                    {[
-                      t("battle.step1"),
-                      t("battle.step2"),
-                      t("battle.step3"),
-                    ].map((step, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div
-                          style={{
-                            width: 24, height: 24, borderRadius: "50%",
-                            background: T.accent, color: "#fff",
-                            fontSize: 13, fontWeight: 800,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {i + 1}
-                        </div>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: T.accent }}>{step}</span>
-                      </div>
+
+          {/* Onboarding */}
+          {data.matches.length === 0 && (
+            <div
+              style={{
+                background: T.accentSoft,
+                borderRadius: 16,
+                padding: "20px 24px",
+                border: `1px solid ${T.accent}33`,
+              }}
+            >
+              <div style={{ fontSize: 16, fontWeight: 800, color: T.accent, marginBottom: 12 }}>{t("battle.welcome")}</div>
+              <div style={{ display: "flex", gap: 24 }}>
+                {[t("battle.step1"), t("battle.step2"), t("battle.step3")].map((step, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      style={{
+                        width: 24, height: 24, borderRadius: "50%",
+                        background: T.accent, color: "#fff",
+                        fontSize: 13, fontWeight: 800,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: T.accent }}>{step}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Char + Power row */}
+          <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
+              {showMyPicker ? (
+                <CharPicker value={myChar} onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} />
+              ) : (
+                <div>
+                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{t("battle.selectChar")}</div>
+                  {myChar ? <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginBottom: 8 }}>{fighterName(myChar, lang)}</div> : <div style={{ fontSize: 15, color: T.dim, marginBottom: 8 }}>{t("battle.notSelected")}</div>}
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => setShowMyPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.change")}</button>
+                    {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
+                      <button key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{fighterName(c, lang)}</button>
                     ))}
                   </div>
                 </div>
               )}
-              <div style={{ display: "flex", gap: 16 }}>
-                <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
-                  {showMyPicker ? (
-                    <CharPicker value={myChar} onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} />
-                  ) : (
-                    <div>
-                      <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{t("battle.selectChar")}</div>
-                      {myChar ? <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginBottom: 8 }}>{fighterName(myChar, lang)}</div> : <div style={{ fontSize: 15, color: T.dim, marginBottom: 8 }}>{t("battle.notSelected")}</div>}
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button onClick={() => setShowMyPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.change")}</button>
-                        {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
-                          <button key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{fighterName(c, lang)}</button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
-                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{myChar ? `${fighterName(myChar, lang)}${t("battle.startPower")}` : t("battle.power")}</div>
-                  {prevEnd && !todayDaily.start && <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>{t("battle.autoCarryOver")}</div>}
-                  {pwrInput(pStart, setPStart, "14,000,000", true)}
-                </div>
-              </div>
-              <button onClick={startBattle} disabled={!pStart || !myChar} style={{ ...activeBtn(!pStart || !myChar), marginTop: 16 }}>{t("battle.startBattle")}</button>
             </div>
-          )}
+            <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
+              <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{myChar ? `${fighterName(myChar, lang)}${t("battle.startPower")}` : t("battle.power")}</div>
+              {prevEnd && !todayDaily.start && <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>{t("battle.autoCarryOver")}</div>}
+              {pwrInput(pStart, setPStart, "14,000,000", true)}
+            </div>
+          </div>
 
+          {/* Start button */}
+          <button onClick={startBattle} disabled={!pStart || !myChar} style={activeBtn(!pStart || !myChar)}>{t("battle.startBattle")}</button>
+        </div>
+
+        {/* Right column: recent matches */}
+        <div
+          style={{
+            flex: 2, minWidth: 300, background: T.card, borderRadius: 20,
+            padding: "24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
+            height: "calc(100vh - 200px)", overflowY: "auto",
+          }}
+        >
+          <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
+          <div style={{ fontSize: 12, color: T.dim, marginBottom: 16 }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
+          {recentMatchList}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
+        {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
+        {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? "#FF9F0A" : T.lose) : T.dim)}
+        {statCard(t("battle.matches"), `${tM.length}${t("battle.matches")}`)}
+        {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
+        {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
+      </div>
+
+      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+        <div style={{ flex: 3, minWidth: 0 }}>
           {phase === "fighting" && (
             <div>
               <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>

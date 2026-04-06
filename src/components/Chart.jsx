@@ -8,7 +8,7 @@ export default function Chart({ points: pts, T }) {
 
   const W = 440;
   const H = 240;
-  const P = { t: 24, r: 16, b: 36, l: 90 };
+  const P = { t: 24, r: 16, b: 36, l: 80 };
   const cW = W - P.l - P.r;
   const cH = H - P.t - P.b;
 
@@ -34,7 +34,7 @@ export default function Chart({ points: pts, T }) {
       <line key={`g${gv}`} x1={P.l} x2={W - P.r} y1={gy} y2={gy} stroke={T.inp} strokeWidth={0.5} strokeDasharray={gv === mn || gv === mx ? "0" : "4,4"} />,
     );
     grids.push(
-      <text key={`gt${gv}`} x={P.l - 8} y={gy + 4} textAnchor="end" fontSize={10} fontWeight={500} fill={T.dim} fontFamily="'Chakra Petch', sans-serif">
+      <text key={`gt${gv}`} x={P.l - 8} y={gy + 4} textAnchor="end" fontSize={9} fontWeight={500} fill={T.dim} fontFamily="'Chakra Petch', sans-serif">
         {Math.round(gv).toLocaleString()}
       </text>,
     );

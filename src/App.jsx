@@ -50,7 +50,8 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
-  const wheelRef = useRef(0);
+  const wheelRef = useRef({ acc: 0, cooldown: false });
+  const mainRef = useRef(null);
   const isPC = useIsPC();
 
   useEffect(() => {
@@ -170,17 +171,27 @@ export default function App() {
     }
   };
 
-  const onWheel = (e) => {
-    if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
-    wheelRef.current += e.deltaX;
-    if (wheelRef.current > 80) {
-      if (tabIdx < 2) setTabIdx((prev) => Math.min(2, prev + 1));
-      wheelRef.current = 0;
-    } else if (wheelRef.current < -80) {
-      if (tabIdx > 0) setTabIdx((prev) => Math.max(0, prev - 1));
-      wheelRef.current = 0;
+  const onWheel = useCallback((e) => {
+    if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
+    e.preventDefault();
+    if (wheelRef.current.cooldown) return;
+    wheelRef.current.acc += e.deltaX;
+    if (Math.abs(wheelRef.current.acc) > 120) {
+      const dir = wheelRef.current.acc > 0 ? 1 : -1;
+      setTabIdx((prev) => Math.max(0, Math.min(2, prev + dir)));
+      wheelRef.current.acc = 0;
+      wheelRef.current.cooldown = true;
+      setTimeout(() => { wheelRef.current.cooldown = false; }, 500);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isPC) return;
+    const el = mainRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [isPC, onWheel]);
 
   const settingsModal = showSettings && (
     <Settings
@@ -425,7 +436,7 @@ export default function App() {
         </div>
       </nav>
 
-      <main style={{ flex: 1, height: "100vh", overflowY: "auto", overflowX: "hidden" }} onWheel={onWheel}>
+      <main ref={mainRef} style={{ flex: 1, height: "100vh", overflowY: "auto", overflowX: "hidden" }}>
         <div
           style={{
             padding: "20px 40px",

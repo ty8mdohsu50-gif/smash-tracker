@@ -456,7 +456,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                       <span style={{ color: T.dimmer }}> : </span>
                       <span style={{ color: T.lose }}>{d.l}</span>
                     </span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r) }}>{percentStr(d.w, total)}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r), minWidth: 40, textAlign: "right" }}>{percentStr(d.w, total)}</span>
                   </div>
                 </div>
               );
