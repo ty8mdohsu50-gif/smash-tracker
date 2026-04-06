@@ -6,6 +6,7 @@ import { supabase } from "./lib/supabase";
 import AuthPage from "./components/AuthPage";
 import Settings from "./components/Settings";
 import LegalPage from "./components/LegalPage";
+import AboutPage from "./components/AboutPage";
 import BattleTab from "./components/BattleTab";
 import HistoryTab from "./components/HistoryTab";
 import AnalysisTab from "./components/AnalysisTab";
@@ -49,6 +50,7 @@ export default function App() {
   const [tabIdx, setTabIdx] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
+  const [aboutPage, setAboutPage] = useState(false);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
   const wheelRef = useRef({ acc: 0, cooldown: false });
   const mainRef = useRef(null);
@@ -201,6 +203,7 @@ export default function App() {
       onSave={sv}
       onClose={() => setShowSettings(false)}
       onOpenLegal={(page) => setLegalPage(page)}
+      onOpenAbout={() => setAboutPage(true)}
       onLogout={handleLogout}
       user={user}
       T={T}
@@ -212,6 +215,13 @@ export default function App() {
       T={T}
       page={legalPage}
       onClose={() => setLegalPage(null)}
+    />
+  );
+
+  const aboutModal = aboutPage && (
+    <AboutPage
+      T={T}
+      onClose={() => setAboutPage(false)}
     />
   );
 
@@ -235,6 +245,7 @@ export default function App() {
       >
         {settingsModal}
         {legalModal}
+        {aboutModal}
         <div
           style={{
             background: T.hdr,
@@ -344,6 +355,7 @@ export default function App() {
     >
       {settingsModal}
       {legalModal}
+      {aboutModal}
 
       <nav
         style={{

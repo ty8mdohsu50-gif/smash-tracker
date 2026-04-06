@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Share2 } from "lucide-react";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import Heatmap from "./Heatmap";
+import SharePopup from "./SharePopup";
 import { shortName, fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import {
@@ -24,6 +25,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   const [charDetail, setCharDetail] = useState(null);
   const [charTab, setCharTab] = useState("matchup");
   const [expandedOpp, setExpandedOpp] = useState(null);
+  const [sharePopupText, setSharePopupText] = useState(null);
 
   const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
   const totalL = data.matches.length - totalW;
@@ -218,6 +220,33 @@ export default function AnalysisTab({ data, T, isPC }) {
     });
     return r;
   }, [data]);
+
+  const doShare = async (text) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (_) { /* cancelled */ }
+    }
+    setSharePopupText(text);
+  };
+
+  const periodLabels = {
+    day: t("analysis.today"),
+    week: t("analysis.week"),
+    month: t("analysis.month"),
+    all: t("analysis.all"),
+  };
+
+  const shareTrend = () => {
+    const label = periodLabels[period] || t("analysis.all");
+    const cur = trendData.cur ? numFormat(trendData.cur) : "\u2014";
+    const chg = trendData.chg ? (trendData.chg > 0 ? "+" : "") + numFormat(trendData.chg) : "\u2014";
+    const mx = trendData.mx ? numFormat(trendData.mx) : "\u2014";
+    const mn = trendData.mn ? numFormat(trendData.mn) : "\u2014";
+    const text = `【SMASH TRACKER】${t("analysis.trend")}（${label}）\n\n${t("analysis.current")}: ${cur}\n${t("analysis.change")}: ${chg}\n${t("analysis.highest")}: ${mx}\n${t("analysis.lowest")}: ${mn}\n\n#スマブラ #SmashTracker #スマトラ\nhttps://smash-tracker.pages.dev/`;
+    doShare(text);
+  };
 
   const renderBar = (r) => (
     <div
@@ -749,6 +778,35 @@ export default function AnalysisTab({ data, T, isPC }) {
                 {t("analysis.enterPowerToSee")}
               </div>
             </div>
+          )}
+          {trendData.points.length > 1 && (
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+              <button
+                onClick={() => shareTrend()}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 16px",
+                  borderRadius: 10,
+                  border: `1px solid ${T.brd}`,
+                  background: T.inp,
+                  color: T.sub,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <Share2 size={14} /> {t("common.share")}
+              </button>
+            </div>
+          )}
+          {sharePopupText && (
+            <SharePopup
+              text={sharePopupText}
+              onClose={() => setSharePopupText(null)}
+              T={T}
+            />
           )}
         </div>
       )}

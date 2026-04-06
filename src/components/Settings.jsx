@@ -17,7 +17,7 @@ const SWATCH_COLORS = {
   black: "#1F2937",
 };
 
-export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout, user, T }) {
+export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbout, onLogout, user, T }) {
   const { t, lang, setLanguage } = useI18n();
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
@@ -411,6 +411,12 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
               style={{ background: "transparent", border: "none", color: T.dim, fontSize: 12, textDecoration: "underline" }}
             >
               {t("settings.privacy")}
+            </button>
+            <button
+              onClick={() => { handleClose(); onOpenAbout(); }}
+              style={{ background: "transparent", border: "none", color: T.dim, fontSize: 12, textDecoration: "underline" }}
+            >
+              {t("about.siteAbout")}
             </button>
           </div>
         </div>
