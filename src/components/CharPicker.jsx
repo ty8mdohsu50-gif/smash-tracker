@@ -35,10 +35,7 @@ export default function CharPicker({
     let base = FIGHTERS;
     if (!q && recent.length) {
       const rSet = new Set(recent);
-      base = [
-        ...recent.filter((c) => FIGHTERS.includes(c)),
-        ...FIGHTERS.filter((c) => !rSet.has(c)),
-      ];
+      base = FIGHTERS.filter((c) => !rSet.has(c));
     }
     if (!q) return base;
     const lq = toHiragana(q.toLowerCase());

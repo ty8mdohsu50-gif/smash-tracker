@@ -85,13 +85,15 @@ export const recentChars = (ms, field) => {
 
 export const lastEndPower = (dl, charName) => {
   const ds = Object.keys(dl).sort();
-  for (let i = ds.length - 1; i >= 0; i--) {
-    const day = dl[ds[i]];
-    if (day?.chars && charName) {
-      const cd = day.chars[charName];
+  if (charName) {
+    for (let i = ds.length - 1; i >= 0; i--) {
+      const cd = dl[ds[i]]?.chars?.[charName];
       if (cd?.end) return cd.end;
       if (cd?.start) return cd.start;
     }
+  }
+  for (let i = ds.length - 1; i >= 0; i--) {
+    const day = dl[ds[i]];
     if (day?.end) return day.end;
     if (day?.start) return day.start;
   }

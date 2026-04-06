@@ -1081,7 +1081,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
               <div style={{ display: "flex", gap: 16 }}>
                 <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
                   {showMyPicker ? (
-                    <CharPicker value={myChar} onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} T={T} />
+                    <CharPicker value={myChar} onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} />
                   ) : (
                     <div>
                       <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{t("battle.selectChar")}</div>
