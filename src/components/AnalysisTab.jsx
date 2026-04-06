@@ -4,6 +4,7 @@ import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import Heatmap from "./Heatmap";
 import { shortName } from "../constants/fighters";
+import { useI18n } from "../i18n/index.jsx";
 import {
   today,
   formatDate,
@@ -15,6 +16,7 @@ import {
 } from "../utils/format";
 
 export default function AnalysisTab({ data, T, isPC }) {
+  const { t } = useI18n();
   const [aMode, setAMode] = useState("myChar");
   const [period, setPeriod] = useState("all");
   const [charDetail, setCharDetail] = useState(null);
@@ -211,7 +213,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   );
 
   const renderLabel = (r) => {
-    const label = r >= 0.6 ? "勝ち越し" : r >= 0.4 ? "互角" : "負け越し";
+    const label = r >= 0.6 ? t("analysis.winning") : r >= 0.4 ? t("analysis.even") : t("analysis.losing");
     const bg = r >= 0.6 ? T.winBg : r >= 0.4 ? "rgba(255,159,10,.15)" : T.loseBg;
     const color = r >= 0.6 ? T.win : r >= 0.4 ? "#a16207" : T.lose;
     return (
@@ -225,10 +227,10 @@ export default function AnalysisTab({ data, T, isPC }) {
     return (
       <div>
         <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-          {pill("myChar", "キャラ別", aMode, setAMode)}
-          {pill("oppChar", "マッチアップ", aMode, setAMode)}
-          {pill("trend", "推移", aMode, setAMode)}
-          {pill("stats", "統計", aMode, setAMode)}
+          {pill("myChar", t("analysis.charBased"), aMode, setAMode)}
+          {pill("oppChar", t("analysis.matchup"), aMode, setAMode)}
+          {pill("trend", t("analysis.trend"), aMode, setAMode)}
+          {pill("stats", t("analysis.stats"), aMode, setAMode)}
         </div>
         <div
           style={{
@@ -247,8 +249,8 @@ export default function AnalysisTab({ data, T, isPC }) {
           <div style={{ background: T.accentSoft, borderRadius: "50%", width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <BarChart3 size={30} color={T.accent} />
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>分析データがありません</div>
-          <div style={{ fontSize: 13, color: T.dim }}>対戦データを記録すると分析結果が表示されます</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{t("analysis.emptyTitle")}</div>
+          <div style={{ fontSize: 13, color: T.dim }}>{t("analysis.emptyDesc")}</div>
         </div>
       </div>
     );
@@ -259,10 +261,10 @@ export default function AnalysisTab({ data, T, isPC }) {
       <div
         style={{ display: "flex", gap: 6, marginBottom: 16 }}
       >
-        {pill("myChar", "キャラ別", aMode, setAMode)}
-        {pill("oppChar", "マッチアップ", aMode, setAMode)}
-        {pill("trend", "推移", aMode, setAMode)}
-        {pill("stats", "統計", aMode, setAMode)}
+        {pill("myChar", t("analysis.charBased"), aMode, setAMode)}
+        {pill("oppChar", t("analysis.matchup"), aMode, setAMode)}
+        {pill("trend", t("analysis.trend"), aMode, setAMode)}
+        {pill("stats", t("analysis.stats"), aMode, setAMode)}
       </div>
 
       {/* Summary */}
@@ -277,7 +279,7 @@ export default function AnalysisTab({ data, T, isPC }) {
         >
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>
-              総試合
+              {t("analysis.totalMatches")}
             </div>
             <div
               style={{
@@ -292,7 +294,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>
-              勝率
+              {t("analysis.winRate")}
             </div>
             <div
               style={{
@@ -307,7 +309,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>
-              勝-負
+              {t("analysis.winLoss")}
             </div>
             <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>
               <span style={{ color: T.win }}>{totalW}</span>
@@ -327,7 +329,7 @@ export default function AnalysisTab({ data, T, isPC }) {
               onClick={() => { setCharDetail(null); setCharTab("matchup"); }}
               style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}
             >
-              ← 戻る
+              {t("analysis.backToList")}
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <FighterIcon name={charDetail} size={36} />
@@ -343,7 +345,7 @@ export default function AnalysisTab({ data, T, isPC }) {
 
           {/* Tab switcher */}
           <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-            {[["matchup", "vs 相手キャラ"], ["daily", "日別戦績"]].map(([k, l]) => (
+            {[["matchup", t("analysis.vsOpponent")], ["daily", t("analysis.dailyRecord")]].map(([k, l]) => (
               <button
                 key={k}
                 onClick={() => setCharTab(k)}
@@ -374,12 +376,12 @@ export default function AnalysisTab({ data, T, isPC }) {
                     <FighterIcon name={s.c} size={32} />
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
-                      <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}戦)</div>
+                      <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                      <span style={{ fontSize: 10, color: T.dim }}>勝率</span>
+                      <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
                       <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</span>
                     </div>
                     {renderLabel(r)}
@@ -398,21 +400,21 @@ export default function AnalysisTab({ data, T, isPC }) {
               m.result === "win" ? dailyMap[m.date].w++ : dailyMap[m.date].l++;
             });
             const days = Object.entries(dailyMap).sort((a, b) => b[0].localeCompare(a[0]));
-            if (days.length === 0) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>データなし</div>;
+            if (days.length === 0) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
             return days.map(([date, d]) => {
-              const t = d.w + d.l;
-              const r = t ? d.w / t : 0;
+              const total = d.w + d.l;
+              const r = total ? d.w / total : 0;
               return (
                 <div key={date} style={{ ...cd, marginBottom: 8, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: 13, color: T.dim }}>{t}戦</span>
+                    <span style={{ fontSize: 13, color: T.dim }}>{total}{t("analysis.battles")}</span>
                     <span style={{ fontSize: 16, fontWeight: 800 }}>
                       <span style={{ color: T.win }}>{d.w}</span>
                       <span style={{ color: T.dimmer }}> : </span>
                       <span style={{ color: T.lose }}>{d.l}</span>
                     </span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r) }}>{percentStr(d.w, t)}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r) }}>{percentStr(d.w, total)}</span>
                   </div>
                 </div>
               );
@@ -432,10 +434,10 @@ export default function AnalysisTab({ data, T, isPC }) {
               marginBottom: 10,
             }}
           >
-            使用キャラ別（タップで詳細）
+            {t("analysis.charDetail")}
           </div>
           {mCS.length === 0
-            ? emptyMsg("対戦を記録するとキャラ別の戦績が表示されます")
+            ? emptyMsg(t("analysis.noCharData"))
             : <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
               {mCS.map((s) => {
                 const r = s.t ? s.w / s.t : 0;
@@ -474,7 +476,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                         {s.c}
                       </span>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                        <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>勝率</span>
+                        <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</span>
                         <span style={{ fontSize: 20, fontWeight: 800, color: barColor(r) }}>
                           {percentStr(s.w, s.t)}
                         </span>
@@ -488,10 +490,10 @@ export default function AnalysisTab({ data, T, isPC }) {
                       }}
                     >
                       <span style={{ fontSize: 12, color: T.dim }}>
-                        {s.w}W {s.l}L · {s.t}戦
+                        {s.w}W {s.l}L · {s.t}{t("analysis.battles")}
                       </span>
                       <span style={{ fontSize: 12, color: T.accent }}>
-                        詳細 ›
+                        {t("analysis.detail")}
                       </span>
                     </div>
                   </button>
@@ -505,12 +507,12 @@ export default function AnalysisTab({ data, T, isPC }) {
       {aMode === "oppChar" && (
         <div>
           {mCS.length === 0
-            ? emptyMsg("対戦を記録するとマッチアップが表示されます")
+            ? emptyMsg(t("analysis.noMatchupData"))
             : (
               <div>
                 {/* Character selector */}
                 <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>
-                  使用キャラを選択
+                  {t("analysis.selectChar")}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
                   {mCS.map((s) => {
@@ -541,11 +543,11 @@ export default function AnalysisTab({ data, T, isPC }) {
                           <FighterIcon name={s.c} size={36} />
                           <div>
                             <div style={{ fontSize: 15, fontWeight: 700 }}>{s.c}</div>
-                            <div style={{ fontSize: 11, color: active ? T.accent : T.dim, fontWeight: 500, marginTop: 2 }}>{s.t}戦 {s.w}W {s.l}L</div>
+                            <div style={{ fontSize: 11, color: active ? T.accent : T.dim, fontWeight: 500, marginTop: 2 }}>{s.t}{t("analysis.battles")} {s.w}W {s.l}L</div>
                           </div>
                         </div>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                          <span style={{ fontSize: 10, color: active ? T.accent : T.dim }}>勝率</span>
+                          <span style={{ fontSize: 10, color: active ? T.accent : T.dim }}>{t("analysis.winRate")}</span>
                           <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
                             {percentStr(s.w, s.t)}
                           </span>
@@ -558,7 +560,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                 {!charDetail ? (
                   <div style={{ ...cd, padding: "32px 20px", textAlign: "center" }}>
                     <div style={{ fontSize: 14, color: T.dim }}>
-                      上からキャラを選ぶと、相手キャラごとの戦績が表示されます
+                      {t("analysis.selectCharDesc")}
                     </div>
                   </div>
                 ) : (
@@ -577,12 +579,12 @@ export default function AnalysisTab({ data, T, isPC }) {
                                 <FighterIcon name={s.c} size={26} />
                                 <div>
                                   <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
-                                  <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}戦)</div>
+                                  <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
                                 </div>
                               </div>
                               <div style={{ textAlign: "right" }}>
                                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                                  <span style={{ fontSize: 10, color: T.dim }}>勝率</span>
+                                  <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
                                   <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
                                     {percentStr(s.w, s.t)}
                                   </span>
@@ -606,10 +608,10 @@ export default function AnalysisTab({ data, T, isPC }) {
       {aMode === "trend" && (
         <div>
           <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-            {pill("day", "今日", period, setPeriod)}
-            {pill("week", "1週間", period, setPeriod)}
-            {pill("month", "1ヶ月", period, setPeriod)}
-            {pill("all", "全期間", period, setPeriod)}
+            {pill("day", t("analysis.today"), period, setPeriod)}
+            {pill("week", t("analysis.week"), period, setPeriod)}
+            {pill("month", t("analysis.month"), period, setPeriod)}
+            {pill("all", t("analysis.all"), period, setPeriod)}
           </div>
           <div
             style={{
@@ -620,10 +622,10 @@ export default function AnalysisTab({ data, T, isPC }) {
             }}
           >
             {[
-              { label: "現在", value: trendData.cur ? numFormat(trendData.cur) : "\u2014", color: T.text },
-              { label: "変動", value: trendData.chg ? (trendData.chg > 0 ? "+" : "") + numFormat(trendData.chg) : "\u2014", color: trendData.chg > 0 ? T.win : trendData.chg < 0 ? T.lose : T.dim },
-              { label: "最高", value: trendData.mx ? numFormat(trendData.mx) : "\u2014", color: trendData.mx ? T.win : T.dim },
-              { label: "最低", value: trendData.mn ? numFormat(trendData.mn) : "\u2014", color: trendData.mn ? T.lose : T.dim },
+              { label: t("analysis.current"), value: trendData.cur ? numFormat(trendData.cur) : "\u2014", color: T.text },
+              { label: t("analysis.change"), value: trendData.chg ? (trendData.chg > 0 ? "+" : "") + numFormat(trendData.chg) : "\u2014", color: trendData.chg > 0 ? T.win : trendData.chg < 0 ? T.lose : T.dim },
+              { label: t("analysis.highest"), value: trendData.mx ? numFormat(trendData.mx) : "\u2014", color: trendData.mx ? T.win : T.dim },
+              { label: t("analysis.lowest"), value: trendData.mn ? numFormat(trendData.mn) : "\u2014", color: trendData.mn ? T.lose : T.dim },
             ].map((s) => (
               <div key={s.label} style={{ ...cd, marginBottom: 0, padding: "14px 16px", textAlign: "center" }}>
                 <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{s.label}</div>
@@ -638,7 +640,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           ) : (
             <div style={{ ...cd, textAlign: "center", padding: 30 }}>
               <div style={{ fontSize: 13, color: T.dim }}>
-                戦闘力を入力すると推移が見れます
+                {t("analysis.enterPowerToSee")}
               </div>
             </div>
           )}
@@ -656,7 +658,7 @@ export default function AnalysisTab({ data, T, isPC }) {
               marginBottom: 10,
             }}
           >
-            対戦ヒートマップ（過去13週間）
+            {t("analysis.heatmap")}
           </div>
           <div style={{ ...cd, padding: "16px 14px", marginBottom: isPC ? 20 : 14 }}>
             <Heatmap matches={data.matches} T={T} isPC={isPC} />
@@ -670,7 +672,7 @@ export default function AnalysisTab({ data, T, isPC }) {
               marginBottom: 10,
             }}
           >
-            直近の勝率
+            {t("analysis.recentWinRate")}
           </div>
           <div style={{ display: "flex", gap: isPC ? 16 : 8, marginBottom: isPC ? 20 : 14 }}>
             {[20, 50].filter((n) => {
@@ -679,7 +681,7 @@ export default function AnalysisTab({ data, T, isPC }) {
             }).map((n) => {
               const d = rolling[n];
               const r = d.t ? d.w / d.t : 0;
-              const label = `直近${d.t}戦`;
+              const label = `${t("battle.recentLabel")} ${d.t}${t("analysis.battles")}`;
               return (
                 <div
                   key={n}
@@ -726,7 +728,7 @@ export default function AnalysisTab({ data, T, isPC }) {
               marginBottom: 10,
             }}
           >
-            時間帯別の勝率
+            {t("analysis.timeOfDay")}
           </div>
           <div style={{ ...cd, padding: "14px 12px" }}>
             {Object.keys(hourlyStats).length === 0 ? (
@@ -738,7 +740,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                   padding: 16,
                 }}
               >
-                データなし
+                {t("analysis.noData")}
               </div>
             ) : (
               <div
@@ -769,7 +771,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                             color: T.text,
                           }}
                         >
-                          {hr}時
+                          {hr}{t("analysis.hour")}
                         </div>
                         <div
                           style={{
@@ -782,7 +784,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                           {percentStr(d.w, d.w + d.l)}
                         </div>
                         <div style={{ fontSize: 10, color: T.dim }}>
-                          {d.w + d.l}戦
+                          {d.w + d.l}{t("analysis.battles")}
                         </div>
                       </div>
                     );

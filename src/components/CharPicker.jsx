@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { FIGHTERS, getSearchText } from "../constants/fighters";
+import { useI18n } from "../i18n/index.jsx";
 import { toHiragana } from "../utils/format";
 import FighterIcon from "./FighterIcon";
 
@@ -12,6 +13,7 @@ export default function CharPicker({
   autoOpen = false,
   T,
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(autoOpen);
   const [q, setQ] = useState("");
   const ref = useRef(null);
@@ -83,7 +85,7 @@ export default function CharPicker({
         }}
       >
         {value && <FighterIcon name={value} size={32} />}
-        {value || placeholder || "選択"}
+        {value || placeholder || t("charPicker.select")}
       </button>
 
       {open && (
@@ -115,7 +117,10 @@ export default function CharPicker({
                   setQ("");
                 }
               }}
-              placeholder="ひらがな・カタカナで検索..."
+              placeholder={t("charPicker.search")}
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
               style={{
                 width: "100%",
                 padding: "10px 12px",
@@ -145,7 +150,7 @@ export default function CharPicker({
                   marginBottom: 4,
                 }}
               >
-                最近
+                {t("charPicker.recent")}
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {recent.slice(0, 5).map((c) => (
@@ -210,7 +215,7 @@ export default function CharPicker({
                   textAlign: "center",
                 }}
               >
-                見つかりません
+                {t("charPicker.notFound")}
               </div>
             )}
           </div>

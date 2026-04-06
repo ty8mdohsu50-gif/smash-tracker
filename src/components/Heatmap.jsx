@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-
-const WEEK_DAYS = ["月", "火", "水", "木", "金", "土", "日"];
+import { useI18n } from "../i18n/index.jsx";
 const WEEKS = 13;
 
 function getCellColor(count, T) {
@@ -64,6 +63,8 @@ function buildGrid(matches) {
 }
 
 export default function Heatmap({ matches, T, isPC }) {
+  const { t } = useI18n();
+  const WEEK_DAYS = t("heatmap.weekDays");
   const [tooltip, setTooltip] = useState(null);
 
   const { cells, monthLabels } = useMemo(() => buildGrid(matches), [matches]);
@@ -170,9 +171,9 @@ export default function Heatmap({ matches, T, isPC }) {
           }}
         >
           <span style={{ fontWeight: 700, color: T.sub }}>{tooltip.dateStr}</span>
-          <span style={{ fontWeight: 700 }}>{tooltip.count}戦</span>
-          <span style={{ color: T.win, fontWeight: 700 }}>{tooltip.wins}勝</span>
-          <span style={{ color: T.lose, fontWeight: 700 }}>{tooltip.count - tooltip.wins}敗</span>
+          <span style={{ fontWeight: 700 }}>{tooltip.count}{t("common.matches")}</span>
+          <span style={{ color: T.win, fontWeight: 700 }}>{tooltip.wins}W</span>
+          <span style={{ color: T.lose, fontWeight: 700 }}>{tooltip.count - tooltip.wins}L</span>
           <button
             onClick={() => setTooltip(null)}
             style={{ marginLeft: "auto", background: "none", border: "none", color: T.dim, fontSize: 16, cursor: "pointer", padding: "0 4px" }}
@@ -184,7 +185,7 @@ export default function Heatmap({ matches, T, isPC }) {
 
       {/* Legend */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
-        <span style={{ fontSize: 10, color: T.dim }}>少</span>
+        <span style={{ fontSize: 10, color: T.dim }}>{t("heatmap.few")}</span>
         {[0, 3, 8, 20].map((count, i) => (
           <div
             key={i}
@@ -196,7 +197,7 @@ export default function Heatmap({ matches, T, isPC }) {
             }}
           />
         ))}
-        <span style={{ fontSize: 10, color: T.dim }}>多</span>
+        <span style={{ fontSize: 10, color: T.dim }}>{t("heatmap.many")}</span>
       </div>
     </div>
   );

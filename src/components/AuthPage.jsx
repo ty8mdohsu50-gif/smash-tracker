@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Swords, Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { useI18n } from "../i18n/index.jsx";
 
 const FONT = "'Chakra Petch', 'Noto Sans JP', -apple-system, 'Hiragino Sans', sans-serif";
 
 export default function AuthPage({ onSkip }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,16 +58,16 @@ export default function AuthPage({ onSkip }) {
         <div style={cardStyle}>
           <Mail size={40} color="#9CA3AF" style={{ marginBottom: 16 }} />
           <div style={{ fontSize: 18, fontWeight: 800, color: "#1c1c1e", marginBottom: 8 }}>
-            確認メールを送信しました
+            {t("auth.emailSent")}
           </div>
           <div style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.7, textAlign: "center" }}>
-            <strong>{email}</strong> に確認メールを送りました。メール内のリンクをクリックしてアカウントを有効化してください。
+            <strong>{email}</strong>{t("auth.emailSentDesc")}
           </div>
           <button
             onClick={() => { setSent(false); setMode("login"); }}
             style={linkBtnStyle}
           >
-            ログイン画面に戻る
+            {t("auth.backToLogin")}
           </button>
         </div>
       </div>
@@ -96,7 +98,7 @@ export default function AuthPage({ onSkip }) {
               SMASH TRACKER
             </div>
             <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>
-              {mode === "login" ? "ログイン" : "新規登録"}
+              {mode === "login" ? t("auth.login") : t("auth.signup")}
             </div>
           </div>
         </div>
@@ -109,12 +111,12 @@ export default function AuthPage({ onSkip }) {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
-          Googleでログイン
+          {t("auth.googleLogin")}
         </button>
 
         <div style={dividerStyle}>
           <div style={dividerLineStyle} />
-          <span style={{ fontSize: 12, color: "#9ca3af", padding: "0 12px" }}>または</span>
+          <span style={{ fontSize: 12, color: "#9ca3af", padding: "0 12px" }}>{t("auth.or")}</span>
           <div style={dividerLineStyle} />
         </div>
 
@@ -134,7 +136,7 @@ export default function AuthPage({ onSkip }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="メールアドレス"
+              placeholder={t("auth.email")}
               required
               style={inputStyle}
             />
@@ -145,7 +147,7 @@ export default function AuthPage({ onSkip }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="パスワード（6文字以上）"
+              placeholder={t("auth.password")}
               required
               minLength={6}
               style={inputStyle}
@@ -155,7 +157,7 @@ export default function AuthPage({ onSkip }) {
           <button type="submit" disabled={loading} style={submitBtnStyle}>
             {loading ? "..." : (
               <>
-                {mode === "login" ? "ログイン" : "アカウント作成"}
+                {mode === "login" ? t("auth.loginButton") : t("auth.signupButton")}
                 <ArrowRight size={16} />
               </>
             )}
@@ -167,17 +169,15 @@ export default function AuthPage({ onSkip }) {
           onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }}
           style={linkBtnStyle}
         >
-          {mode === "login"
-            ? "アカウントをお持ちでない方はこちら"
-            : "すでにアカウントをお持ちの方はこちら"}
+          {mode === "login" ? t("auth.noAccount") : t("auth.hasAccount")}
         </button>
 
         {/* Skip */}
         <button onClick={onSkip} style={skipBtnStyle}>
-          ログインせずに使う
+          {t("auth.skipLogin")}
         </button>
         <div style={{ fontSize: 10, color: "#9ca3af", textAlign: "center", marginTop: 4 }}>
-          ログインなしの場合、データはこの端末にのみ保存されます
+          {t("auth.skipNote")}
         </div>
       </div>
     </div>

@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import FighterIcon from "./FighterIcon";
+import { useI18n } from "../i18n/index.jsx";
 
 export default function MatchupBadge({ myChar, oppChar, matches, T }) {
+  const { t } = useI18n();
   const stats = useMemo(() => {
     const ms = matches.filter(
       (m) => m.myChar === myChar && m.oppChar === oppChar,
@@ -27,7 +29,7 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
       >
         <FighterIcon name={oppChar} size={32} />
         <div style={{ fontSize: 12, color: T.dim }}>
-          vs {oppChar} -- 初対戦
+          {t("common.vs")} {oppChar} -- {t("battle.firstMatch")}
         </div>
       </div>
     );
@@ -55,7 +57,7 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>vs {oppChar}</div>
             <div style={{ fontSize: 11, color: T.dim, marginTop: 1 }}>
-              {stats.t}戦 {stats.w}W {stats.l}L
+              {stats.t}{t("common.matches")} {stats.w}W {stats.l}L
             </div>
           </div>
         </div>
@@ -98,7 +100,7 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
       {/* Recent results */}
       {stats.recent.length > 0 && (
         <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
-          <span style={{ fontSize: 10, color: T.dim, marginRight: 4 }}>直近</span>
+          <span style={{ fontSize: 10, color: T.dim, marginRight: 4 }}>{t("battle.recentLabel")}</span>
           {stats.recent.map((r, i) => (
             <div
               key={i}

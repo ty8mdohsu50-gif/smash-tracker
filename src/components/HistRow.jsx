@@ -1,8 +1,10 @@
 import { formatTime } from "../utils/format";
 import { shortName } from "../constants/fighters";
+import { useI18n } from "../i18n/index.jsx";
 import FighterIcon from "./FighterIcon";
 
 export default function HistRow({ m, onDelete, T }) {
+  const { lang } = useI18n();
   return (
     <div
       style={{
@@ -43,7 +45,7 @@ export default function HistRow({ m, onDelete, T }) {
             flexShrink: 0,
           }}
         >
-          {shortName(m.myChar)}
+          {shortName(m.myChar, lang)}
         </span>
         <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>vs</span>
         <FighterIcon name={m.oppChar} size={26} />
@@ -59,7 +61,7 @@ export default function HistRow({ m, onDelete, T }) {
             flexShrink: 0,
           }}
         >
-          {shortName(m.oppChar)}
+          {shortName(m.oppChar, lang)}
         </span>
         <span style={{ fontSize: 10, color: T.dim, flexShrink: 0, marginLeft: "auto" }}>
           {formatTime(m.time)}

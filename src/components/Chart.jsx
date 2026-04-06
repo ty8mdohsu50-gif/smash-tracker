@@ -113,7 +113,7 @@ export default function Chart({ points: pts, T }) {
             key={`hit${i}`}
             cx={x(i)}
             cy={y(d.value)}
-            r={12}
+            r={18}
             fill="transparent"
             style={{ cursor: "pointer" }}
             onClick={() => handleClick(i)}
@@ -123,15 +123,15 @@ export default function Chart({ points: pts, T }) {
         {selected !== null && pts[selected] && (() => {
           const d = pts[selected];
           const tx = x(selected);
-          const ty = y(d.value) - 16;
+          const ty = y(d.value) - 20;
           const label = Math.round(d.value).toLocaleString();
-          const labelW = label.length * 7 + 16;
+          const labelW = label.length * 9 + 20;
           const clampedX = Math.max(P.l + labelW / 2, Math.min(W - P.r - labelW / 2, tx));
           return (
             <g>
               <line x1={tx} y1={y(d.value)} x2={tx} y2={P.t + cH} stroke={lineColor} strokeWidth={0.5} strokeDasharray="3,3" opacity={0.5} />
-              <rect x={clampedX - labelW / 2} y={ty - 12} width={labelW} height={20} rx={6} fill={T.text} opacity={0.9} />
-              <text x={clampedX} y={ty + 1} textAnchor="middle" fontSize={11} fontWeight={700} fill={T.bg} fontFamily="'Chakra Petch', sans-serif">
+              <rect x={clampedX - labelW / 2} y={ty - 14} width={labelW} height={26} rx={7} fill={T.text} opacity={0.92} />
+              <text x={clampedX} y={ty + 3} textAnchor="middle" fontSize={14} fontWeight={700} fill={T.bg} fontFamily="'Chakra Petch', sans-serif">
                 {label}
               </text>
             </g>

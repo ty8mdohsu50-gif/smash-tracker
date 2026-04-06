@@ -2,9 +2,12 @@ import { useState, useMemo } from "react";
 import { Swords, Share2 } from "lucide-react";
 import HistRow from "./HistRow";
 import FighterIcon from "./FighterIcon";
+import { useI18n } from "../i18n/index.jsx";
+import { fighterName } from "../constants/fighters";
 import { formatDateLong, formatTime, numFormat, percentStr, barColor, getDayPowerSummary } from "../utils/format";
 
 export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
+  const { t, lang } = useI18n();
   const [histDate, setHistDate] = useState(null);
   const [shareStatus, setShareStatus] = useState(null);
 
@@ -21,15 +24,15 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
       return sorted[0] ? sorted[0][0] : null;
     })();
-    const lines = [`【SMASH TRACKER】${formatDateLong(date)}の結果`];
-    if (ss.showChar && myChars.length > 0) lines.push(`使用: ${myChars.join(" / ")}`);
+    const lines = [`【SMASH TRACKER】${formatDateLong(date)}${t("share.result")}`];
+    if (ss.showChar && myChars.length > 0) lines.push(`${t("share.used")}: ${myChars.join(" / ")}`);
     if (ss.showRecord) lines.push(`${w}勝${l}敗（勝率${percentStr(w, matches.length)}）`);
-    if (ss.showOppChar && topOpp) lines.push(`最多対戦: ${topOpp}`);
+    if (ss.showOppChar && topOpp) lines.push(`${t("share.mostPlayed")}: ${topOpp}`);
     if (ss.showPower && ps.start && ps.end) {
       const delta = ps.end - ps.start;
-      lines.push(`戦闘力: ${numFormat(ps.start)} → ${numFormat(ps.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
+      lines.push(`${t("battle.power")}: ${numFormat(ps.start)} → ${numFormat(ps.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
     }
-    if (dp?.vip) lines.push("VIP到達!");
+    if (dp?.vip) lines.push(t("share.vip"));
     lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
     const text = lines.join("\n");
     if (navigator.share) {
@@ -86,14 +89,14 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       <div style={{ background: T.accentSoft, borderRadius: "50%", width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Swords size={28} color={T.accent} />
       </div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>対戦履歴はまだありません</div>
-      <div style={{ fontSize: 13, color: T.dim }}>対戦を記録すると日別の戦績が表示されます</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{t("history.emptyTitle")}</div>
+      <div style={{ fontSize: 13, color: T.dim }}>{t("history.emptyDesc")}</div>
       {onTabClick && (
         <button
           onClick={onTabClick}
           style={{ marginTop: 4, padding: "8px 20px", borderRadius: 10, border: "none", background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
         >
-          対戦タブへ →
+          {t("history.goToBattle")}
         </button>
       )}
     </div>
@@ -103,7 +106,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   if (!isPC) {
     return (
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>日別戦績</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("history.dailyRecord")}</div>
         {!histDate ? (
           <div>
             {dGroups.length === 0
@@ -116,7 +119,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{formatDateLong(dt)}</div>
                         <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>
-                          {ms.length}戦
+                          {ms.length}{t("common.matches")}
                           {ps.start ? ` · ${numFormat(ps.start)}${ps.end ? " → " + numFormat(ps.end) : ""}` : ""}
                         </div>
                         {ps.start && ps.end && (() => {
@@ -140,17 +143,17 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
         ) : (
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <button onClick={() => setHistDate(null)} style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10 }}>← 戻る</button>
+              <button onClick={() => setHistDate(null)} style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10 }}>{t("history.back")}</button>
               <button
                 onClick={() => shareDay(histDate, selDay)}
                 style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}
               >
                 <Share2 size={14} />
-                {shareStatus === "copied" ? "コピー済み" : "シェア"}
+                {shareStatus === "copied" ? t("battle.copied") : t("battle.share")}
               </button>
             </div>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.text }}>{formatDateLong(histDate)}</div>
-            {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 16 }}>{selDay.length}戦 · <span style={{ color: T.win, fontWeight: 700 }}>{w}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
+            {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 16 }}>{selDay.length}{t("common.matches")} · <span style={{ color: T.win, fontWeight: 700 }}>{w}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
             {selDayWithIdx.map((e, i) => <HistRow key={i} m={e.m} onDelete={() => deleteMatch(e.idx)} T={T} />)}
           </div>
         )}
@@ -168,7 +171,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
       {/* Left: date list */}
       <div style={{ width: 340, flexShrink: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: T.text, marginBottom: 16 }}>日別戦績</div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: T.text, marginBottom: 16 }}>{t("history.dailyRecord")}</div>
         <div style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
           {dGroups.length === 0
             ? emptyHistoryState(onGoBattle)
@@ -199,7 +202,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: active ? T.accent : T.text }}>{formatDateLong(dt)}</div>
                       <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>
-                        {ms.length}戦{ps.start ? ` · ${numFormat(ps.start)}${ps.end ? " → " + numFormat(ps.end) : ""}` : ""}
+                        {ms.length}{t("common.matches")}{ps.start ? ` · ${numFormat(ps.start)}${ps.end ? " → " + numFormat(ps.end) : ""}` : ""}
                       </div>
                       {ps.start && ps.end && (() => {
                         const delta = ps.end - ps.start;
@@ -228,8 +231,8 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         {!histDate ? (
           <div style={{ ...cd, padding: "60px 40px", textAlign: "center" }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 8 }}>日付を選択してください</div>
-            <div style={{ fontSize: 13, color: T.dim }}>左のリストから日付をクリックすると詳細が表示されます</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("history.selectDate")}</div>
+            <div style={{ fontSize: 13, color: T.dim }}>{t("history.selectDateDesc")}</div>
           </div>
         ) : (
           <div>
@@ -237,7 +240,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
               <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
                 <div style={{ fontSize: 22, fontWeight: 900, color: T.text }}>{formatDateLong(histDate)}</div>
                 <div style={{ fontSize: 14, color: T.sub }}>
-                  {selDay.length}戦 · <span style={{ color: T.win, fontWeight: 700 }}>{selW}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - selW}L</span> · {percentStr(selW, selDay.length)}
+                  {selDay.length}{t("common.matches")} · <span style={{ color: T.win, fontWeight: 700 }}>{selW}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - selW}L</span> · {percentStr(selW, selDay.length)}
                 </div>
               </div>
               <button
@@ -245,7 +248,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                 style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 16px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
               >
                 <Share2 size={14} />
-                {shareStatus === "copied" ? "コピー済み" : "シェア"}
+                {shareStatus === "copied" ? t("battle.copied") : t("battle.share")}
               </button>
             </div>
 
@@ -253,13 +256,13 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: T.inp }}>
-                    <th style={thStyle}>#</th>
-                    <th style={thStyle}>結果</th>
-                    <th style={thStyle}>使用キャラ</th>
-                    <th style={thStyle}>相手キャラ</th>
-                    <th style={thStyle}>時刻</th>
-                    <th style={thStyle}>メモ</th>
-                    <th style={{ ...thStyle, textAlign: "center" }}>操作</th>
+                    <th style={thStyle}>{t("history.num")}</th>
+                    <th style={thStyle}>{t("history.result")}</th>
+                    <th style={thStyle}>{t("history.myChar")}</th>
+                    <th style={thStyle}>{t("history.oppChar")}</th>
+                    <th style={thStyle}>{t("history.time")}</th>
+                    <th style={thStyle}>{t("history.memo")}</th>
+                    <th style={{ ...thStyle, textAlign: "center" }}>{t("history.actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -277,12 +280,12 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                             {m.result === "win" ? "WIN" : "LOSE"}
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.myChar} size={30} />{m.myChar}</span></td>
-                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.oppChar} size={30} />{m.oppChar}</span></td>
+                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.myChar} size={30} />{fighterName(m.myChar, lang)}</span></td>
+                        <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.oppChar} size={30} />{fighterName(m.oppChar, lang)}</span></td>
                         <td style={{ ...tdStyle, color: T.dim, fontSize: 13 }}>{formatTime(m.time)}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
-                          <button onClick={() => deleteMatch(e.idx)} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>削除</button>
+                          <button onClick={() => deleteMatch(e.idx)} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
                         </td>
                       </tr>
                     );

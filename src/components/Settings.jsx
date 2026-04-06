@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { csvDownload } from "../utils/storage";
 import { THEME_KEYS, getThemeLabel } from "../styles/theme";
+import { useI18n } from "../i18n/index.jsx";
 
 const SWATCH_COLORS = {
   purple: "#7C3AED",
@@ -17,6 +18,7 @@ const SWATCH_COLORS = {
 };
 
 export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout, user, T }) {
+  const { t, lang, setLanguage } = useI18n();
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -90,7 +92,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>設定</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{t("settings.title")}</div>
           <button
             onClick={handleClose}
             style={{
@@ -109,10 +111,10 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
           {/* Goals - first section */}
           <div style={{ padding: "18px 0", borderBottom: `1px solid ${T.inp}` }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 14 }}>
-              今日の目標
+              {t("settings.todayGoal")}
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 52 }}>対戦数</span>
+              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.games")}</span>
               <input
                 type="number"
                 value={gGames}
@@ -133,10 +135,10 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                   fontFamily: "'Chakra Petch', sans-serif",
                 }}
               />
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600 }}>戦</span>
+              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600 }}>{t("settings.gamesUnit")}</span>
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 52 }}>勝率</span>
+              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.winRate")}</span>
               <input
                 type="number"
                 value={gWR}
@@ -157,7 +159,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                   fontFamily: "'Chakra Petch', sans-serif",
                 }}
               />
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600 }}>%</span>
+              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600 }}>{t("settings.winRateUnit")}</span>
             </div>
           </div>
 
@@ -170,16 +172,16 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                 background: "transparent", border: "none", color: T.text, padding: 0,
               }}
             >
-              <span style={{ fontSize: 15, fontWeight: 600 }}>シェア設定</span>
+              <span style={{ fontSize: 15, fontWeight: 600 }}>{t("settings.shareSettings")}</span>
               {showShare ? <ChevronUp size={18} color={T.dim} /> : <ChevronDown size={18} color={T.dim} />}
             </button>
             {showShare && (
               <div style={{ marginTop: 14, animation: "fadeUp .15s ease" }}>
                 {[
-                  { key: "showChar", label: "使用キャラを表示" },
-                  { key: "showOppChar", label: "対戦相手キャラを表示" },
-                  { key: "showRecord", label: "勝敗を表示" },
-                  { key: "showPower", label: "戦闘力を表示" },
+                  { key: "showChar", label: t("settings.showChar") },
+                  { key: "showOppChar", label: t("settings.showOppChar") },
+                  { key: "showRecord", label: t("settings.showRecord") },
+                  { key: "showPower", label: t("settings.showPower") },
                 ].map(({ key, label }) => {
                   const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
                   const enabled = ss[key];
@@ -230,7 +232,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 15, fontWeight: 600 }}>テーマカラー</span>
+                <span style={{ fontSize: 15, fontWeight: 600 }}>{t("settings.themeColor")}</span>
                 <div style={{
                   width: 20, height: 20, borderRadius: "50%",
                   background: SWATCH_COLORS[currentColor],
@@ -274,7 +276,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                   })}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>ダークモード</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{t("settings.darkMode")}</span>
                   <button
                     onClick={() => onSave({ ...data, dark: !data.dark })}
                     style={{
@@ -296,6 +298,34 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
             )}
           </div>
 
+          {/* Language */}
+          <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: T.text, marginBottom: 12 }}>
+              {t("settings.language")}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[{ code: "ja", label: "日本語" }, { code: "en", label: "English" }].map(({ code, label }) => (
+                <button
+                  key={code}
+                  onClick={() => setLanguage(code)}
+                  style={{
+                    flex: 1,
+                    padding: "10px 0",
+                    borderRadius: 10,
+                    border: lang === code ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
+                    background: lang === code ? T.accentSoft : T.inp,
+                    color: lang === code ? T.accent : T.sub,
+                    fontSize: 14,
+                    fontWeight: lang === code ? 700 : 500,
+                    transition: "all .15s ease",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* CSV / Reset */}
           <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
             <button
@@ -306,10 +336,13 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                 textAlign: "left", marginBottom: 6,
               }}
             >
-              CSVダウンロード
+              {t("settings.csvDownload")}
             </button>
+            <div style={{ fontSize: 12, color: T.dim, paddingLeft: 4, marginBottom: 4 }}>
+              {t("settings.csvDownloadDesc")}
+            </div>
             <div style={{ fontSize: 12, color: T.dim, paddingLeft: 4, marginBottom: 12 }}>
-              {data.matches.length ? `戦績${data.matches.length}件` : "データなし"}
+              {data.matches.length ? t("settings.dataCount").replace("{count}", data.matches.length) : t("settings.noData")}
             </div>
 
             {step === 0 && (
@@ -321,17 +354,17 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                   fontSize: 15, fontWeight: 600, textAlign: "left",
                 }}
               >
-                全データリセット
+                {t("settings.resetAll")}
               </button>
             )}
 
             {step === 1 && (
               <div style={{ background: "rgba(220,38,38,.08)", borderRadius: 14, padding: 16 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#dc2626", marginBottom: 8 }}>
-                  本当に削除しますか？
+                  {t("settings.resetConfirm1Title")}
                 </div>
                 <div style={{ fontSize: 13, color: T.sub, marginBottom: 14 }}>
-                  この操作は取り消せません
+                  {t("settings.resetConfirm1Desc")}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button
@@ -341,7 +374,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                       background: T.card, color: T.text, fontSize: 14, fontWeight: 600,
                     }}
                   >
-                    やめる
+                    {t("settings.cancel")}
                   </button>
                   <button
                     onClick={() => setStep(2)}
@@ -350,7 +383,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                       background: "rgba(220,38,38,.15)", color: "#dc2626", fontSize: 14, fontWeight: 600,
                     }}
                   >
-                    次へ
+                    {t("settings.next")}
                   </button>
                 </div>
               </div>
@@ -359,10 +392,10 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
             {step === 2 && (
               <div style={{ background: "rgba(220,38,38,.12)", borderRadius: 14, padding: 16 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#dc2626", marginBottom: 8 }}>
-                  最終確認
+                  {t("settings.resetConfirm2Title")}
                 </div>
                 <div style={{ fontSize: 13, color: T.sub, marginBottom: 14 }}>
-                  全てのデータが完全に削除されます。CSVダウンロードは済みましたか？
+                  {t("settings.resetConfirm2Desc")}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button
@@ -372,7 +405,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                       background: T.card, color: T.text, fontSize: 14, fontWeight: 600,
                     }}
                   >
-                    やめる
+                    {t("settings.cancel")}
                   </button>
                   <button
                     onClick={() => {
@@ -388,7 +421,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                       background: "#dc2626", color: "#fff", fontSize: 14, fontWeight: 600,
                     }}
                   >
-                    削除する
+                    {t("settings.deleteConfirm")}
                   </button>
                 </div>
               </div>
@@ -398,7 +431,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
           {/* Account */}
           {user && (
             <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 8 }}>アカウント</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("settings.account")}</div>
               <div style={{ fontSize: 13, color: T.dim, marginBottom: 12, wordBreak: "break-all" }}>{user.email}</div>
               <button
                 onClick={() => { handleClose(); onLogout(); }}
@@ -407,14 +440,14 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                   background: "transparent", color: T.sub, fontSize: 14, fontWeight: 600, textAlign: "left",
                 }}
               >
-                ログアウト
+                {t("settings.logout")}
               </button>
             </div>
           )}
           {!user && (
             <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
               <div style={{ fontSize: 13, color: T.dim, marginBottom: 10 }}>
-                ログインするとデータがクラウドに保存され、他の端末でも利用できます
+                {t("settings.loginPrompt")}
               </div>
               <button
                 onClick={() => { handleClose(); localStorage.removeItem("smash-skipped-auth"); window.location.reload(); }}
@@ -423,7 +456,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                   background: T.inp, color: T.text, fontSize: 14, fontWeight: 600, textAlign: "left",
                 }}
               >
-                ログイン / アカウント作成
+                {t("settings.loginButton")}
               </button>
             </div>
           )}
@@ -434,13 +467,13 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
               onClick={() => { handleClose(); onOpenLegal("terms"); }}
               style={{ background: "transparent", border: "none", color: T.dim, fontSize: 12, textDecoration: "underline" }}
             >
-              利用規約
+              {t("settings.terms")}
             </button>
             <button
               onClick={() => { handleClose(); onOpenLegal("privacy"); }}
               style={{ background: "transparent", border: "none", color: T.dim, fontSize: 12, textDecoration: "underline" }}
             >
-              プライバシーポリシー
+              {t("settings.privacy")}
             </button>
           </div>
         </div>

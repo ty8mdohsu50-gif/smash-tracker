@@ -9,8 +9,8 @@ import LegalPage from "./components/LegalPage";
 import BattleTab from "./components/BattleTab";
 import HistoryTab from "./components/HistoryTab";
 import AnalysisTab from "./components/AnalysisTab";
+import { useI18n } from "./i18n/index.jsx";
 
-const TABS = ["対戦", "履歴", "分析"];
 const TAB_ICONS = [Swords, ClipboardList, BarChart3];
 const PC_BREAKPOINT = 1024;
 
@@ -37,6 +37,8 @@ function useIsPC() {
 }
 
 export default function App() {
+  const { t } = useI18n();
+  const TABS = [t("app.tabs.battle"), t("app.tabs.history"), t("app.tabs.analysis")];
   const [user, setUser] = useState(undefined);
   const [skippedAuth, setSkippedAuth] = useState(
     () => localStorage.getItem("smash-skipped-auth") === "1",
@@ -48,6 +50,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
+  const wheelRef = useRef(0);
   const isPC = useIsPC();
 
   useEffect(() => {
@@ -167,6 +170,18 @@ export default function App() {
     }
   };
 
+  const onWheel = (e) => {
+    if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
+    wheelRef.current += e.deltaX;
+    if (wheelRef.current > 80) {
+      if (tabIdx < 2) setTabIdx((prev) => Math.min(2, prev + 1));
+      wheelRef.current = 0;
+    } else if (wheelRef.current < -80) {
+      if (tabIdx > 0) setTabIdx((prev) => Math.max(0, prev - 1));
+      wheelRef.current = 0;
+    }
+  };
+
   const settingsModal = showSettings && (
     <Settings
       data={data}
@@ -227,7 +242,10 @@ export default function App() {
               justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              onClick={() => setTabIdx(0)}
+              style={{ display: "flex", alignItems: "center", gap: 10, background: "transparent", border: "none", padding: 0, cursor: "pointer" }}
+            >
               <div
                 style={{
                   width: 36,
@@ -245,10 +263,10 @@ export default function App() {
               <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
                 SMASH TRACKER
               </span>
-            </div>
+            </button>
             <button
               onClick={() => setShowSettings(true)}
-              aria-label="設定を開く"
+              aria-label={t("app.settings")}
               style={{
                 width: 36, height: 36, border: "none", background: T.inp,
                 borderRadius: 10, fontSize: 18,
@@ -331,7 +349,10 @@ export default function App() {
           boxShadow: T.glow,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 24px", marginBottom: 40 }}>
+        <button
+          onClick={() => setTabIdx(0)}
+          style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 24px", marginBottom: 40, background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
+        >
           <div
             style={{
               width: 40,
@@ -354,7 +375,7 @@ export default function App() {
               TRACKER
             </div>
           </div>
-        </div>
+        </button>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "0 12px" }}>
           {TABS.map((t, i) => {
@@ -399,12 +420,12 @@ export default function App() {
             }}
           >
             <SettingsIcon size={20} strokeWidth={2} />
-            設定
+            {t("app.settings")}
           </button>
         </div>
       </nav>
 
-      <main style={{ flex: 1, height: "100vh", overflowY: "auto", overflowX: "hidden" }}>
+      <main style={{ flex: 1, height: "100vh", overflowY: "auto", overflowX: "hidden" }} onWheel={onWheel}>
         <div
           style={{
             padding: "20px 40px",
