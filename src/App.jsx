@@ -222,6 +222,7 @@ export default function App() {
     <AboutPage
       T={T}
       onClose={() => setAboutPage(false)}
+      onOpenLegal={(page) => { setAboutPage(false); setLegalPage(page); }}
     />
   );
 
@@ -283,19 +284,32 @@ export default function App() {
                 SMASH TRACKER
               </span>
             </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              aria-label={t("app.settings")}
-              style={{
-                width: 36, height: 36, border: "none", background: T.inp,
-                borderRadius: 10, fontSize: 18,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "background .15s ease",
-                color: T.sub,
-              }}
-            >
-              <SettingsIcon size={18} strokeWidth={2} />
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => setAboutPage(true)}
+                style={{
+                  width: 36, height: 36, border: "none", background: T.inp,
+                  borderRadius: 10, fontSize: 16, fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: T.sub,
+                }}
+              >
+                ?
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                aria-label={t("app.settings")}
+                style={{
+                  width: 36, height: 36, border: "none", background: T.inp,
+                  borderRadius: 10, fontSize: 18,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "background .15s ease",
+                  color: T.sub,
+                }}
+              >
+                <SettingsIcon size={18} strokeWidth={2} />
+              </button>
+            </div>
           </div>
           <div style={{ display: "flex", position: "relative", marginTop: 10 }}>
             {TABS.map((t, i) => {
@@ -426,10 +440,23 @@ export default function App() {
 
         <div style={{ padding: "0 12px", borderTop: `1px solid ${T.brd}`, paddingTop: 16 }}>
           <button
+            onClick={() => setAboutPage(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 14,
+              padding: "12px 18px", background: "transparent", border: "none",
+              borderRadius: 12, fontSize: 14, fontWeight: 500, color: T.sub,
+              width: "100%", textAlign: "left",
+              transition: "all .15s ease",
+            }}
+          >
+            <span style={{ fontSize: 18, fontWeight: 700, width: 20, textAlign: "center" }}>?</span>
+            {t("about.siteAbout")}
+          </button>
+          <button
             onClick={() => setShowSettings(true)}
             style={{
               display: "flex", alignItems: "center", gap: 14,
-              padding: "14px 18px", background: "transparent", border: "none",
+              padding: "12px 18px", background: "transparent", border: "none",
               borderRadius: 12, fontSize: 14, fontWeight: 500, color: T.sub,
               width: "100%", textAlign: "left",
               transition: "all .15s ease",
