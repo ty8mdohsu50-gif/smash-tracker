@@ -22,16 +22,8 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
   const [showShare, setShowShare] = useState(false);
-  const [gGames, setGG] = useState(String(data.goals?.games || ""));
-  const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
 
   const currentColor = data.themeColor || "black";
-
-  const saveGoals = () =>
-    onSave({
-      ...data,
-      goals: { games: parseInt(gGames) || 0, winRate: parseInt(gWR) || 0 },
-    });
 
   const handleClose = () => {
     setStep(0);
@@ -107,61 +99,6 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
 
         {/* Scrollable content */}
         <div style={{ padding: "0 22px 22px", overflowY: "auto", flex: 1 }}>
-
-          {/* Goals - first section */}
-          <div style={{ padding: "18px 0", borderBottom: `1px solid ${T.inp}` }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 14 }}>
-              {t("settings.todayGoal")}
-            </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 56 }}>{t("settings.games")}</span>
-              <input
-                type="number"
-                value={gGames}
-                onChange={(e) => setGG(e.target.value)}
-                onBlur={saveGoals}
-                placeholder="10"
-                style={{
-                  flex: 1,
-                  padding: "14px 16px",
-                  background: T.inp,
-                  border: "none",
-                  borderRadius: 12,
-                  color: T.text,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  outline: "none",
-                  boxSizing: "border-box",
-                  fontFamily: "'Chakra Petch', sans-serif",
-                }}
-              />
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600 }}>{t("settings.gamesUnit")}</span>
-            </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 56 }}>{t("settings.winRate")}</span>
-              <input
-                type="number"
-                value={gWR}
-                onChange={(e) => setGWR(e.target.value)}
-                onBlur={saveGoals}
-                placeholder="60"
-                style={{
-                  flex: 1,
-                  padding: "14px 16px",
-                  background: T.inp,
-                  border: "none",
-                  borderRadius: 12,
-                  color: T.text,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  outline: "none",
-                  boxSizing: "border-box",
-                  fontFamily: "'Chakra Petch', sans-serif",
-                }}
-              />
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600 }}>{t("settings.winRateUnit")}</span>
-            </div>
-          </div>
 
           {/* Share settings - collapsible */}
           <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>

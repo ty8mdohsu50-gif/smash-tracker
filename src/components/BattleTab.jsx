@@ -38,6 +38,9 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
   const [prevMatchCount, setPrevMatchCount] = useState(data.matches.length);
   const [shareStatus, setShareStatus] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
+  const [editGoals, setEditGoals] = useState(false);
+  const [gGames, setGG] = useState(String(data.goals?.games || ""));
+  const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
 
   const doShare = async (text) => {
     if (navigator.share) {
@@ -79,6 +82,12 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     nm[nm.length - 1] = { ...nm[nm.length - 1], memo };
     onSave({ ...data, matches: nm });
   };
+
+  const saveGoals = () =>
+    onSave({
+      ...data,
+      goals: { games: parseInt(gGames) || 0, winRate: parseInt(gWR) || 0 },
+    });
 
   const recMy = useMemo(() => recentChars(data.matches, "myChar"), [data]);
   const recOpp = useMemo(() => recentChars(data.matches, "oppChar"), [data]);
@@ -181,6 +190,12 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     boxShadow: T.sh,
     border: `1px solid ${T.brd}`,
     transition: "box-shadow .2s ease",
+  };
+
+  const goalInputStyle = {
+    flex: 1, padding: "12px 14px", background: T.inp, border: "none",
+    borderRadius: 10, color: T.text, fontSize: 16, fontWeight: 700,
+    outline: "none", boxSizing: "border-box", fontFamily: "'Chakra Petch', sans-serif",
   };
 
   const emptyMsg = (msg) => (
@@ -316,10 +331,27 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
       )}
 
       {/* Goals */}
-      {(goals.games || goals.winRate) ? (
+      {editGoals ? (
+        <div style={{ ...cd, padding: "16px 18px", marginBottom: 10 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 12 }}>{t("settings.todayGoal")}</div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.games")}</span>
+            <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={goalInputStyle} />
+            <span style={{ fontSize: 13, color: T.sub }}>{t("settings.gamesUnit")}</span>
+          </div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.winRate")}</span>
+            <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={goalInputStyle} />
+            <span style={{ fontSize: 13, color: T.sub }}>{t("settings.winRateUnit")}</span>
+          </div>
+          <button onClick={() => setEditGoals(false)} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 10, border: "none", background: T.accentGrad, color: "#fff", fontSize: 13, fontWeight: 700 }}>
+            {t("common.close")}
+          </button>
+        </div>
+      ) : (goals.games || goals.winRate) ? (
         <div
-          style={{ ...cd, padding: "16px 18px", marginBottom: 10, cursor: onOpenSettings ? "pointer" : "default" }}
-          onClick={onOpenSettings}
+          style={{ ...cd, padding: "16px 18px", marginBottom: 10, cursor: "pointer" }}
+          onClick={() => setEditGoals(true)}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: T.dim }}>{t("battle.goal")}</span>
@@ -362,7 +394,14 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             </div>
           ) : null}
         </div>
-      ) : null}
+      ) : (
+        <button
+          onClick={() => setEditGoals(true)}
+          style={{ ...cd, width: "100%", padding: "14px 18px", marginBottom: 10, cursor: "pointer", textAlign: "left", border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.dim, fontSize: 13, fontWeight: 600 }}
+        >
+          {t("settings.todayGoal")}
+        </button>
+      )}
     </div>
   );
 
@@ -1085,8 +1124,28 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           </div>
 
           {/* Goals */}
-          {(goals.games || goals.winRate) && (
+          {editGoals ? (
             <div style={{ ...cd, padding: "18px 24px" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 12 }}>{t("settings.todayGoal")}</div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.games")}</span>
+                <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={goalInputStyle} />
+                <span style={{ fontSize: 13, color: T.sub }}>{t("settings.gamesUnit")}</span>
+              </div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.winRate")}</span>
+                <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={goalInputStyle} />
+                <span style={{ fontSize: 13, color: T.sub }}>{t("settings.winRateUnit")}</span>
+              </div>
+              <button onClick={() => setEditGoals(false)} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 10, border: "none", background: T.accentGrad, color: "#fff", fontSize: 13, fontWeight: 700 }}>
+                {t("common.close")}
+              </button>
+            </div>
+          ) : (goals.games || goals.winRate) ? (
+            <div
+              style={{ ...cd, padding: "18px 24px", cursor: "pointer" }}
+              onClick={() => setEditGoals(true)}
+            >
               <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 12 }}>{t("battle.goal")}</div>
               <div style={{ display: "flex", gap: 24 }}>
                 {goals.games ? (
@@ -1113,6 +1172,13 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                 ) : null}
               </div>
             </div>
+          ) : (
+            <button
+              onClick={() => setEditGoals(true)}
+              style={{ ...cd, width: "100%", padding: "14px 24px", cursor: "pointer", textAlign: "left", border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.dim, fontSize: 13, fontWeight: 600 }}
+            >
+              {t("settings.todayGoal")}
+            </button>
           )}
 
           {/* Onboarding */}
