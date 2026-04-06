@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Swords, Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useI18n } from "../i18n/index.jsx";
 
@@ -79,20 +79,7 @@ export default function AuthPage({ onSkip }) {
       <div style={cardStyle}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 14,
-              background: "linear-gradient(135deg, #374151, #1F2937)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 4px 16px rgba(124,58,237,.35)",
-            }}
-          >
-            <Swords size={24} color="#fff" strokeWidth={2.5} />
-          </div>
+          <img src="/icon.png" alt="SMASH TRACKER" style={{ width: 48, height: 48, borderRadius: 14 }} />
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2, color: "#9CA3AF", fontFamily: "'Chakra Petch', sans-serif" }}>
               SMASH TRACKER

@@ -688,7 +688,7 @@ export default function AnalysisTab({ data, T, isPC }) {
       {/* Trend */}
       {aMode === "trend" && (
         <div>
-          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
             {pill("day", t("analysis.today"), period, setPeriod)}
             {pill("week", t("analysis.week"), period, setPeriod)}
             {pill("month", t("analysis.month"), period, setPeriod)}
@@ -698,8 +698,8 @@ export default function AnalysisTab({ data, T, isPC }) {
             style={{
               display: "grid",
               gridTemplateColumns: isPC ? "repeat(4, 1fr)" : "1fr 1fr",
-              gap: 8,
-              marginBottom: 12,
+              gap: 6,
+              marginBottom: 6,
             }}
           >
             {[
@@ -708,14 +708,14 @@ export default function AnalysisTab({ data, T, isPC }) {
               { label: t("analysis.highest"), value: trendData.mx ? numFormat(trendData.mx) : "\u2014", color: trendData.mx ? T.win : T.dim },
               { label: t("analysis.lowest"), value: trendData.mn ? numFormat(trendData.mn) : "\u2014", color: trendData.mn ? T.lose : T.dim },
             ].map((s) => (
-              <div key={s.label} style={{ ...cd, marginBottom: 0, padding: "14px 16px", textAlign: "center" }}>
+              <div key={s.label} style={{ ...cd, marginBottom: 0, padding: "10px 14px", textAlign: "center" }}>
                 <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{s.label}</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: s.color, fontFamily: "'Chakra Petch', sans-serif" }}>{s.value}</div>
               </div>
             ))}
           </div>
           {trendData.points.length > 1 ? (
-            <div style={{ ...cd, padding: "16px 12px 10px" }}>
+            <div style={{ ...cd, padding: "12px 10px 8px" }}>
               <Chart points={trendData.points} T={T} />
             </div>
           ) : (

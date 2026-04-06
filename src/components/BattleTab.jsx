@@ -1003,9 +1003,9 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
 
   if (phase === "setup") {
     return (
-      <div style={{ display: "flex", gap: 24, alignItems: "stretch", minHeight: "calc(100vh - 200px)" }}>
+      <div style={{ display: "flex", gap: 16, alignItems: "stretch", minHeight: "calc(100vh - 200px)" }}>
         {/* Left column */}
-        <div style={{ flex: 3, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ flex: 3, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
           {/* Stats row */}
           <div style={{ display: "flex", gap: 12 }}>
             {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
@@ -1111,7 +1111,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         <div
           style={{
             flex: 2, minWidth: 300, background: T.card, borderRadius: 20,
-            padding: "24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
+            padding: "0 24px 24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
             height: "calc(100vh - 200px)", overflowY: "auto",
           }}
         >

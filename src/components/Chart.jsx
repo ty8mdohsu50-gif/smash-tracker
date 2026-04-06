@@ -7,7 +7,7 @@ export default function Chart({ points: pts, T }) {
   if (!pts || pts.length < 2) return null;
 
   const W = 440;
-  const H = 240;
+  const H = 200;
   const P = { t: 24, r: 16, b: 36, l: 80 };
   const cW = W - P.l - P.r;
   const cH = H - P.t - P.b;
