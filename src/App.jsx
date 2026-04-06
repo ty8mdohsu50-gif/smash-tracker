@@ -479,8 +479,8 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ padding: "20px 32px 20px" }}>
-          <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
+        <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+          <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC onOpenSettings={() => setShowSettings(true)} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
             {tabIdx === 2 && <AnalysisTab data={data} T={T} isPC />}

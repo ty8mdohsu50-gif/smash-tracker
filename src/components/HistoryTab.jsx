@@ -172,7 +172,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       {/* Left: date list */}
       <div style={{ width: 340, flexShrink: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 800, color: T.text, marginBottom: 16 }}>{t("history.dailyRecord")}</div>
-        <div style={{ maxHeight: "calc(100vh - 160px)", overflowY: "auto" }}>
+        <div style={{ flex: 1, overflowY: "auto" }}>
           {dGroups.length === 0
             ? emptyHistoryState(onGoBattle)
             : dGroups.map(([dt, ms]) => {

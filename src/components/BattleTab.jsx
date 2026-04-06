@@ -1003,7 +1003,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
 
   if (phase === "setup") {
     return (
-      <div style={{ display: "flex", gap: 16, alignItems: "stretch", minHeight: "calc(100vh - 200px)" }}>
+      <div style={{ display: "flex", gap: 16, alignItems: "stretch", height: "100%", flex: 1 }}>
         {/* Left column */}
         <div style={{ flex: 3, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
           {/* Stats row */}
@@ -1111,8 +1111,8 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         <div
           style={{
             flex: 2, minWidth: 300, background: T.card, borderRadius: 20,
-            padding: "0 24px 24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
-            height: "calc(100vh - 200px)", overflowY: "auto",
+            padding: "20px 24px 24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
+            overflowY: "auto",
           }}
         >
           <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
@@ -1382,7 +1382,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           style={{
             flex: 2, minWidth: 300, background: T.card, borderRadius: 20,
             padding: "24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
-            position: "sticky", top: 90, maxHeight: "calc(100vh - 140px)", overflowY: "auto",
+            position: "sticky", top: 90, overflowY: "auto",
           }}
         >
           <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
