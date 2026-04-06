@@ -305,10 +305,10 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
       {/* Goals */}
       {(goals.games || goals.winRate) ? (
         <div
-          style={{ ...cd, padding: "14px 16px", marginBottom: 10, cursor: onOpenSettings ? "pointer" : "default" }}
+          style={{ ...cd, padding: "16px 18px", marginBottom: 10, cursor: onOpenSettings ? "pointer" : "default" }}
           onClick={onOpenSettings}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: T.dim }}>{t("battle.goal")}</span>
             <button
               onClick={async (e) => {
@@ -331,12 +331,12 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             </button>
           </div>
           {goals.games ? (
-            <div style={{ marginBottom: goals.winRate && tM.length > 0 ? 10 : 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 5, fontWeight: 600 }}>
+            <div style={{ marginBottom: goals.winRate && tM.length > 0 ? 12 : 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                 <span>{t("battle.goalGames")} {goals.games}{t("battle.matches")}</span>
                 <span style={{ color: T.text, fontWeight: 700 }}>{tM.length}/{goals.games}</span>
               </div>
-              <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
+              <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
                 <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3, transition: "width .3s ease" }} />
               </div>
             </div>

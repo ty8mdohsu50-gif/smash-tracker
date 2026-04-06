@@ -114,7 +114,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
               {t("settings.todayGoal")}
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.games")}</span>
+              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 56 }}>{t("settings.games")}</span>
               <input
                 type="number"
                 value={gGames}
@@ -123,7 +123,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                 placeholder="10"
                 style={{
                   flex: 1,
-                  padding: "12px 14px",
+                  padding: "14px 16px",
                   background: T.inp,
                   border: "none",
                   borderRadius: 12,
@@ -138,7 +138,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
               <span style={{ fontSize: 14, color: T.sub, fontWeight: 600 }}>{t("settings.gamesUnit")}</span>
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.winRate")}</span>
+              <span style={{ fontSize: 14, color: T.sub, fontWeight: 600, minWidth: 56 }}>{t("settings.winRate")}</span>
               <input
                 type="number"
                 value={gWR}
@@ -147,7 +147,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                 placeholder="60"
                 style={{
                   flex: 1,
-                  padding: "12px 14px",
+                  padding: "14px 16px",
                   background: T.inp,
                   border: "none",
                   borderRadius: 12,

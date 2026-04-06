@@ -115,6 +115,7 @@ export default {
     lossesLabel: "L",
     noCharData: "Record battles to see fighter stats",
     noMatchupData: "Record battles to see matchups",
+    others: "{n} more",
   },
   settings: {
     title: "Settings",

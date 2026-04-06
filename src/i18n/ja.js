@@ -115,6 +115,7 @@ export default {
     lossesLabel: "L",
     noCharData: "対戦を記録するとキャラ別の戦績が表示されます",
     noMatchupData: "対戦を記録するとマッチアップが表示されます",
+    others: "他{n}件",
   },
   settings: {
     title: "設定",

@@ -8,6 +8,8 @@ import { useI18n } from "../i18n/index.jsx";
 import {
   today,
   formatDate,
+  formatDateLong,
+  formatTime,
   percentStr,
   barColor,
   numFormat,
@@ -21,6 +23,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   const [period, setPeriod] = useState("all");
   const [charDetail, setCharDetail] = useState(null);
   const [charTab, setCharTab] = useState("matchup");
+  const [expandedOpp, setExpandedOpp] = useState(null);
 
   const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
   const totalL = data.matches.length - totalW;
@@ -369,25 +372,64 @@ export default function AnalysisTab({ data, T, isPC }) {
             return ra - rb;
           }).map((s) => {
             const r = s.t ? s.w / s.t : 0;
+            const isExpanded = expandedOpp === s.c;
+            const oppMatches = isExpanded
+              ? data.matches
+                  .filter((m) => m.myChar === charDetail && m.oppChar === s.c)
+                  .slice()
+                  .reverse()
+              : [];
             return (
               <div key={s.c} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <FighterIcon name={s.c} size={32} />
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
-                      <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
+                <div
+                  onClick={() => setExpandedOpp(isExpanded ? null : s.c)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <FighterIcon name={s.c} size={32} />
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
+                        <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                        <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
+                        <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</span>
+                      </div>
+                      {renderLabel(r)}
                     </div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                      <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
-                      <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</span>
-                    </div>
-                    {renderLabel(r)}
-                  </div>
+                  {renderBar(r)}
                 </div>
-                {renderBar(r)}
+                {isExpanded && (
+                  <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
+                    {oppMatches.slice(0, 10).map((m, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatDateLong(m.date)}</span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, flexShrink: 0,
+                          background: m.result === "win" ? T.winBg : T.loseBg,
+                          color: m.result === "win" ? T.win : T.lose,
+                        }}>
+                          {m.result === "win" ? "WIN" : "LOSE"}
+                        </span>
+                        {m.time && (
+                          <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
+                        )}
+                        {m.memo && (
+                          <span style={{ fontSize: 11, color: T.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.memo}</span>
+                        )}
+                      </div>
+                    ))}
+                    {oppMatches.length > 10 && (
+                      <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>
+                        {t("analysis.others").replace("{n}", oppMatches.length - 10)}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -572,27 +614,66 @@ export default function AnalysisTab({ data, T, isPC }) {
                         return ra - rb;
                       }).map((s) => {
                         const r = s.t ? s.w / s.t : 0;
+                        const isExpanded = expandedOpp === s.c;
+                        const oppMatches = isExpanded
+                          ? data.matches
+                              .filter((m) => m.myChar === charDetail && m.oppChar === s.c)
+                              .slice()
+                              .reverse()
+                          : [];
                         return (
                           <div key={s.c} style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "12px 16px" }}>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <FighterIcon name={s.c} size={26} />
-                                <div>
-                                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
-                                  <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
+                            <div
+                              onClick={() => setExpandedOpp(isExpanded ? null : s.c)}
+                              style={{ cursor: "pointer" }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <FighterIcon name={s.c} size={26} />
+                                  <div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
+                                    <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
+                                  </div>
+                                </div>
+                                <div style={{ textAlign: "right" }}>
+                                  <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                                    <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
+                                    <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                                      {percentStr(s.w, s.t)}
+                                    </span>
+                                  </div>
+                                  {renderLabel(r)}
                                 </div>
                               </div>
-                              <div style={{ textAlign: "right" }}>
-                                <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                                  <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
-                                  <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
-                                    {percentStr(s.w, s.t)}
-                                  </span>
-                                </div>
-                                {renderLabel(r)}
-                              </div>
+                              {renderBar(r)}
                             </div>
-                            {renderBar(r)}
+                            {isExpanded && (
+                              <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
+                                {oppMatches.slice(0, 10).map((m, i) => (
+                                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                    <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatDateLong(m.date)}</span>
+                                    <span style={{
+                                      fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, flexShrink: 0,
+                                      background: m.result === "win" ? T.winBg : T.loseBg,
+                                      color: m.result === "win" ? T.win : T.lose,
+                                    }}>
+                                      {m.result === "win" ? "WIN" : "LOSE"}
+                                    </span>
+                                    {m.time && (
+                                      <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
+                                    )}
+                                    {m.memo && (
+                                      <span style={{ fontSize: 11, color: T.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.memo}</span>
+                                    )}
+                                  </div>
+                                ))}
+                                {oppMatches.length > 10 && (
+                                  <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>
+                                    {t("analysis.others").replace("{n}", oppMatches.length - 10)}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
