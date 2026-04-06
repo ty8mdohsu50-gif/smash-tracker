@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Trophy, X, ChevronUp, ChevronDown, Zap, Share2, Copy } from "lucide-react";
 import CharPicker from "./CharPicker";
 import MatchRow from "./MatchRow";
@@ -60,6 +60,20 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     charPower.start || todayDaily.start || prevEnd || (myChar ? 0 : ""),
   );
   const [pEnd, setPEnd] = useState(charPower.end || todayDaily.end || "");
+
+  // Update power when returning to setup (after endSession/summary)
+  const prevPhase = useRef(phase);
+  if (prevPhase.current !== phase) {
+    if (phase === "setup" && myChar) {
+      const daily = data.daily?.[today()] || {};
+      const cp = daily.chars?.[myChar] || {};
+      const pe = lastEndPower(data.daily || {}, myChar);
+      const newStart = cp.end || cp.start || pe || 0;
+      if (newStart !== pStart) setPStart(newStart);
+      setPEnd("");
+    }
+    prevPhase.current = phase;
+  }
 
   const savePower = (s, e) => {
     const d = { ...data };
