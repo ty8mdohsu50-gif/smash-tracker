@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Swords, Share2 } from "lucide-react";
 import HistRow from "./HistRow";
+import SharePopup from "./SharePopup";
 import FighterIcon from "./FighterIcon";
 import { useI18n } from "../i18n/index.jsx";
 import { fighterName } from "../constants/fighters";
@@ -10,6 +11,14 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   const { t, lang } = useI18n();
   const [histDate, setHistDate] = useState(null);
   const [shareStatus, setShareStatus] = useState(null);
+  const [sharePopupText, setSharePopupText] = useState(null);
+
+  const doShare = async (text) => {
+    if (navigator.share) {
+      try { await navigator.share({ text }); return; } catch (_) { /* cancelled */ }
+    }
+    setSharePopupText(text);
+  };
 
   const shareDay = async (date, matches) => {
     const w = matches.filter((m) => m.result === "win").length;
@@ -34,19 +43,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     }
     if (dp?.vip) lines.push(t("share.vip"));
     lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
-    const text = lines.join("\n");
-    if (navigator.share) {
-      try { await navigator.share({ text }); } catch (_) { /* cancelled */ }
-    } else {
-      try {
-        await navigator.clipboard.writeText(text);
-        setShareStatus("copied");
-        setTimeout(() => setShareStatus(null), 2000);
-      } catch (_) {
-        setShareStatus("error");
-        setTimeout(() => setShareStatus(null), 2000);
-      }
-    }
+    doShare(lines.join("\n"));
   };
 
   const dGroups = useMemo(() => {
@@ -157,6 +154,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
             {selDayWithIdx.map((e, i) => <HistRow key={i} m={e.m} onDelete={() => deleteMatch(e.idx)} T={T} />)}
           </div>
         )}
+        {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
       </div>
     );
   }
@@ -296,6 +294,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
           </div>
         )}
       </div>
+      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
     </div>
   );
 }

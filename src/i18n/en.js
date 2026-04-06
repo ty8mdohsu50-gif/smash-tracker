@@ -36,6 +36,7 @@ export default {
     goalWinRate: "Win Rate Goal",
     share: "Share",
     copied: "Copied!",
+    copyText: "Copy text",
     recent: "Recent Matches",
     startMatching: "Start a battle! Tap \"Start Battle\" above to record",
     welcome: "Welcome to SMASH TRACKER",
@@ -190,6 +191,7 @@ export default {
     vs: "vs",
     close: "Close",
     matches: " matches",
+    share: "Share",
   },
   heatmap: {
     weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],

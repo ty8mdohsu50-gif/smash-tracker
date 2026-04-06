@@ -36,6 +36,7 @@ export default {
     goalWinRate: "勝率目標",
     share: "シェア",
     copied: "コピー済み",
+    copyText: "テキストをコピー",
     recent: "直近の対戦",
     startMatching: "対戦を始めましょう！上の「対戦開始」ボタンから記録できます",
     welcome: "SMASH TRACKERへようこそ",
@@ -190,6 +191,7 @@ export default {
     vs: "vs",
     close: "閉じる",
     matches: "戦",
+    share: "シェア",
   },
   heatmap: {
     weekDays: ["月", "火", "水", "木", "金", "土", "日"],

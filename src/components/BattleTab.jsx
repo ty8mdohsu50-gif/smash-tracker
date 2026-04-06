@@ -3,6 +3,7 @@ import { Trophy, X, ChevronUp, ChevronDown, Zap, Share2, Copy } from "lucide-rea
 import CharPicker from "./CharPicker";
 import MatchRow from "./MatchRow";
 import MatchupBadge from "./MatchupBadge";
+import SharePopup from "./SharePopup";
 import FighterIcon from "./FighterIcon";
 import { checkMilestones } from "../constants/milestones";
 import { fighterName } from "../constants/fighters";
@@ -36,6 +37,17 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
   const [newMilestones, setNewMilestones] = useState([]);
   const [prevMatchCount, setPrevMatchCount] = useState(data.matches.length);
   const [shareStatus, setShareStatus] = useState(null);
+  const [sharePopupText, setSharePopupText] = useState(null);
+
+  const doShare = async (text) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (_) { /* cancelled */ }
+    }
+    setSharePopupText(text);
+  };
 
   const todayDaily = data.daily?.[today()] || {};
   const charPower = todayDaily.chars?.[myChar] || {};
@@ -320,11 +332,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                 if (!goals.games && !goals.winRate) return;
                 lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
                 const text = lines.join("\n");
-                if (navigator.share) {
-                  try { await navigator.share({ text }); } catch (_) { /* cancelled */ }
-                } else {
-                  try { await navigator.clipboard.writeText(text); } catch (_) { /* */ }
-                }
+                doShare(text);
               }}
               style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}
             >
@@ -722,22 +730,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
         const shareText = shareLines.join("\n");
 
-        const handleShare = async () => {
-          if (navigator.share) {
-            try {
-              await navigator.share({ text: shareText });
-            } catch (_) { /* user cancelled */ }
-          } else {
-            try {
-              await navigator.clipboard.writeText(shareText);
-              setShareStatus("copied");
-              setTimeout(() => setShareStatus(null), 2000);
-            } catch (_) {
-              setShareStatus("error");
-              setTimeout(() => setShareStatus(null), 2000);
-            }
-          }
-        };
+        const handleShare = () => doShare(shareText);
 
         return (
           <div style={{ animation: "fadeUp .25s ease" }}>
@@ -989,6 +982,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           {recentMatchList}
         </div>
       )}
+      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
     </div>
   );
 
@@ -1268,20 +1262,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
             const shareText = shareLines.join("\n");
 
-            const handleShare = async () => {
-              if (navigator.share) {
-                try { await navigator.share({ text: shareText }); } catch (_) { /* cancelled */ }
-              } else {
-                try {
-                  await navigator.clipboard.writeText(shareText);
-                  setShareStatus("copied");
-                  setTimeout(() => setShareStatus(null), 2000);
-                } catch (_) {
-                  setShareStatus("error");
-                  setTimeout(() => setShareStatus(null), 2000);
-                }
-              }
-            };
+            const handleShare = () => doShare(shareText);
 
             return (
               <div style={{ animation: "fadeUp .25s ease" }}>
@@ -1390,6 +1371,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           {recentMatchList}
         </div>
       </div>
+      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
     </div>
   );
 }
