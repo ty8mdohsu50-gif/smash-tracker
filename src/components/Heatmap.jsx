@@ -69,13 +69,13 @@ export default function Heatmap({ matches, T, isPC }) {
 
   const { cells, monthLabels } = useMemo(() => buildGrid(matches), [matches]);
 
-  const cellSize = isPC ? 16 : 12;
-  const gap = isPC ? 4 : 3;
+  const cellSize = isPC ? 22 : 12;
+  const gap = isPC ? 5 : 3;
 
   return (
     <div>
       <div style={{ overflowX: "auto", paddingBottom: 4 }}>
-        <div style={{ display: "inline-flex", flexDirection: "column", gap: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 0, width: "100%" }}>
           {/* Month labels row */}
           <div style={{ display: "flex", marginLeft: 22, marginBottom: 4, gap: gap }}>
             {monthLabels.map((label, i) => (

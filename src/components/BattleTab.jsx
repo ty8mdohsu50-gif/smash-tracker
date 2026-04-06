@@ -1110,7 +1110,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         {/* Right column: recent matches */}
         <div
           style={{
-            flex: 2, minWidth: 300, background: T.card, borderRadius: 20,
+            flex: 2, minWidth: 300, minHeight: 0, background: T.card, borderRadius: 20,
             padding: "20px 24px 24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
             overflowY: "auto",
           }}
