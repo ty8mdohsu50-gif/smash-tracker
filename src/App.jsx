@@ -264,14 +264,10 @@ export default function App() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  background: T.accentGrad,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: T.accentGlow,
+                  overflow: "hidden",
                 }}
               >
-                <Swords size={18} color="#fff" strokeWidth={2.5} />
+                <img src="/icon.png" alt="" style={{ width: 36, height: 36, objectFit: "cover" }} />
               </div>
               <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
                 SMASH TRACKER
@@ -371,14 +367,10 @@ export default function App() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              background: T.accentGrad,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: T.accentGlow,
+              overflow: "hidden",
             }}
           >
-            <Swords size={20} color="#fff" strokeWidth={2.5} />
+            <img src="/icon.png" alt="" style={{ width: 40, height: 40, objectFit: "cover" }} />
           </div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: 2, color: T.accent, lineHeight: 1, fontFamily: "'Chakra Petch', sans-serif" }}>
@@ -487,7 +479,7 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ padding: "32px 40px 48px" }}>
+        <div style={{ padding: "20px 32px 20px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC onOpenSettings={() => setShowSettings(true)} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
