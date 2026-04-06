@@ -52,7 +52,7 @@
           });
           caches.keys().then((keys) => {
             keys.forEach((k) => {
-              if (k !== "smash-tracker-v3") caches.delete(k);
+              if (k !== "smash-tracker-v4") caches.delete(k);
             });
           });
           navigator.serviceWorker
