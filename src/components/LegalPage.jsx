@@ -124,9 +124,9 @@ const PRIVACY_SECTIONS = [
 　- 対戦データやアカウント情報の保管に使用
 　- 適用ポリシー: https://supabase.com/privacy
 
-・GitHub Pages（ホスティング）
+・Cloudflare Pages（ホスティング）
 　- アクセスログの収集が行われる場合があります
-　- 適用ポリシー: https://docs.github.com/ja/site-policy/privacy-policies/github-privacy-statement
+　- 適用ポリシー: https://www.cloudflare.com/privacypolicy/
 
 ・Google OAuth（認証）
 　- Google API Services User Data Policyに準拠
@@ -308,7 +308,7 @@ export default function LegalPage({ T, onClose, page }) {
                 {title}
               </div>
               <div style={{ fontSize: 11, color: T.dim, marginTop: 3 }}>
-                施行日: 2026年4月4日
+                施行日: 2026年4月6日
               </div>
             </div>
             <button

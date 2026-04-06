@@ -108,12 +108,10 @@ export default function App() {
     setData(d);
     save(d);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        cloudSave(session.user.id, d);
-      }
-    });
-  }, []);
+    if (user) {
+      cloudSave(user.id, d);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

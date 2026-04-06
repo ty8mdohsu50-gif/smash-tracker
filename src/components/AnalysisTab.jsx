@@ -20,7 +20,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   const [charDetail, setCharDetail] = useState(null);
   const [charTab, setCharTab] = useState("matchup");
 
-  const totalW = data.matches.filter((m) => m.result === "win").length;
+  const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
   const totalL = data.matches.length - totalW;
 
   const cd = {
