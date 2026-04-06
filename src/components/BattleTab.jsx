@@ -38,7 +38,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
   const [prevMatchCount, setPrevMatchCount] = useState(data.matches.length);
   const [shareStatus, setShareStatus] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
-  const [editGoals, setEditGoals] = useState(false);
+  // editGoals state removed - goals always visible
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
 
@@ -346,78 +346,61 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         </div>
       )}
 
-      {/* Goals */}
-      {editGoals ? (
-        <div style={{ ...cd, padding: "16px 18px", marginBottom: 10 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 12 }}>{t("settings.todayGoal")}</div>
-          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.games")}</span>
-            <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={goalInputStyle} />
-            <span style={{ fontSize: 13, color: T.sub }}>{t("settings.gamesUnit")}</span>
-          </div>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.winRate")}</span>
-            <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={goalInputStyle} />
-            <span style={{ fontSize: 13, color: T.sub }}>{t("settings.winRateUnit")}</span>
-          </div>
-          <button onClick={() => setEditGoals(false)} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 10, border: "none", background: T.accentGrad, color: "#fff", fontSize: 13, fontWeight: 700 }}>
-            {t("common.close")}
-          </button>
-        </div>
-      ) : (goals.games || goals.winRate) ? (
-        <div
-          style={{ ...cd, padding: "16px 18px", marginBottom: 10, cursor: "pointer" }}
-          onClick={() => setEditGoals(true)}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: T.dim }}>{t("battle.goal")}</span>
+      {/* Goals - always show input + progress */}
+      <div style={{ ...cd, padding: "16px 18px", marginBottom: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t("settings.todayGoal")}</span>
+          {(goals.games || goals.winRate) && (
             <button
               onClick={async (e) => {
                 e.stopPropagation();
-                const lines = [`【SMASH TRACKER】今日の目標`];
-                if (goals.games) lines.push(`${tM.length}/${goals.games}戦 達成${tM.length >= goals.games ? "!" : "まであと" + (goals.games - tM.length) + "戦"}`);
-                if (goals.winRate && tM.length > 0) lines.push(`勝率 ${winRate}% / 目標${goals.winRate}% ${winRate >= goals.winRate ? "達成!" : ""}`);
-                if (!goals.games && !goals.winRate) return;
+                const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
+                if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
+                if (goals.winRate && tM.length > 0) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
                 lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
-                const text = lines.join("\n");
-                doShare(text);
+                doShare(lines.join("\n"));
               }}
               style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}
             >
               <Share2 size={12} /> {t("battle.share")}
             </button>
-          </div>
-          {goals.games ? (
-            <div style={{ marginBottom: goals.winRate && tM.length > 0 ? 12 : 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
-                <span>{t("battle.goalGames")} {goals.games}{t("battle.matches")}</span>
-                <span style={{ color: T.text, fontWeight: 700 }}>{tM.length}/{goals.games}</span>
-              </div>
-              <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden", marginBottom: 12 }}>
-                <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3, transition: "width .3s ease" }} />
-              </div>
-            </div>
-          ) : null}
-          {goals.winRate && tM.length > 0 ? (
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.sub, marginBottom: 5, fontWeight: 600 }}>
-                <span>{t("battle.goalWinRate")} {goals.winRate}%</span>
-                <span style={{ color: winRate >= goals.winRate ? T.win : T.lose, fontWeight: 700 }}>{winRate}%</span>
-              </div>
-              <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : T.lose, borderRadius: 3, transition: "width .3s ease" }} />
-              </div>
-            </div>
-          ) : null}
+          )}
         </div>
-      ) : (
-        <button
-          onClick={() => setEditGoals(true)}
-          style={{ ...cd, width: "100%", padding: "14px 18px", marginBottom: 10, cursor: "pointer", textAlign: "left", border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.dim, fontSize: 13, fontWeight: 600 }}
-        >
-          {t("settings.todayGoal")}
-        </button>
-      )}
+        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.games")}</span>
+            <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ ...goalInputStyle, padding: "8px 10px", fontSize: 14 }} />
+            <span style={{ fontSize: 12, color: T.sub }}>{t("settings.gamesUnit")}</span>
+          </div>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.winRate")}</span>
+            <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ ...goalInputStyle, padding: "8px 10px", fontSize: 14 }} />
+            <span style={{ fontSize: 12, color: T.sub }}>{t("settings.winRateUnit")}</span>
+          </div>
+        </div>
+        {goals.games ? (
+          <div style={{ marginBottom: goals.winRate && tM.length > 0 ? 8 : 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.sub, marginBottom: 4, fontWeight: 600 }}>
+              <span>{tM.length}/{goals.games}{t("settings.gamesUnit")}</span>
+              <span style={{ color: T.text, fontWeight: 700 }}>{Math.min(100, Math.round((tM.length / goals.games) * 100))}%</span>
+            </div>
+            <div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
+              <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3, transition: "width .3s ease" }} />
+            </div>
+          </div>
+        ) : null}
+        {goals.winRate && tM.length > 0 ? (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.sub, marginBottom: 4, fontWeight: 600 }}>
+              <span>{t("settings.winRate")} {goals.winRate}%</span>
+              <span style={{ color: winRate >= goals.winRate ? T.win : T.lose, fontWeight: 700 }}>{winRate}%</span>
+            </div>
+            <div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
+              <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : T.lose, borderRadius: 3, transition: "width .3s ease" }} />
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 
@@ -1141,63 +1124,62 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
           </div>
 
-          {/* Goals */}
-          {editGoals ? (
-            <div style={{ ...cd, padding: "18px 24px" }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 12 }}>{t("settings.todayGoal")}</div>
-              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.games")}</span>
-                <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={goalInputStyle} />
-                <span style={{ fontSize: 13, color: T.sub }}>{t("settings.gamesUnit")}</span>
-              </div>
-              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, minWidth: 52 }}>{t("settings.winRate")}</span>
-                <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={goalInputStyle} />
-                <span style={{ fontSize: 13, color: T.sub }}>{t("settings.winRateUnit")}</span>
-              </div>
-              <button onClick={() => setEditGoals(false)} style={{ marginTop: 12, padding: "8px 20px", borderRadius: 10, border: "none", background: T.accentGrad, color: "#fff", fontSize: 13, fontWeight: 700 }}>
-                {t("common.close")}
-              </button>
+          {/* Goals - always show input + progress */}
+          <div style={{ ...cd, padding: "16px 24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t("settings.todayGoal")}</span>
+              {(goals.games || goals.winRate) && (
+                <button
+                  onClick={async () => {
+                    const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
+                    if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
+                    if (goals.winRate && tM.length > 0) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
+                    lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
+                    doShare(lines.join("\n"));
+                  }}
+                  style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}
+                >
+                  <Share2 size={12} /> {t("battle.share")}
+                </button>
+              )}
             </div>
-          ) : (goals.games || goals.winRate) ? (
-            <div
-              style={{ ...cd, padding: "18px 24px", cursor: "pointer" }}
-              onClick={() => setEditGoals(true)}
-            >
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 12 }}>{t("battle.goal")}</div>
-              <div style={{ display: "flex", gap: 24 }}>
-                {goals.games ? (
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.dim, marginBottom: 6 }}>
-                      <span>{t("battle.goalGames")} {tM.length}/{goals.games}</span>
-                      <span>{Math.min(100, Math.round((tM.length / goals.games) * 100))}%</span>
-                    </div>
-                    <div style={{ height: 8, background: T.inp, borderRadius: 4, overflow: "hidden" }}>
-                      <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 4, transition: "width .3s ease" }} />
-                    </div>
-                  </div>
-                ) : null}
-                {goals.winRate && tM.length > 0 ? (
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.dim, marginBottom: 6 }}>
-                      <span>{t("battle.goalWinRate")} {goals.winRate}%</span>
-                      <span style={{ color: winRate >= goals.winRate ? T.win : "#FF9F0A" }}>{winRate}%</span>
-                    </div>
-                    <div style={{ height: 8, background: T.inp, borderRadius: 4, overflow: "hidden" }}>
-                      <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : "#FF9F0A", borderRadius: 4, transition: "width .3s ease" }} />
-                    </div>
-                  </div>
-                ) : null}
+            <div style={{ display: "flex", gap: 16, marginBottom: 10 }}>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.games")}</span>
+                <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ ...goalInputStyle, padding: "8px 10px", fontSize: 14 }} />
+                <span style={{ fontSize: 12, color: T.sub }}>{t("settings.gamesUnit")}</span>
+              </div>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.winRate")}</span>
+                <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ ...goalInputStyle, padding: "8px 10px", fontSize: 14 }} />
+                <span style={{ fontSize: 12, color: T.sub }}>{t("settings.winRateUnit")}</span>
               </div>
             </div>
-          ) : (
-            <button
-              onClick={() => setEditGoals(true)}
-              style={{ ...cd, width: "100%", padding: "14px 24px", cursor: "pointer", textAlign: "left", border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.dim, fontSize: 13, fontWeight: 600 }}
-            >
-              {t("settings.todayGoal")}
-            </button>
-          )}
+            <div style={{ display: "flex", gap: 16 }}>
+              {goals.games ? (
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.sub, marginBottom: 4, fontWeight: 600 }}>
+                    <span>{tM.length}/{goals.games}{t("settings.gamesUnit")}</span>
+                    <span style={{ color: T.text, fontWeight: 700 }}>{Math.min(100, Math.round((tM.length / goals.games) * 100))}%</span>
+                  </div>
+                  <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3, transition: "width .3s ease" }} />
+                  </div>
+                </div>
+              ) : null}
+              {goals.winRate && tM.length > 0 ? (
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.sub, marginBottom: 4, fontWeight: 600 }}>
+                    <span>{t("settings.winRate")} {goals.winRate}%</span>
+                    <span style={{ color: winRate >= goals.winRate ? T.win : T.lose, fontWeight: 700 }}>{winRate}%</span>
+                  </div>
+                  <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : T.lose, borderRadius: 3, transition: "width .3s ease" }} />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
 
           {/* Onboarding */}
           {data.matches.length === 0 && (
