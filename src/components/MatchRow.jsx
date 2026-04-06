@@ -70,7 +70,7 @@ export default function MatchRow({ m, onDelete, showTime, T }) {
         )}
         {onDelete && (
           <button
-            onClick={onDelete}
+            onClick={() => { if (window.confirm("この対戦記録を削除しますか？")) onDelete(); }}
             style={{
               border: "none",
               background: "transparent",

@@ -76,9 +76,9 @@ export default {
     num: "#",
   },
   analysis: {
-    charBased: "キャラ別",
+    charBased: "使用キャラ別",
     matchup: "マッチアップ",
-    trend: "推移",
+    trend: "戦闘力推移",
     stats: "統計",
     totalMatches: "総試合",
     winRate: "勝率",

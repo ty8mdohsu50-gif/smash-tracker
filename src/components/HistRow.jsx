@@ -68,7 +68,7 @@ export default function HistRow({ m, onDelete, T }) {
         </span>
         {onDelete && (
           <button
-            onClick={onDelete}
+            onClick={() => { if (window.confirm("この対戦記録を削除しますか？")) onDelete(); }}
             style={{
               border: "none",
               background: "transparent",

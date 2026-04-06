@@ -300,7 +300,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                         <td style={{ ...tdStyle, color: T.dim, fontSize: 13 }}>{formatTime(m.time)}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
-                          <button onClick={() => deleteMatch(e.idx)} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
+                          <button onClick={() => { if (window.confirm("この対戦記録を削除しますか？")) deleteMatch(e.idx); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
                         </td>
                       </tr>
                     );
