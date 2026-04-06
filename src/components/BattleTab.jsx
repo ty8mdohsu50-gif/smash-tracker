@@ -705,10 +705,23 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           </button>
           <button
             onClick={() => {
-              const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+              const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
               const lines = [`【SMASH TRACKER】${formatDateLong(today())}${t("share.result")}`];
               if (ss.showChar && myChar) lines.push(`${t("share.used")}: ${fighterName(myChar, lang)}`);
               if (ss.showRecord) lines.push(`${tW}${t("common.win")} ${tL}${t("common.lose")}（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
+              if (ss.showMatchups) {
+                const oppStats = {};
+                tM.forEach((m) => {
+                  if (!oppStats[m.oppChar]) oppStats[m.oppChar] = { w: 0, l: 0 };
+                  m.result === "win" ? oppStats[m.oppChar].w++ : oppStats[m.oppChar].l++;
+                });
+                Object.entries(oppStats)
+                  .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
+                  .slice(0, 5)
+                  .forEach(([opp, s]) => {
+                    lines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
+                  });
+              }
               if (ss.showPower && pStart) lines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}`);
               if (todayDaily.vip) lines.push(t("share.vip"));
               lines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
@@ -732,18 +745,29 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
       )}
 
       {phase === "summary" && (() => {
-        const topOpp = (() => {
-          const cnt = {};
-          tM.forEach((m) => { cnt[m.oppChar] = (cnt[m.oppChar] || 0) + 1; });
-          const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
-          return sorted[0] ? sorted[0][0] : null;
+        const oppStats = (() => {
+          const stats = {};
+          tM.forEach((m) => {
+            if (!stats[m.oppChar]) stats[m.oppChar] = { w: 0, l: 0 };
+            m.result === "win" ? stats[m.oppChar].w++ : stats[m.oppChar].l++;
+          });
+          return stats;
         })();
+        const topOppEntry = Object.entries(oppStats).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))[0];
+        const topOpp = topOppEntry ? topOppEntry[0] : null;
         const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
-        const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+        const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
         const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}の結果`];
-        if (ss.showChar && myChar) shareLines.push(`使用: ${myChar}`);
+        if (ss.showChar && myChar) shareLines.push(`使用: ${fighterName(myChar, lang)}`);
         if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
-        if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
+        if (ss.showMatchups) {
+          Object.entries(oppStats)
+            .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
+            .slice(0, 5)
+            .forEach(([opp, s]) => {
+              shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
+            });
+        }
         if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
         if (todayDaily.vip) shareLines.push("VIP到達!");
         shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
@@ -787,10 +811,17 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                 </div>
               </div>
 
-              {topOpp && (
-                <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{t("battle.mostPlayed")}</div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{fighterName(topOpp, lang)}</div>
+              {Object.keys(oppStats).length > 0 && (
+                <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 12 }}>
+                  {Object.entries(oppStats)
+                    .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
+                    .slice(0, 5)
+                    .map(([opp, s]) => (
+                      <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
+                        <span style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{fighterName(opp, lang)}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{s.w}W:{s.l}L</span>
+                      </div>
+                    ))}
                 </div>
               )}
 
@@ -1268,18 +1299,28 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           )}
 
           {phase === "summary" && (() => {
-            const topOpp = (() => {
-              const cnt = {};
-              tM.forEach((m) => { cnt[m.oppChar] = (cnt[m.oppChar] || 0) + 1; });
-              const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
-              return sorted[0] ? sorted[0][0] : null;
+            const oppStatsPC = (() => {
+              const stats = {};
+              tM.forEach((m) => {
+                if (!stats[m.oppChar]) stats[m.oppChar] = { w: 0, l: 0 };
+                m.result === "win" ? stats[m.oppChar].w++ : stats[m.oppChar].l++;
+              });
+              return stats;
             })();
+            const topOppPC = Object.entries(oppStatsPC).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))[0]?.[0] ?? null;
             const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
-            const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+            const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
             const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}の結果`];
-            if (ss.showChar && myChar) shareLines.push(`使用: ${myChar}`);
+            if (ss.showChar && myChar) shareLines.push(`使用: ${fighterName(myChar, lang)}`);
             if (ss.showRecord) shareLines.push(`${tW}勝${tL}敗（勝率${percentStr(tW, tM.length)}）`);
-            if (ss.showOppChar && topOpp) shareLines.push(`最多対戦: ${topOpp}`);
+            if (ss.showMatchups) {
+              Object.entries(oppStatsPC)
+                .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
+                .slice(0, 5)
+                .forEach(([opp, s]) => {
+                  shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
+                });
+            }
             if (ss.showPower && pStart) shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
             if (todayDaily.vip) shareLines.push("VIP到達!");
             shareLines.push("#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
@@ -1319,10 +1360,17 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {topOpp && (
-                      <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center" }}>
-                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{t("battle.mostPlayed")}</span>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{fighterName(topOpp, lang)}</span>
+                    {Object.keys(oppStatsPC).length > 0 && (
+                      <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px" }}>
+                        {Object.entries(oppStatsPC)
+                          .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
+                          .slice(0, 5)
+                          .map(([opp, s]) => (
+                            <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
+                              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{fighterName(opp, lang)}</span>
+                              <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{s.w}W:{s.l}L</span>
+                            </div>
+                          ))}
                       </div>
                     )}
                     {pStart && (

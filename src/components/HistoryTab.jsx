@@ -25,18 +25,28 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     const l = matches.length - w;
     const dp = data.daily?.[date];
     const ps = getDayPowerSummary(dp);
-    const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+    const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
     const myChars = [...new Set(matches.map((m) => m.myChar).filter(Boolean))];
-    const topOpp = (() => {
-      const cnt = {};
-      matches.forEach((m) => { if (m.oppChar) cnt[m.oppChar] = (cnt[m.oppChar] || 0) + 1; });
-      const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
-      return sorted[0] ? sorted[0][0] : null;
+    const oppStats = (() => {
+      const stats = {};
+      matches.forEach((m) => {
+        if (!m.oppChar) return;
+        if (!stats[m.oppChar]) stats[m.oppChar] = { w: 0, l: 0 };
+        m.result === "win" ? stats[m.oppChar].w++ : stats[m.oppChar].l++;
+      });
+      return stats;
     })();
     const lines = [`【SMASH TRACKER】${formatDateLong(date)}${t("share.result")}`];
-    if (ss.showChar && myChars.length > 0) lines.push(`${t("share.used")}: ${myChars.join(" / ")}`);
+    if (ss.showChar && myChars.length > 0) lines.push(`${t("share.used")}: ${myChars.map((c) => fighterName(c, lang)).join(" / ")}`);
     if (ss.showRecord) lines.push(`${w}勝${l}敗（勝率${percentStr(w, matches.length)}）`);
-    if (ss.showOppChar && topOpp) lines.push(`${t("share.mostPlayed")}: ${topOpp}`);
+    if (ss.showMatchups) {
+      Object.entries(oppStats)
+        .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
+        .slice(0, 5)
+        .forEach(([opp, s]) => {
+          lines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
+        });
+    }
     if (ss.showPower && ps.start && ps.end) {
       const delta = ps.end - ps.start;
       lines.push(`${t("battle.power")}: ${numFormat(ps.start)} → ${numFormat(ps.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);

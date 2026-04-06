@@ -179,11 +179,11 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
               <div style={{ marginTop: 14, animation: "fadeUp .15s ease" }}>
                 {[
                   { key: "showChar", label: t("settings.showChar") },
-                  { key: "showOppChar", label: t("settings.showOppChar") },
+                  { key: "showMatchups", label: t("settings.showMatchups") },
                   { key: "showRecord", label: t("settings.showRecord") },
                   { key: "showPower", label: t("settings.showPower") },
                 ].map(({ key, label }) => {
-                  const ss = { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+                  const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
                   const enabled = ss[key];
                   return (
                     <div
@@ -198,7 +198,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                         onClick={() =>
                           onSave({
                             ...data,
-                            shareSettings: { showChar: true, showOppChar: true, showPower: true, showRecord: true, ...(data.shareSettings || {}), [key]: !enabled },
+                            shareSettings: { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}), [key]: !enabled },
                           })
                         }
                         style={{
