@@ -27,6 +27,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   const chartRef = useRef(null);
   const [expandedOpp, setExpandedOpp] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
+  const [shareImageUrl, setShareImageUrl] = useState(null);
 
   const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
   const totalL = data.matches.length - totalW;
@@ -301,13 +302,7 @@ export default function AnalysisTab({ data, T, isPC }) {
         }
 
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "smash-tracker-trend.png";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setShareImageUrl(url);
       }, "image/png");
     };
     img.src = svgUrl;
@@ -872,6 +867,44 @@ export default function AnalysisTab({ data, T, isPC }) {
               onClose={() => setSharePopupText(null)}
               T={T}
             />
+          )}
+          {shareImageUrl && (
+            <div
+              onClick={() => { URL.revokeObjectURL(shareImageUrl); setShareImageUrl(null); }}
+              style={{
+                position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+                background: "rgba(0,0,0,.7)", zIndex: 300,
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                padding: 20, animation: "fadeIn .15s ease",
+              }}
+            >
+              <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, width: "100%", textAlign: "center" }}>
+                <img src={shareImageUrl} alt="trend" style={{ width: "100%", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,.4)" }} />
+                <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 16 }}>
+                  <a
+                    href={shareImageUrl}
+                    download="smash-tracker-trend.png"
+                    style={{
+                      padding: "10px 24px", borderRadius: 10, border: "none",
+                      background: T.accent, color: "#fff", fontSize: 14, fontWeight: 700,
+                      textDecoration: "none",
+                    }}
+                  >
+                    {t("battle.copyText") || "Download"}
+                  </a>
+                  <button
+                    onClick={() => { URL.revokeObjectURL(shareImageUrl); setShareImageUrl(null); }}
+                    style={{
+                      padding: "10px 24px", borderRadius: 10,
+                      border: `1px solid ${T.brd}`, background: T.card,
+                      color: T.sub, fontSize: 14, fontWeight: 600,
+                    }}
+                  >
+                    {t("common.close")}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}

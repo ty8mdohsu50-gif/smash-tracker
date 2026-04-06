@@ -237,7 +237,6 @@ export default function App() {
           minHeight: "100vh",
           background: T.bg,
           margin: "0 auto",
-          overflow: "hidden",
           touchAction: "pan-y",
           fontFamily,
           color: T.text,
