@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { BarChart3, Share2 } from "lucide-react";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
@@ -24,6 +24,7 @@ export default function AnalysisTab({ data, T, isPC }) {
   const [period, setPeriod] = useState("all");
   const [charDetail, setCharDetail] = useState(null);
   const [charTab, setCharTab] = useState("matchup");
+  const chartRef = useRef(null);
   const [expandedOpp, setExpandedOpp] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
 
@@ -183,6 +184,8 @@ export default function AnalysisTab({ data, T, isPC }) {
       chg: cur - pts[0].value,
       mx: Math.max(...vals),
       mn: Math.min(...vals),
+      dateFrom: pts[0].date,
+      dateTo: pts[pts.length - 1].date,
     };
   }, [data, period]);
 
@@ -238,15 +241,77 @@ export default function AnalysisTab({ data, T, isPC }) {
     all: t("analysis.all"),
   };
 
-  const shareTrend = () => {
+  const shareTrend = useCallback(async () => {
+    const el = chartRef.current;
+    if (!el) return;
+
+    const svg = el.querySelector("svg");
+    if (!svg) return;
+
     const label = periodLabels[period] || t("analysis.all");
-    const cur = trendData.cur ? numFormat(trendData.cur) : "\u2014";
-    const chg = trendData.chg ? (trendData.chg > 0 ? "+" : "") + numFormat(trendData.chg) : "\u2014";
-    const mx = trendData.mx ? numFormat(trendData.mx) : "\u2014";
-    const mn = trendData.mn ? numFormat(trendData.mn) : "\u2014";
-    const text = `【SMASH TRACKER】${t("analysis.trend")}（${label}）\n\n${t("analysis.current")}: ${cur}\n${t("analysis.change")}: ${chg}\n${t("analysis.highest")}: ${mx}\n${t("analysis.lowest")}: ${mn}\n\n#スマブラ #SmashTracker #スマトラ\nhttps://smash-tracker.pages.dev/`;
-    doShare(text);
-  };
+    const dateRange = trendData.dateFrom && trendData.dateTo
+      ? `${formatDate(trendData.dateFrom)} - ${formatDate(trendData.dateTo)}`
+      : "";
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const svgUrl = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.onload = async () => {
+      const scale = 2;
+      const headerH = 80;
+      const footerH = 40;
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale + headerH + footerH;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#111827";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 28px 'Chakra Petch', sans-serif";
+      ctx.fillText(`SMASH TRACKER - ${t("analysis.trend")}（${label}）`, 20, 35);
+
+      ctx.fillStyle = "#9ca3af";
+      ctx.font = "16px sans-serif";
+      ctx.fillText(dateRange, 20, 60);
+
+      ctx.drawImage(img, 0, headerH, img.width * scale, img.height * scale);
+
+      ctx.fillStyle = "#4b5563";
+      ctx.font = "14px sans-serif";
+      ctx.fillText("smash-tracker.pages.dev  #スマブラ #SmashTracker #スマトラ", 20, canvas.height - 14);
+
+      canvas.toBlob(async (blob) => {
+        URL.revokeObjectURL(svgUrl);
+        if (!blob) return;
+
+        const file = new File([blob], "smash-tracker-trend.png", { type: "image/png" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              text: `【SMASH TRACKER】${t("analysis.trend")}（${label}）${dateRange ? "\n" + dateRange : ""}\n\n#スマブラ #SmashTracker #スマトラ\nhttps://smash-tracker.pages.dev/`,
+            });
+            return;
+          } catch (_) { /* cancelled */ }
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "smash-tracker-trend.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    };
+    img.src = svgUrl;
+  }, [period, trendData, t]);
 
   const renderBar = (r) => (
     <div
@@ -769,7 +834,7 @@ export default function AnalysisTab({ data, T, isPC }) {
             ))}
           </div>
           {trendData.points.length > 1 ? (
-            <div style={{ ...cd, padding: "12px 10px 8px" }}>
+            <div ref={chartRef} style={{ ...cd, padding: "12px 10px 8px" }}>
               <Chart points={trendData.points} T={T} isToday={trendData.isToday} />
             </div>
           ) : (
