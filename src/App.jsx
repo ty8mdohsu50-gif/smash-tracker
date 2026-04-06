@@ -430,7 +430,7 @@ export default function App() {
         </div>
       </nav>
 
-      <main ref={mainRef} style={{ flex: 1, height: "100vh", display: "flex", flexDirection: "column", overflowX: "hidden" }}>
+      <main ref={mainRef} style={{ flex: 1, height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div
           style={{
             padding: "20px 40px",
@@ -479,8 +479,8 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto" }}>
-          <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+          <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC onOpenSettings={() => setShowSettings(true)} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
             {tabIdx === 2 && <AnalysisTab data={data} T={T} isPC />}
