@@ -120,10 +120,35 @@ export default function AnalysisTab({ data, T, isPC }) {
     if (!entries.length) return { points: [], cur: 0, chg: 0, mx: 0, mn: 0 };
 
     const now = new Date();
-    let filtered;
+
+    // For "today" period, use per-match power data for time-based chart
     if (period === "day") {
-      filtered = entries.filter((e) => e[0] === today());
-    } else if (period === "week") {
+      const todayMatches = data.matches
+        .filter((m) => m.date === today() && m.power)
+        .sort((a, b) => a.time.localeCompare(b.time));
+      const todayEntry = entries.find((e) => e[0] === today());
+      const pts = [];
+      if (todayEntry && todayEntry[1].start) {
+        pts.push({ date: today(), value: todayEntry[1].start, time: null });
+      }
+      todayMatches.forEach((m) => {
+        pts.push({ date: today(), value: m.power, time: m.time });
+      });
+      if (pts.length === 0) return { points: [], cur: 0, chg: 0, mx: 0, mn: 0 };
+      const vals = pts.map((p) => p.value);
+      const cur = pts[pts.length - 1].value;
+      return {
+        points: pts,
+        cur,
+        chg: cur - pts[0].value,
+        mx: Math.max(...vals),
+        mn: Math.min(...vals),
+        isToday: true,
+      };
+    }
+
+    let filtered;
+    if (period === "week") {
       const w = new Date(now);
       w.setDate(w.getDate() - 7);
       const ws = w.toISOString().split("T")[0];
@@ -716,7 +741,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           </div>
           {trendData.points.length > 1 ? (
             <div style={{ ...cd, padding: "12px 10px 8px" }}>
-              <Chart points={trendData.points} T={T} />
+              <Chart points={trendData.points} T={T} isToday={trendData.isToday} />
             </div>
           ) : (
             <div style={{ ...cd, textAlign: "center", padding: 30 }}>

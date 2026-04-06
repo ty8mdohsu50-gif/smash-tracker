@@ -157,6 +157,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         oppChar,
         result: r,
         memo: "",
+        power: pEnd ? Number(pEnd) : (pStart ? Number(pStart) : null),
       };
       const newMatches = [...data.matches, m];
       onSave({ ...data, matches: newMatches });
@@ -176,6 +177,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
       oppChar,
       result,
       memo: "",
+      power: pEnd ? Number(pEnd) : (pStart ? Number(pStart) : null),
     };
     const newMatches = [...data.matches, m];
     onSave({ ...data, matches: newMatches });

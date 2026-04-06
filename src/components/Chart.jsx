@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { formatDateShort } from "../utils/format";
+import { formatDateShort, formatTime } from "../utils/format";
 
-export default function Chart({ points: pts, T }) {
+export default function Chart({ points: pts, T, isToday }) {
   const [selected, setSelected] = useState(null);
 
   if (!pts || pts.length < 2) return null;
@@ -54,26 +54,46 @@ export default function Chart({ points: pts, T }) {
 
   const areaPath = `${pathD} L ${x(pts.length - 1)},${P.t + cH} L ${P.l},${P.t + cH} Z`;
 
-  const step = Math.max(1, Math.ceil(pts.length / 5));
   const dateLabels = [];
-  const seen = new Set();
-  for (let xi = 0; xi < pts.length; xi += step) {
-    const dateStr = pts[xi].date;
-    if (seen.has(dateStr)) continue;
-    seen.add(dateStr);
-    dateLabels.push(
-      <text key={`xl${xi}`} x={x(xi)} y={H - 8} textAnchor="middle" fontSize={10} fontWeight={500} fill={T.dim}>
-        {formatDateShort(dateStr)}
-      </text>,
-    );
-  }
-  const lastDate = pts[pts.length - 1].date;
-  if (!seen.has(lastDate)) {
-    dateLabels.push(
-      <text key="xll" x={x(pts.length - 1)} y={H - 8} textAnchor="middle" fontSize={10} fontWeight={500} fill={T.dim}>
-        {formatDateShort(lastDate)}
-      </text>,
-    );
+  if (isToday) {
+    const step = Math.max(1, Math.ceil(pts.length / 6));
+    for (let xi = 0; xi < pts.length; xi += step) {
+      const label = pts[xi].time ? formatTime(pts[xi].time) : "開始";
+      dateLabels.push(
+        <text key={`xl${xi}`} x={x(xi)} y={H - 8} textAnchor="middle" fontSize={9} fontWeight={500} fill={T.dim}>
+          {label}
+        </text>,
+      );
+    }
+    if ((pts.length - 1) % step !== 0 && pts.length > 1) {
+      const last = pts[pts.length - 1];
+      dateLabels.push(
+        <text key="xll" x={x(pts.length - 1)} y={H - 8} textAnchor="middle" fontSize={9} fontWeight={500} fill={T.dim}>
+          {last.time ? formatTime(last.time) : ""}
+        </text>,
+      );
+    }
+  } else {
+    const step = Math.max(1, Math.ceil(pts.length / 5));
+    const seen = new Set();
+    for (let xi = 0; xi < pts.length; xi += step) {
+      const dateStr = pts[xi].date;
+      if (seen.has(dateStr)) continue;
+      seen.add(dateStr);
+      dateLabels.push(
+        <text key={`xl${xi}`} x={x(xi)} y={H - 8} textAnchor="middle" fontSize={10} fontWeight={500} fill={T.dim}>
+          {formatDateShort(dateStr)}
+        </text>,
+      );
+    }
+    const lastDate = pts[pts.length - 1].date;
+    if (!seen.has(lastDate)) {
+      dateLabels.push(
+        <text key="xll" x={x(pts.length - 1)} y={H - 8} textAnchor="middle" fontSize={10} fontWeight={500} fill={T.dim}>
+          {formatDateShort(lastDate)}
+        </text>,
+      );
+    }
   }
 
   const gradId = `chart-grad-${isUp ? "up" : "down"}`;
