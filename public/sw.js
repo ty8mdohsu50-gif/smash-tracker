@@ -1,4 +1,4 @@
-const CACHE_NAME = "smash-tracker-v2";
+const CACHE_NAME = "smash-tracker-v3";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
