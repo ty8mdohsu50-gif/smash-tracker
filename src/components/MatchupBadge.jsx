@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import FighterIcon from "./FighterIcon";
+import { fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 
 export default function MatchupBadge({ myChar, oppChar, matches, T }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const stats = useMemo(() => {
     const ms = matches.filter(
       (m) => m.myChar === myChar && m.oppChar === oppChar,
@@ -29,7 +30,7 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
       >
         <FighterIcon name={oppChar} size={32} />
         <div style={{ fontSize: 12, color: T.dim }}>
-          {t("common.vs")} {oppChar} -- {t("battle.firstMatch")}
+          {t("common.vs")} {fighterName(oppChar, lang)} -- {t("battle.firstMatch")}
         </div>
       </div>
     );
@@ -55,7 +56,7 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <FighterIcon name={oppChar} size={32} />
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>vs {oppChar}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>vs {fighterName(oppChar, lang)}</div>
             <div style={{ fontSize: 11, color: T.dim, marginTop: 1 }}>
               {stats.t}{t("common.matches")} {stats.w}W {stats.l}L
             </div>

@@ -5,6 +5,7 @@ import MatchRow from "./MatchRow";
 import MatchupBadge from "./MatchupBadge";
 import FighterIcon from "./FighterIcon";
 import { checkMilestones } from "../constants/milestones";
+import { fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import {
   today,
@@ -22,7 +23,7 @@ import {
 } from "../utils/format";
 
 export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [phase, setPhase] = useState("setup");
   const [myChar, setMyChar] = useState(data.settings.myChar || "");
   const [result, setResult] = useState(null);
@@ -430,7 +431,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                 {myChar ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
                     <FighterIcon name={myChar} size={32} />
-                    <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{myChar}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{fighterName(myChar, lang)}</div>
                   </div>
                 ) : (
                   <div style={{ fontSize: 15, color: T.dim, marginBottom: 4 }}>{t("battle.notSelected")}</div>
@@ -457,7 +458,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                         transition: "all .15s ease",
                       }}
                     >
-                      {c}
+                      {fighterName(c, lang)}
                     </button>
                   ))}
                 </div>
@@ -469,7 +470,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
           {myChar && (
             <div style={cd}>
               <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
-                {myChar}{t("battle.startPower")}
+                {fighterName(myChar, lang)}{t("battle.startPower")}
               </div>
               {prevEnd && !charPower.start && (
                 <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>{t("battle.autoCarryOver")}</div>
@@ -498,7 +499,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <FighterIcon name={myChar} size={36} />
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{myChar}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{fighterName(myChar, lang)}</div>
                   {tM.length > 0 && (
                     <div style={{ fontSize: 13, color: T.dim, marginTop: 2 }}>
                       {tM.length}{t("battle.matches")} {percentStr(tW, tM.length)}
@@ -560,7 +561,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             {oppChar && !showOppPicker && (
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                 <FighterIcon name={oppChar} size={32} />
-                <span style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{oppChar}</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{fighterName(oppChar, lang)}</span>
               </div>
             )}
             {showOppPicker ? (
@@ -585,7 +586,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                       }}
                     >
                       <FighterIcon name={c} size={24} />
-                      {c}
+                      {fighterName(c, lang)}
                     </button>
                   ))}
                   <button
@@ -777,7 +778,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
               {topOpp && (
                 <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{t("battle.mostPlayed")}</div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{topOpp}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{fighterName(topOpp, lang)}</div>
                 </div>
               )}
 
@@ -862,7 +863,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                     onClick={() => setOppChar(c)}
                     style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}
                   >
-                    {c}
+                    {fighterName(c, lang)}
                   </button>
                 ))}
               </div>
@@ -893,10 +894,10 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
             </div>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 12, animation: "slideUp .3s ease .1s both" }}>
               <FighterIcon name={myChar} size={32} />
-              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{myChar}</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{fighterName(myChar, lang)}</span>
               <span style={{ fontSize: 12, color: T.dim }}>vs</span>
               <FighterIcon name={oppChar} size={32} />
-              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{oppChar}</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{fighterName(oppChar, lang)}</span>
             </div>
             <textarea
               value={memo}
@@ -1085,18 +1086,18 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                   ) : (
                     <div>
                       <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{t("battle.selectChar")}</div>
-                      {myChar ? <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginBottom: 8 }}>{myChar}</div> : <div style={{ fontSize: 15, color: T.dim, marginBottom: 8 }}>{t("battle.notSelected")}</div>}
+                      {myChar ? <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginBottom: 8 }}>{fighterName(myChar, lang)}</div> : <div style={{ fontSize: 15, color: T.dim, marginBottom: 8 }}>{t("battle.notSelected")}</div>}
                       <div style={{ display: "flex", gap: 8 }}>
                         <button onClick={() => setShowMyPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.change")}</button>
                         {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
-                          <button key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{c}</button>
+                          <button key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{fighterName(c, lang)}</button>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
                 <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
-                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{myChar ? `${myChar}${t("battle.startPower")}` : t("battle.power")}</div>
+                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{myChar ? `${fighterName(myChar, lang)}${t("battle.startPower")}` : t("battle.power")}</div>
                   {prevEnd && !todayDaily.start && <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>{t("battle.autoCarryOver")}</div>}
                   {pwrInput(pStart, setPStart, "14,000,000", true)}
                 </div>
@@ -1122,13 +1123,13 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                   <div style={{ fontSize: 13, color: T.sub, fontWeight: 600 }}>{t("battle.oppChar")}</div>
                   {oppChar && <button onClick={() => setOppChar("")} style={{ border: "none", background: "transparent", color: T.lose, fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 2 }}><X size={12} /> {t("battle.clear")}</button>}
                 </div>
-                {oppChar && !showOppPicker && <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginBottom: 8 }}>{oppChar}</div>}
+                {oppChar && !showOppPicker && <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginBottom: 8 }}>{fighterName(oppChar, lang)}</div>}
                 {showOppPicker ? (
                   <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder={t("charPicker.select")} recent={recOpp} T={T} />
                 ) : (
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {recOpp.slice(0, 5).map((c) => (
-                      <button key={c} onClick={() => setOppChar(c)} style={{ padding: "8px 16px", borderRadius: 10, border: oppChar === c ? `2px solid ${T.accent}` : "none", background: oppChar === c ? T.accentSoft : T.inp, color: oppChar === c ? T.accent : T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{c}</button>
+                      <button key={c} onClick={() => setOppChar(c)} style={{ padding: "8px 16px", borderRadius: 10, border: oppChar === c ? `2px solid ${T.accent}` : "none", background: oppChar === c ? T.accentSoft : T.inp, color: oppChar === c ? T.accent : T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{fighterName(c, lang)}</button>
                     ))}
                     <button onClick={() => setShowOppPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.other")}</button>
                   </div>
@@ -1186,9 +1187,9 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
               <div style={{ ...cd, textAlign: "center", padding: "28px 24px", marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, letterSpacing: 1.5, fontFamily: "'Chakra Petch', sans-serif" }}>{t("battle.recorded")}</div>
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 8, animation: "slideUp .3s ease .1s both" }}>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{myChar}</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{fighterName(myChar, lang)}</span>
                   <span style={{ fontSize: 14, color: T.dim }}>vs</span>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{oppChar}</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{fighterName(oppChar, lang)}</span>
                 </div>
                 <div style={{ marginTop: 12 }}>
                   <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose, animation: "popIn .3s ease" }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
@@ -1288,7 +1289,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
                     {topOpp && (
                       <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center" }}>
                         <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{t("battle.mostPlayed")}</span>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{topOpp}</span>
+                        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginLeft: "auto" }}>{fighterName(topOpp, lang)}</span>
                       </div>
                     )}
                     {pStart && (

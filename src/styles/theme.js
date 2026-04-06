@@ -1,18 +1,18 @@
 const ACCENT_COLORS = {
-  purple: { name: "パープル", light: "#7C3AED", dark: "#A78BFA", hue: 263 },
-  blue: { name: "ブルー", light: "#2563EB", dark: "#60A5FA", hue: 217 },
-  cyan: { name: "シアン", light: "#0891B2", dark: "#22D3EE", hue: 188 },
-  emerald: { name: "エメラルド", light: "#059669", dark: "#34D399", hue: 160 },
-  orange: { name: "オレンジ", light: "#EA580C", dark: "#FB923C", hue: 21 },
-  rose: { name: "ローズ", light: "#E11D48", dark: "#FB7185", hue: 347 },
-  amber: { name: "アンバー", light: "#D97706", dark: "#FBBF24", hue: 38 },
-  red: { name: "レッド", light: "#DC2626", dark: "#F87171", hue: 0 },
-  white: { name: "ホワイト", light: "#6B7280", dark: "#9CA3AF", hue: 220 },
-  black: { name: "ブラック", light: "#374151", dark: "#D1D5DB", hue: 220 },
+  purple: { name: { ja: "パープル", en: "Purple" }, light: "#7C3AED", dark: "#A78BFA", hue: 263 },
+  blue: { name: { ja: "ブルー", en: "Blue" }, light: "#2563EB", dark: "#60A5FA", hue: 217 },
+  cyan: { name: { ja: "シアン", en: "Cyan" }, light: "#0891B2", dark: "#22D3EE", hue: 188 },
+  emerald: { name: { ja: "エメラルド", en: "Emerald" }, light: "#059669", dark: "#34D399", hue: 160 },
+  orange: { name: { ja: "オレンジ", en: "Orange" }, light: "#EA580C", dark: "#FB923C", hue: 21 },
+  rose: { name: { ja: "ローズ", en: "Rose" }, light: "#E11D48", dark: "#FB7185", hue: 347 },
+  amber: { name: { ja: "アンバー", en: "Amber" }, light: "#D97706", dark: "#FBBF24", hue: 38 },
+  red: { name: { ja: "レッド", en: "Red" }, light: "#DC2626", dark: "#F87171", hue: 0 },
+  white: { name: { ja: "ホワイト", en: "White" }, light: "#6B7280", dark: "#9CA3AF", hue: 220 },
+  black: { name: { ja: "ブラック", en: "Black" }, light: "#374151", dark: "#D1D5DB", hue: 220 },
 };
 
 export const THEME_KEYS = Object.keys(ACCENT_COLORS);
-export const getThemeLabel = (key) => ACCENT_COLORS[key]?.name || key;
+export const getThemeLabel = (key, lang) => ACCENT_COLORS[key]?.name?.[lang || "ja"] || key;
 
 function hsl(h, s, l) {
   return `hsl(${h}, ${s}%, ${l}%)`;

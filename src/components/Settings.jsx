@@ -238,7 +238,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                   background: SWATCH_COLORS[currentColor],
                   border: currentColor === "white" ? `2px solid ${T.dimmer}` : "none",
                 }} />
-                <span style={{ fontSize: 12, color: T.dim }}>{getThemeLabel(currentColor)}</span>
+                <span style={{ fontSize: 12, color: T.dim }}>{getThemeLabel(currentColor, lang)}</span>
               </div>
               {showTheme ? <ChevronUp size={18} color={T.dim} /> : <ChevronDown size={18} color={T.dim} />}
             </button>
@@ -269,7 +269,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onLogout,
                           }}
                         />
                         <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? T.accent : T.dim }}>
-                          {getThemeLabel(key)}
+                          {getThemeLabel(key, lang)}
                         </span>
                       </button>
                     );

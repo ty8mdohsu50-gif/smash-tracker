@@ -3,7 +3,7 @@ import { BarChart3 } from "lucide-react";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import Heatmap from "./Heatmap";
-import { shortName } from "../constants/fighters";
+import { shortName, fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import {
   today,
@@ -18,7 +18,7 @@ import {
 } from "../utils/format";
 
 export default function AnalysisTab({ data, T, isPC }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [aMode, setAMode] = useState("myChar");
   const [period, setPeriod] = useState("all");
   const [charDetail, setCharDetail] = useState(null);
@@ -337,7 +337,7 @@ export default function AnalysisTab({ data, T, isPC }) {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <FighterIcon name={charDetail} size={36} />
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{charDetail}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{fighterName(charDetail, lang)}</div>
                 {(() => {
                   const tt = charMatchups.reduce((a, s) => ({ w: a.w + s.w, l: a.l + s.l }), { w: 0, l: 0 });
                   return <div style={{ fontSize: 12, color: T.dim }}>{tt.w + tt.l}戦 {tt.w}W {tt.l}L ({percentStr(tt.w, tt.w + tt.l)})</div>;
@@ -389,7 +389,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <FighterIcon name={s.c} size={32} />
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(s.c, lang)}</div>
                         <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
                       </div>
                     </div>
@@ -515,7 +515,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                         }}
                       >
                         <FighterIcon name={s.c} size={28} />
-                        {s.c}
+                        {fighterName(s.c, lang)}
                       </span>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
                         <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</span>
@@ -584,7 +584,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <FighterIcon name={s.c} size={36} />
                           <div>
-                            <div style={{ fontSize: 15, fontWeight: 700 }}>{s.c}</div>
+                            <div style={{ fontSize: 15, fontWeight: 700 }}>{fighterName(s.c, lang)}</div>
                             <div style={{ fontSize: 11, color: active ? T.accent : T.dim, fontWeight: 500, marginTop: 2 }}>{s.t}{t("analysis.battles")} {s.w}W {s.l}L</div>
                           </div>
                         </div>
@@ -631,7 +631,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                   <FighterIcon name={s.c} size={26} />
                                   <div>
-                                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{s.c}</div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(s.c, lang)}</div>
                                     <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
                                   </div>
                                 </div>
