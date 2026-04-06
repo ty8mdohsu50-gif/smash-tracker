@@ -988,12 +988,16 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
 
   if (!isPC) return mainContent;
 
-  const statCard = (label, value, color) => (
-    <div style={{ ...cd, flex: 1, marginBottom: 0, padding: "20px 24px", minWidth: 0 }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 8, letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 900, color: color || T.text, letterSpacing: -1, fontFamily: "'Chakra Petch', sans-serif" }}>{value}</div>
-    </div>
-  );
+  const statCard = (label, value, color) => {
+    const len = String(value).length;
+    const fs = len > 10 ? 16 : len > 7 ? 20 : 28;
+    return (
+      <div style={{ ...cd, flex: 1, marginBottom: 0, padding: "16px 14px", minWidth: 0, overflow: "hidden" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6, letterSpacing: 0.5 }}>{label}</div>
+        <div style={{ fontSize: fs, fontWeight: 900, color: color || T.text, letterSpacing: -1, fontFamily: "'Chakra Petch', sans-serif", whiteSpace: "nowrap" }}>{value}</div>
+      </div>
+    );
+  };
 
   if (phase === "setup") {
     return (
