@@ -44,7 +44,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   // editGoals state removed - goals always visible
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
-  const [showCounterEdit, setShowCounterEdit] = useState(false);
   const [counterEditText, setCounterEditText] = useState("");
 
   const doShare = async (text) => {
@@ -106,7 +105,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const saveCounterMemo = () => {
     if (!oppChar) return;
     onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppChar]: counterEditText } });
-    setShowCounterEdit(false);
   };
 
   const saveGoals = () =>
@@ -166,7 +164,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     setPhase("fighting");
   };
 
-  const recordMatch = (newMatches, r) => {
+  const recordMatch = (newMatches, r, currentOppChar) => {
     const newTotal = newMatches.length;
     const wins = newMatches.filter((m) => m.result === "win").length;
     const currentStreak = getStreak(newMatches);
@@ -176,6 +174,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     setNewMilestones(achieved);
     setLastRes(r);
     setMemo("");
+    setCounterEditText(data.counterMemos?.[currentOppChar || oppChar] || "");
     setPhase("postMatch");
   };
 
@@ -1118,54 +1117,22 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             </div>
           )}
 
-          {myChar && oppChar && (
-            <div style={{ animation: "slideUp .3s ease .2s both" }}>
-              <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
-            </div>
-          )}
-
           {oppChar && (
-            <div style={{ animation: "slideUp .3s ease .25s both" }}>
-              <button
-                onClick={() => {
-                  setCounterEditText(data.counterMemos?.[oppChar] || "");
-                  setShowCounterEdit(!showCounterEdit);
-                }}
+            <div style={{ ...cd, marginTop: 8, animation: "slideUp .3s ease .25s both" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6 }}>{t("battle.counterMemo")}</div>
+              <textarea
+                value={counterEditText}
+                onChange={(e) => setCounterEditText(e.target.value)}
+                onBlur={saveCounterMemo}
+                placeholder={t("battle.counterMemoPlaceholder")}
+                rows={3}
                 style={{
-                  width: "100%", padding: "10px 16px", border: `1px solid ${T.brd}`,
-                  borderRadius: 10, background: T.card, color: T.sub,
-                  fontSize: 13, fontWeight: 600, textAlign: "left",
+                  width: "100%", padding: "10px 12px", background: T.inp,
+                  border: "none", borderRadius: 10, color: T.text, fontSize: 13,
+                  outline: "none", boxSizing: "border-box", resize: "none",
+                  fontFamily: "inherit", lineHeight: 1.6,
                 }}
-              >
-                {t("battle.editCounterMemo")}
-              </button>
-              {showCounterEdit && (
-                <div style={{ ...cd, marginTop: 8 }}>
-                  <textarea
-                    value={counterEditText}
-                    onChange={(e) => setCounterEditText(e.target.value)}
-                    placeholder={t("battle.counterMemoPlaceholder")}
-                    rows={3}
-                    style={{
-                      width: "100%", padding: "10px 12px", background: T.inp,
-                      border: "none", borderRadius: 10, color: T.text, fontSize: 13,
-                      outline: "none", boxSizing: "border-box", resize: "none",
-                      fontFamily: "inherit", lineHeight: 1.6,
-                    }}
-                  />
-                  <button
-                    onClick={saveCounterMemo}
-                    style={{
-                      width: "100%", padding: "10px 0", marginTop: 8,
-                      border: "none", borderRadius: 10,
-                      background: T.accentGrad, color: "#fff",
-                      fontSize: 13, fontWeight: 700,
-                    }}
-                  >
-                    {t("battle.saveCounterMemo")}
-                  </button>
-                </div>
-              )}
+              />
             </div>
           )}
 
@@ -1373,18 +1340,17 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         {/* Right column: today's power trend + matchup summary + memos */}
         <div
           style={{
-            flex: 2, minWidth: 300, minHeight: 0, background: T.card, borderRadius: 20,
+            flex: 2, minWidth: 300, alignSelf: "flex-start", background: T.card, borderRadius: 20,
             padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh,
-            display: "flex", flexDirection: "column", overflow: "hidden",
           }}
         >
-          <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
+          <div style={{ padding: "20px 24px 12px" }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 2 }}>
               {t("battle.monthTrend")}
             </div>
             <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}</div>
           </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
+          <div style={{ padding: "0 24px 24px" }}>
             {monthPowerPoints.length >= 2 ? (
               <div style={{ marginBottom: 16 }}>
                 <Chart points={monthPowerPoints} T={T} />
@@ -1553,53 +1519,28 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 </div>
               )}
               {oppChar && (
-                <div style={{ marginBottom: 12 }}>
-                  <button
-                    onClick={() => {
-                      setCounterEditText(data.counterMemos?.[oppChar] || "");
-                      setShowCounterEdit(!showCounterEdit);
-                    }}
+                <div style={{ ...cd, marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6 }}>{t("battle.counterMemo")}</div>
+                  <textarea
+                    value={counterEditText}
+                    onChange={(e) => setCounterEditText(e.target.value)}
+                    onBlur={saveCounterMemo}
+                    placeholder={t("battle.counterMemoPlaceholder")}
+                    rows={3}
                     style={{
-                      width: "100%", padding: "10px 16px", border: `1px solid ${T.brd}`,
-                      borderRadius: 10, background: T.card, color: T.sub,
-                      fontSize: 13, fontWeight: 600, textAlign: "left",
+                      width: "100%", padding: "10px 12px", background: T.inp,
+                      border: "none", borderRadius: 10, color: T.text, fontSize: 13,
+                      outline: "none", boxSizing: "border-box", resize: "none",
+                      fontFamily: "inherit", lineHeight: 1.6,
                     }}
-                  >
-                    {t("battle.editCounterMemo")}
-                  </button>
-                  {showCounterEdit && (
-                    <div style={{ ...cd, marginTop: 8 }}>
-                      <textarea
-                        value={counterEditText}
-                        onChange={(e) => setCounterEditText(e.target.value)}
-                        placeholder={t("battle.counterMemoPlaceholder")}
-                        rows={3}
-                        style={{
-                          width: "100%", padding: "10px 12px", background: T.inp,
-                          border: "none", borderRadius: 10, color: T.text, fontSize: 13,
-                          outline: "none", boxSizing: "border-box", resize: "none",
-                          fontFamily: "inherit", lineHeight: 1.6,
-                        }}
-                      />
-                      <button
-                        onClick={saveCounterMemo}
-                        style={{
-                          width: "100%", padding: "10px 0", marginTop: 8,
-                          border: "none", borderRadius: 10,
-                          background: T.accentGrad, color: "#fff",
-                          fontSize: 13, fontWeight: 700,
-                        }}
-                      >
-                        {t("battle.saveCounterMemo")}
-                      </button>
-                    </div>
-                  )}
+                  />
                 </div>
               )}
               <div style={{ display: "flex", gap: 12, animation: "slideUp .3s ease .3s both" }}>
                 <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
                 <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>{t("battle.nextMatch")}</button>
                 <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>{t("battle.changeChar")}</button>
+                <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("endSession"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>{t("battle.endSession")}</button>
               </div>
             </div>
           )}

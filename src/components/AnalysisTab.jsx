@@ -33,6 +33,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, onGoToHistory }) {
   const [matchupView, setMatchupView] = useState("myChar");
   const [selectedOpp, setSelectedOpp] = useState(null);
   const [counterMemoText, setCounterMemoText] = useState("");
+  const [expandedDate, setExpandedDate] = useState(null);
 
   const MODES = ["myChar", "oppChar", "trend", "stats"];
   const swipeRef = useRef({ x: 0, y: 0, swiping: false });
@@ -596,26 +597,53 @@ export default function AnalysisTab({ data, onSave, T, isPC, onGoToHistory }) {
           {charTab === "daily" && (() => {
             const dailyMap = {};
             data.matches.filter((m) => m.myChar === charDetail).forEach((m) => {
-              if (!dailyMap[m.date]) dailyMap[m.date] = { w: 0, l: 0 };
+              if (!dailyMap[m.date]) dailyMap[m.date] = { w: 0, l: 0, matches: [] };
               m.result === "win" ? dailyMap[m.date].w++ : dailyMap[m.date].l++;
+              dailyMap[m.date].matches.push(m);
             });
             const days = Object.entries(dailyMap).sort((a, b) => b[0].localeCompare(a[0]));
             if (days.length === 0) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
             return days.map(([date, d]) => {
               const total = d.w + d.l;
               const r = total ? d.w / total : 0;
+              const isExpanded = expandedDate === date;
+              const dayMatches = isExpanded ? d.matches.slice().reverse() : [];
               return (
-                <div key={date} style={{ ...cd, marginBottom: 8, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: 13, color: T.dim }}>{total}{t("analysis.battles")}</span>
-                    <span style={{ fontSize: 16, fontWeight: 800 }}>
-                      <span style={{ color: T.win }}>{d.w}</span>
-                      <span style={{ color: T.dimmer }}> : </span>
-                      <span style={{ color: T.lose }}>{d.l}</span>
-                    </span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r), minWidth: 40, textAlign: "right" }}>{percentStr(d.w, total)}</span>
+                <div key={date} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
+                  <div
+                    onClick={() => setExpandedDate(isExpanded ? null : date)}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+                  >
+                    <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: 13, color: T.dim }}>{total}{t("analysis.battles")}</span>
+                      <span style={{ fontSize: 16, fontWeight: 800 }}>
+                        <span style={{ color: T.win }}>{d.w}</span>
+                        <span style={{ color: T.dimmer }}> : </span>
+                        <span style={{ color: T.lose }}>{d.l}</span>
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r), minWidth: 40, textAlign: "right" }}>{percentStr(d.w, total)}</span>
+                    </div>
                   </div>
+                  {isExpanded && (
+                    <div style={{ borderTop: `1px solid ${T.inp}`, marginTop: 10, paddingTop: 10 }}>
+                      {dayMatches.map((m, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 6 }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 36 }}>
+                            {m.result === "win" ? "WIN" : "LOSE"}
+                          </span>
+                          <FighterIcon name={m.oppChar} size={20} />
+                          <span style={{ fontSize: 13, color: T.text, fontWeight: 600, flex: 1 }}>{fighterName(m.oppChar, lang)}</span>
+                          {m.time && (
+                            <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>
+                          )}
+                          {m.memo && (
+                            <span style={{ fontSize: 11, color: T.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 100 }}>{m.memo}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             });
