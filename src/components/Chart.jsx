@@ -127,7 +127,6 @@ export default function Chart({ points: pts, T, isToday }) {
             onClick={() => handleClick(i)}
           />
         ))}
-        {/* Tap target overlay (larger hit area) */}
         {pts.map((d, i) => (
           <circle
             key={`hit${i}`}
@@ -139,7 +138,6 @@ export default function Chart({ points: pts, T, isToday }) {
             onClick={() => handleClick(i)}
           />
         ))}
-        {/* Selected tooltip */}
         {selected !== null && pts[selected] && (() => {
           const d = pts[selected];
           const tx = x(selected);

@@ -160,7 +160,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, onGoToHistory }) {
 
     const now = new Date();
 
-    // For "today" period, use per-match power data for time-based chart
     if (period === "day") {
       const todayMatches = data.matches
         .filter((m) => m.date === today() && m.power)

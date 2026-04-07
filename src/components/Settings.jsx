@@ -43,12 +43,6 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
     onSave({ ...data, themeColor: key });
   };
 
-  const section = (children) => ({
-    padding: "16px 0",
-    borderBottom: `1px solid ${T.inp}`,
-    ...children,
-  });
-
   return (
     <div
       onClick={handleClose}

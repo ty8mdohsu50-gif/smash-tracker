@@ -103,6 +103,3 @@ export function getTheme(dark, colorKey) {
   return dark ? buildDark(accent) : buildLight(accent);
 }
 
-// Backwards compat
-export const LT = buildLight(ACCENT_COLORS.purple);
-export const DT = buildDark(ACCENT_COLORS.purple);

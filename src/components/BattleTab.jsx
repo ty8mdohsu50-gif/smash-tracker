@@ -41,7 +41,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [prevMatchCount, setPrevMatchCount] = useState(data.matches.length);
   const [shareStatus, setShareStatus] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
-  // editGoals state removed - goals always visible
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
   const [counterEditText, setCounterEditText] = useState("");
@@ -65,7 +64,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   );
   const [pEnd, setPEnd] = useState(charPower.end || todayDaily.end || "");
 
-  // Update power when returning to setup (after endSession/summary)
   const prevPhase = useRef(phase);
   if (prevPhase.current !== phase) {
     if (phase === "setup" && myChar) {
@@ -147,7 +145,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     const daily = data.daily?.[today()] || {};
     const cp = daily.chars?.[charName] || {};
     const prev = lastEndPower(data.daily || {}, charName);
-    // Show the latest known value as starting power
     setPStart(cp.end || cp.start || prev || 0);
     setPEnd(cp.end || "");
   };
@@ -516,7 +513,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             </div>
           )}
 
-          {/* 1. キャラ選択（先） */}
           <div style={{ ...cd, paddingBottom: 18 }}>
             {showMyPicker ? (
               <CharPicker
@@ -569,7 +565,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             )}
           </div>
 
-          {/* 2. 戦闘力入力（キャラ選択後に表示） */}
           {myChar && (
             <div style={cd}>
               <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
@@ -590,7 +585,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "fighting" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
-          {/* Status bar - larger */}
           <div
             style={{
               ...cd,
@@ -637,18 +631,17 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <div style={{ ...cd, animation: "fadeUp .15s ease" }}>
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>開始</div>
+                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>{t("battle.powerStart")}</div>
                   {pwrInput(pStart, setPStart, "", false)}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>現在</div>
-                  {pwrInput(pEnd, setPEnd, "終了後", false)}
+                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>{t("battle.powerCurrent")}</div>
+                  {pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Opponent char selection - FIRST */}
           <div style={{ ...cd, padding: "14px 16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <div style={{ fontSize: 15, color: T.text, fontWeight: 700 }}>{t("battle.oppChar")}</div>
@@ -779,7 +772,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           <div style={cd}>
             <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 12 }}>{t("battle.endPower")}</div>
             <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>{t("battle.endPowerDesc")}</div>
-            {pwrInput(pEnd, setPEnd, "終了時の戦闘力", true)}
+            {pwrInput(pEnd, setPEnd, t("battle.endPower"), true)}
           </div>
           <div style={{ ...cd, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px" }}>
             <div>
@@ -885,18 +878,16 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           });
           return stats;
         })();
-        const topOppEntry = Object.entries(oppStats).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))[0];
-        const topOpp = topOppEntry ? topOppEntry[0] : null;
         const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
         const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
         const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}`];
         if (ss.showChar && myChar) {
           const charLabel = ss.showRecord
-            ? `使用: ${fighterName(myChar, lang)} ${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`
-            : `使用: ${fighterName(myChar, lang)}`;
+            ? `${t("share.used")}: ${fighterName(myChar, lang)} ${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`
+            : `${t("share.used")}: ${fighterName(myChar, lang)}`;
           shareLines.push(charLabel);
         } else if (ss.showRecord) {
-          shareLines.push(`${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`);
+          shareLines.push(`${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
         }
         if (ss.showMatchups) {
           Object.entries(oppStats)
@@ -907,9 +898,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         }
         if (ss.showPower && pStart) {
           shareLines.push("");
-          shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+          shareLines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
         }
-        if (todayDaily.vip) shareLines.push("VIP到達!");
+        if (todayDaily.vip) shareLines.push(t("share.vip"));
         shareLines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
         const shareText = shareLines.join("\n");
 
@@ -1562,17 +1553,16 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               });
               return stats;
             })();
-            const topOppPC = Object.entries(oppStatsPC).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))[0]?.[0] ?? null;
             const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
             const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
             const shareLines = [`【SMASH TRACKER】${formatDateLong(today())}`];
             if (ss.showChar && myChar) {
               const charLabel = ss.showRecord
-                ? `使用: ${fighterName(myChar, lang)} ${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`
-                : `使用: ${fighterName(myChar, lang)}`;
+                ? `${t("share.used")}: ${fighterName(myChar, lang)} ${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`
+                : `${t("share.used")}: ${fighterName(myChar, lang)}`;
               shareLines.push(charLabel);
             } else if (ss.showRecord) {
-              shareLines.push(`${tW}W ${tL}L（勝率 ${percentStr(tW, tM.length)}）`);
+              shareLines.push(`${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
             }
             if (ss.showMatchups) {
               Object.entries(oppStatsPC)
@@ -1583,9 +1573,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             }
             if (ss.showPower && pStart) {
               shareLines.push("");
-              shareLines.push(`戦闘力: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+              shareLines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
             }
-            if (todayDaily.vip) shareLines.push("VIP到達!");
+            if (todayDaily.vip) shareLines.push(t("share.vip"));
             shareLines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
             const shareText = shareLines.join("\n");
 

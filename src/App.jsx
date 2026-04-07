@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import { getTheme } from "./styles/theme";
 import { load, save, cloudLoad, cloudSave, migrateLocalToCloud } from "./utils/storage";
 import { supabase } from "./lib/supabase";
@@ -208,7 +208,6 @@ export default function App() {
   };
   const onTE = (e) => {
     if (!touchRef.current.sw) return;
-    // Analysis tab handles its own swipe
     if (tabIdx === 2) return;
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     if (Math.abs(dx) > 50 && Date.now() - touchRef.current.t < 400) {

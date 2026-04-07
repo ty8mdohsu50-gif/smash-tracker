@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { useI18n } from "../i18n/index.jsx";
+
 const TERMS_SECTIONS = [
   {
     title: "第1条 サービスの概要",
@@ -205,9 +208,6 @@ https://forms.gle/KtoWRKo1ciJNd7eS9
 お問い合わせ内容によっては、ご本人確認をお願いする場合があります。通常3営業日以内に対応いたします。`,
   },
 ];
-
-import { useEffect } from "react";
-import { useI18n } from "../i18n/index.jsx";
 
 function SectionBlock({ title, content, T }) {
   return (
