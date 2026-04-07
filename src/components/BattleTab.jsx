@@ -81,9 +81,10 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     if (!d.daily[today()]) d.daily[today()] = {};
     const day = d.daily[today()];
     if (!day.chars) day.chars = {};
+    const existing = day.chars[myChar] || {};
     day.chars[myChar] = {
-      start: s ? Number(s) : null,
-      end: e ? Number(e) : null,
+      start: existing.start || (s ? Number(s) : null),
+      end: e ? Number(e) : existing.end,
     };
     if (!day.start) day.start = s ? Number(s) : null;
     if (e) day.end = Number(e);
@@ -114,10 +115,12 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
   const tL = tM.length - tW;
   const streak = useMemo(() => getStreak(data.matches), [data]);
   const goals = data.goals || {};
-  const pwrDelta =
-    todayDaily.start && todayDaily.end
-      ? todayDaily.end - todayDaily.start
-      : null;
+  const pwrDelta = (() => {
+    const cp = todayDaily.chars?.[myChar];
+    if (cp?.start && cp?.end) return cp.end - cp.start;
+    if (todayDaily.start && todayDaily.end) return todayDaily.end - todayDaily.start;
+    return null;
+  })();
 
   const deleteMatch = (idx) => {
     const nm = [...data.matches];
@@ -129,7 +132,8 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     const daily = data.daily?.[today()] || {};
     const cp = daily.chars?.[charName] || {};
     const prev = lastEndPower(data.daily || {}, charName);
-    setPStart(cp.start || prev || 0);
+    // Show the latest known value as starting power
+    setPStart(cp.end || cp.start || prev || 0);
     setPEnd(cp.end || "");
   };
 
@@ -140,10 +144,12 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
     if (!d.daily[today()]) d.daily[today()] = {};
     const day = d.daily[today()];
     if (!day.chars) day.chars = {};
+    const existingChar = day.chars[myChar] || {};
     day.chars[myChar] = {
-      start: Number(pStart),
-      end: pEnd ? Number(pEnd) : null,
+      start: existingChar.start || Number(pStart),
+      end: pEnd ? Number(pEnd) : existingChar.end,
     };
+    if (!day.start) day.start = Number(pStart);
     d.settings = { myChar };
     onSave(d);
     setPhase("fighting");
