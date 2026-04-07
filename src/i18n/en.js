@@ -288,6 +288,7 @@ export default {
       "Daily & hourly performance analysis",
       "Match heatmap (GitHub-style calendar)",
       "Social sharing (X, LINE, text copy)",
+      "Free battle mode (offline / friend match tracking)",
       "VIP tracking",
       "Cloud sync (Google / Email auth)",
       "Multi-language (日本語・English)",

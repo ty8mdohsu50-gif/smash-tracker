@@ -353,6 +353,20 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     <div style={{ ...cd, padding: "14px 16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t("settings.todayGoal")}</span>
+        {(goals.games || goals.winRate) && tM.length > 0 && (
+          <button
+            onClick={() => {
+              const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
+              if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
+              if (goals.winRate) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
+              lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
+              doShare(lines.join("\n"));
+            }}
+            style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}
+          >
+            <Share2 size={12} /> {t("battle.share")}
+          </button>
+        )}
       </div>
       <div style={{ display: "flex", flexDirection: isPC ? "row" : "column", gap: 8, marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
