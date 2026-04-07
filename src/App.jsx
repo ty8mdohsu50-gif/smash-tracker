@@ -95,6 +95,13 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
 
+    // Reset viewport scale after login (Android Chrome workaround)
+    const vp = document.querySelector('meta[name="viewport"]');
+    if (vp) {
+      vp.setAttribute("content", "width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover");
+    }
+    window.scrollTo(0, 0);
+
     let cancelled = false;
     const init = async () => {
       await migrateLocalToCloud(user.id);
@@ -170,6 +177,7 @@ export default function App() {
   };
 
   const handleSkip = () => {
+    window.scrollTo(0, 0);
     setSkippedAuth(true);
     localStorage.setItem("smash-skipped-auth", "1");
   };

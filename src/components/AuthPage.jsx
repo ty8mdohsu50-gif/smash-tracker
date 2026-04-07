@@ -261,7 +261,7 @@ const inputStyle = {
   padding: "13px 14px 13px 40px",
   border: "1px solid #e5e7eb",
   borderRadius: 12,
-  fontSize: 14,
+  fontSize: 16,
   color: "#1c1c1e",
   outline: "none",
   boxSizing: "border-box",
