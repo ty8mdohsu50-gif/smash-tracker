@@ -1252,14 +1252,19 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         <div
           style={{
             flex: 2, minWidth: 300, minHeight: 0, background: T.card, borderRadius: 20,
-            padding: "20px 24px 24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
-            overflowY: "auto",
+            padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh,
+            display: "flex", flexDirection: "column", overflow: "hidden",
           }}
         >
-          <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
-          <div style={{ fontSize: 12, color: T.dim, marginBottom: 16 }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
-          {recentMatchList}
+          <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
+            <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
+          </div>
+          <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
+            {recentMatchList}
+          </div>
         </div>
+        {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
       </div>
     );
   }
@@ -1535,13 +1540,18 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         <div
           style={{
             flex: 2, minWidth: 300, background: T.card, borderRadius: 20,
-            padding: "24px", border: `1px solid ${T.brd}`, boxShadow: T.sh,
-            position: "sticky", top: 90, overflowY: "auto",
+            padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh,
+            position: "sticky", top: 90, display: "flex", flexDirection: "column", overflow: "hidden",
+            maxHeight: "calc(100vh - 120px)",
           }}
         >
-          <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
-          <div style={{ fontSize: 12, color: T.dim, marginBottom: 16 }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
-          {recentMatchList}
+          <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
+            <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
+          </div>
+          <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
+            {recentMatchList}
+          </div>
         </div>
       </div>
       {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}

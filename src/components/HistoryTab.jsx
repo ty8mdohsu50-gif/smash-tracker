@@ -358,6 +358,74 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
               </button>
             </div>
 
+            {/* Power edit - PC */}
+            {(() => {
+              const dp = data.daily?.[histDate] || {};
+              const ps = getDayPowerSummary(dp);
+              return (
+                <div style={{ ...cd, padding: "12px 18px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  {!editingPower ? (
+                    <>
+                      <div>
+                        <span style={{ fontSize: 12, color: T.dim, marginRight: 8 }}>{t("battle.power")}:</span>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>
+                          {ps.start ? numFormat(ps.start) : "—"}
+                          {ps.end ? <span style={{ color: T.dim }}> → {numFormat(ps.end)}</span> : null}
+                          {ps.start && ps.end ? (
+                            <span style={{ marginLeft: 8, fontSize: 13, fontWeight: 700, color: (ps.end - ps.start) >= 0 ? T.win : T.lose }}>
+                              {(ps.end - ps.start) >= 0 ? "+" : ""}{numFormat(ps.end - ps.start)}
+                            </span>
+                          ) : null}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => { setEditStart(ps.start ? String(ps.start) : ""); setEditEnd(ps.end ? String(ps.end) : ""); setEditingPower(true); }}
+                        style={{ background: T.inp, border: "none", color: T.sub, fontSize: 12, fontWeight: 600, padding: "6px 14px", borderRadius: 8, cursor: "pointer" }}
+                      >
+                        {t("battle.change")}
+                      </button>
+                    </>
+                  ) : (
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+                        <span style={{ fontSize: 12, color: T.dim }}>{t("battle.powerStart")}</span>
+                        <input type="number" value={editStart} onChange={(e) => setEditStart(e.target.value)} style={{ flex: 1, padding: "6px 10px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.inp, color: T.text, fontSize: 14, fontWeight: 600 }} />
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+                        <span style={{ fontSize: 12, color: T.dim }}>{t("battle.powerCurrent")}</span>
+                        <input type="number" value={editEnd} onChange={(e) => setEditEnd(e.target.value)} style={{ flex: 1, padding: "6px 10px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.inp, color: T.text, fontSize: 14, fontWeight: 600 }} />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const nd = JSON.parse(JSON.stringify(data));
+                          if (!nd.daily) nd.daily = {};
+                          if (!nd.daily[histDate]) nd.daily[histDate] = {};
+                          const day = nd.daily[histDate];
+                          if (editStart) day.start = Number(editStart);
+                          if (editEnd) day.end = Number(editEnd);
+                          if (day.chars) {
+                            const ck = Object.keys(day.chars);
+                            if (ck.length > 0) {
+                              if (editStart && !day.chars[ck[0]].start) day.chars[ck[0]].start = Number(editStart);
+                              if (editEnd) day.chars[ck[0]].end = Number(editEnd);
+                            }
+                          }
+                          onSave(nd);
+                          setEditingPower(false);
+                        }}
+                        style={{ padding: "6px 16px", borderRadius: 8, border: "none", background: T.accent, color: "#fff", fontSize: 12, fontWeight: 700, flexShrink: 0 }}
+                      >
+                        {t("battle.record")}
+                      </button>
+                      <button onClick={() => setEditingPower(false)} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${T.brd}`, background: "transparent", color: T.sub, fontSize: 12, fontWeight: 600, flexShrink: 0 }}>
+                        {t("settings.cancel")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <div style={{ ...cd, padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
