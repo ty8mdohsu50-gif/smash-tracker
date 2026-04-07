@@ -50,7 +50,6 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     if (ss.showMatchups) {
       Object.entries(oppStats)
         .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-        .slice(0, 5)
         .forEach(([opp, s]) => {
           lines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
         });

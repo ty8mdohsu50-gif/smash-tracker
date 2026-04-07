@@ -769,7 +769,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 });
                 Object.entries(oppStats)
                   .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-                  .slice(0, 5)
                   .forEach(([opp, s]) => {
                     lines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
                   });
@@ -827,7 +826,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         if (ss.showMatchups) {
           Object.entries(oppStats)
             .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-            .slice(0, 5)
             .forEach(([opp, s]) => {
               shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
             });
@@ -882,7 +880,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 12 }}>
                   {Object.entries(oppStats)
                     .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-                    .slice(0, 5)
                     .map(([opp, s]) => (
                       <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
                         <span style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{fighterName(opp, lang)}</span>
@@ -1422,7 +1419,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             if (ss.showMatchups) {
               Object.entries(oppStatsPC)
                 .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-                .slice(0, 5)
                 .forEach(([opp, s]) => {
                   shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
                 });
@@ -1473,7 +1469,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                       <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px" }}>
                         {Object.entries(oppStatsPC)
                           .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-                          .slice(0, 5)
                           .map(([opp, s]) => (
                             <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
                               <span style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{fighterName(opp, lang)}</span>
