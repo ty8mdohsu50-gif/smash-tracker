@@ -381,7 +381,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, onGoToHistory }) {
         onTouchStart={onSwipeStart}
         onTouchMove={onSwipeMove}
         onTouchEnd={onSwipeEnd}
-        style={{ touchAction: "pan-y" }}
+        style={{ touchAction: "manipulation", minHeight: "100%" }}
       >
         <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
           {pill("myChar", t("analysis.charBased"), aMode, setAMode)}
@@ -418,7 +418,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, onGoToHistory }) {
       onTouchStart={onSwipeStart}
       onTouchMove={onSwipeMove}
       onTouchEnd={onSwipeEnd}
-      style={{ touchAction: "pan-y" }}
+      style={{ touchAction: "manipulation", minHeight: "100%" }}
     >
       <div
         style={{ display: "flex", gap: 6, marginBottom: 16 }}
