@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Share2, ArrowLeft, Clock } from "lucide-react";
 import CharPicker from "./CharPicker";
 import FighterIcon from "./FighterIcon";
+import SharePopup from "./SharePopup";
 import { fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import { today, formatTime, formatDateWithDay, percentStr, recentChars } from "../utils/format";
@@ -16,6 +17,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [showMyPicker, setShowMyPicker] = useState(false);
   const [showOppPicker, setShowOppPicker] = useState(false);
   const [newOpponentName, setNewOpponentName] = useState("");
+  const [sharePopupText, setSharePopupText] = useState(null);
   const [showAddInput, setShowAddInput] = useState(false);
   const [lastResult, setLastResult] = useState(null);
   const [postRecord, setPostRecord] = useState(false);
@@ -104,15 +106,9 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
       try {
         await navigator.share({ text });
         return;
-      } catch (_) {
-        // cancelled
-      }
+      } catch (_) { /* cancelled */ }
     }
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (_) {
-      // clipboard unavailable
-    }
+    setSharePopupText(text);
   };
 
   const cd = {
@@ -572,6 +568,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
             </div>
           </div>
         )}
+        {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
       </div>
     );
   }
@@ -713,6 +710,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
             </div>
           ))
         )}
+        {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
       </div>
     );
   }
