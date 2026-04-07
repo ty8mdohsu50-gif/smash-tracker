@@ -657,11 +657,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             )}
           </div>
 
-          {oppChar && myChar && (
-            <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
-          )}
-
-          {/* Win/Lose buttons - SECOND, larger */}
+          {/* Win/Lose buttons */}
           <div style={{ marginTop: 14 }}>
             <div style={{ display: "flex", gap: 12 }}>
               <button
@@ -695,6 +691,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           >
             {t("battle.endSession")}
           </button>
+
+          {oppChar && myChar && (
+            <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+          )}
         </div>
       )}
 
@@ -1299,7 +1299,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 </div>
                 {oppChar && !showOppPicker && <div style={{ fontSize: 20, fontWeight: 800, color: T.text, marginBottom: 8 }}>{fighterName(oppChar, lang)}</div>}
                 {showOppPicker ? (
-                  <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder={t("charPicker.select")} recent={recOpp} T={T} />
+                  <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} />
                 ) : (
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {recOpp.slice(0, 5).map((c) => (
@@ -1317,6 +1317,9 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <button onClick={() => { setShareStatus(null); setPhase("endSession"); }} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
                 <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }} style={{ flex: 1, padding: 12, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>{t("battle.backToBattle")}</button>
               </div>
+              {myChar && oppChar && (
+                <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+              )}
             </div>
           )}
 

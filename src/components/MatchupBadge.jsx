@@ -175,6 +175,22 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
           ))}
         </div>
       )}
+
+      {/* Memo list - always show if memos exist */}
+      {stats.history.some((h) => h.memo) && (
+        <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 8 }}>
+          <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.memo")}</div>
+          <div style={{ maxHeight: 160, overflowY: "auto" }}>
+            {stats.history.filter((h) => h.memo).map((h, i) => (
+              <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.6, padding: "4px 0", borderBottom: `1px solid ${T.inp}` }}>
+                <span style={{ color: T.dim, fontSize: 10, marginRight: 6 }}>{formatDateShort(h.date)}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: h.result === "win" ? T.win : T.lose, marginRight: 6 }}>{h.result === "win" ? "W" : "L"}</span>
+                {h.memo}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
