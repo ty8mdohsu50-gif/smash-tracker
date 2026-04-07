@@ -297,16 +297,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     return pts;
   }, [data]);
 
-  const todayOppStats = useMemo(() => {
-    const stats = {};
-    tM.forEach((m) => {
-      if (!stats[m.oppChar]) stats[m.oppChar] = { w: 0, l: 0 };
-      m.result === "win" ? stats[m.oppChar].w++ : stats[m.oppChar].l++;
-    });
-    return Object.entries(stats).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l));
-  }, [tM]);
-
-  const todayMemos = useMemo(() => tM.filter((m) => m.memo), [tM]);
 
   const recentMatchList = tM.length === 0
     ? emptyMsg(t("battle.startMatching"))
@@ -1354,35 +1344,32 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               </div>
             )}
 
-            {todayOppStats.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
-                  {t("analysis.matchup")}
-                </div>
-                {todayOppStats.map(([opp, s]) => (
-                  <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6 }}>
-                    <FighterIcon name={opp} size={22} />
-                    <span style={{ fontSize: 13, color: T.text, fontWeight: 600, flex: 1 }}>{fighterName(opp, lang)}</span>
-                    <span style={{ fontSize: 13, fontWeight: 800 }}>
-                      <span style={{ color: T.win }}>{s.w}W</span>
-                      <span style={{ color: T.dimmer, margin: "0 2px" }}>:</span>
-                      <span style={{ color: T.lose }}>{s.l}L</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {todayMemos.length > 0 && (
+            {tM.length > 0 && (
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
-                  {t("battle.memo")}
+                  {t("battle.recent")}
                 </div>
-                {todayMemos.map((m, i) => (
-                  <div key={i} style={{ fontSize: 12, color: T.sub, paddingBottom: 4, lineHeight: 1.5 }}>
-                    ・{m.memo}
-                  </div>
-                ))}
+                <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                  {tM.slice().reverse().map((m, i) => (
+                    <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{
+                          width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800,
+                          background: m.result === "win" ? T.winBg : T.loseBg,
+                          color: m.result === "win" ? T.win : T.lose,
+                        }}>
+                          {m.result === "win" ? "WIN" : "LOSE"}
+                        </span>
+                        <FighterIcon name={m.oppChar} size={18} />
+                        <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{fighterName(m.oppChar, lang)}</span>
+                        <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
+                      </div>
+                      {m.memo && (
+                        <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -1768,34 +1755,32 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                     <div style={{ fontSize: 12, color: T.dim }}>{t("analysis.enterPowerToSee")}</div>
                   </div>
                 )}
-                {todayOppStats.length > 0 && (
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
-                      {t("analysis.matchup")}
-                    </div>
-                    {todayOppStats.map(([opp, s]) => (
-                      <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6 }}>
-                        <FighterIcon name={opp} size={22} />
-                        <span style={{ fontSize: 13, color: T.text, fontWeight: 600, flex: 1 }}>{fighterName(opp, lang)}</span>
-                        <span style={{ fontSize: 13, fontWeight: 800 }}>
-                          <span style={{ color: T.win }}>{s.w}W</span>
-                          <span style={{ color: T.dimmer, margin: "0 2px" }}>:</span>
-                          <span style={{ color: T.lose }}>{s.l}L</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {todayMemos.length > 0 && (
+                {tM.length > 0 && (
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
-                      {t("battle.memo")}
+                      {t("battle.recent")}
                     </div>
-                    {todayMemos.map((m, i) => (
-                      <div key={i} style={{ fontSize: 12, color: T.sub, paddingBottom: 4, lineHeight: 1.5 }}>
-                        ・{m.memo}
-                      </div>
-                    ))}
+                    <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                      {tM.slice().reverse().map((m, i) => (
+                        <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{
+                              width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800,
+                              background: m.result === "win" ? T.winBg : T.loseBg,
+                              color: m.result === "win" ? T.win : T.lose,
+                            }}>
+                              {m.result === "win" ? "WIN" : "LOSE"}
+                            </span>
+                            <FighterIcon name={m.oppChar} size={18} />
+                            <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{fighterName(m.oppChar, lang)}</span>
+                            <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
+                          </div>
+                          {m.memo && (
+                            <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
