@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Trophy, X, ChevronUp, ChevronDown, Zap, Share2, Copy } from "lucide-react";
 import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
@@ -6,8 +6,9 @@ import Chart from "./Chart";
 import MatchRow from "./MatchRow";
 import MatchupBadge from "./MatchupBadge";
 import SharePopup from "./SharePopup";
+import Toast from "./Toast";
 import FighterIcon from "./FighterIcon";
-import { checkMilestones } from "../constants/milestones";
+import { checkMilestones, MILESTONES } from "../constants/milestones";
 import { fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import {
@@ -49,6 +50,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
   const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
   const [freeMode, setFreeMode] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const doShare = async (text) => {
     if (navigator.share) {
@@ -82,6 +84,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     }
     prevPhase.current = phase;
   }
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [phase]);
 
   const prevOppRef = useRef(oppChar);
   if (prevOppRef.current !== oppChar) {
@@ -190,6 +196,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     setLastRes(r);
     setMemo("");
     setCounterEditText(data.counterMemos?.[currentOppChar || oppChar] || "");
+    setToast(t("battle.toastRecorded"));
     setPhase("postMatch");
   };
 
@@ -292,6 +299,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   );
 
   const monthPowerPoints = useMemo(() => {
+    if (!myChar) return [];
     const dl = data.daily || {};
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 30);
@@ -301,12 +309,13 @@ export default function BattleTab({ data, onSave, T, isPC }) {
       .filter(([d]) => d >= cutoffStr)
       .sort(([a], [b]) => a.localeCompare(b))
       .forEach(([d, day]) => {
-        const ps = getDayPowerSummary(day);
-        if (ps.start) pts.push({ date: d, value: ps.start });
-        if (ps.end) pts.push({ date: d, value: ps.end });
+        const cp = day.chars?.[myChar];
+        if (!cp) return;
+        if (cp.start) pts.push({ date: d, value: cp.start });
+        if (cp.end) pts.push({ date: d, value: cp.end });
       });
     return pts;
-  }, [data]);
+  }, [data, myChar]);
 
 
   const recentMatchList = tM.length === 0
@@ -457,6 +466,33 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           </div>
         ) : null}
       </div>
+
+      {/* Next milestone progress */}
+      {(() => {
+        const totalMatches = data.matches.length;
+        const next = MILESTONES.find((m) => totalMatches < m.matchCount);
+        if (!next) return null;
+        const prev = MILESTONES.filter((m) => totalMatches >= m.matchCount).pop();
+        const base = prev ? prev.matchCount : 0;
+        const progress = ((totalMatches - base) / (next.matchCount - base)) * 100;
+        const remaining = next.matchCount - totalMatches;
+        return (
+          <div style={{ ...cd, padding: "14px 18px", marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: T.dim }}>{t("battle.nextMilestone")}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
+                {next.label}
+              </span>
+            </div>
+            <div style={{ height: 6, background: T.inp, borderRadius: 3, overflow: "hidden", marginBottom: 4 }}>
+              <div style={{ width: `${Math.min(100, progress)}%`, height: "100%", background: T.accentGrad, borderRadius: 3, transition: "width .3s ease" }} />
+            </div>
+            <div style={{ fontSize: 11, color: T.sub, textAlign: "right", fontWeight: 600 }}>
+              {t("battle.milestoneProgress").replace("{n}", remaining)}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 
@@ -472,6 +508,24 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     boxShadow: disabled ? "none" : T.accentGlow,
     transition: "all .2s ease",
   });
+
+  const phaseTitle = {
+    setup: t("battle.phaseSetup"),
+    fighting: t("battle.phaseFighting"),
+    pickOpp: t("battle.phasePickOpp"),
+    postMatch: t("battle.phasePostMatch"),
+    endSession: t("battle.phaseEndSession"),
+  };
+
+  const phaseTitleEl = phase !== "setup" && phase !== "summary" && (
+    <div style={{
+      fontSize: 11, fontWeight: 700, color: T.accent, letterSpacing: 1.5,
+      textTransform: "uppercase", marginBottom: 10,
+      fontFamily: "'Chakra Petch', sans-serif",
+    }}>
+      {phaseTitle[phase]}
+    </div>
+  );
 
   const mainContent = (
     <div>
@@ -629,6 +683,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "fighting" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
+          {phaseTitleEl}
           <div
             style={{
               ...cd,
@@ -834,6 +889,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "endSession" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
+          {phaseTitleEl}
           {todayCard}
           <div style={cd}>
             <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 12 }}>{t("battle.endPower")}</div>
@@ -1113,6 +1169,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "pickOpp" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
+          {phaseTitleEl}
           <div style={{ ...cd, textAlign: "center", background: result === "win" ? T.winBg : T.loseBg }}>
             <div style={{ fontSize: 16, fontWeight: 800, marginTop: 4, color: result === "win" ? T.win : T.lose }}>
               {result === "win" ? "WIN" : "LOSE"}
@@ -1145,6 +1202,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
       {phase === "postMatch" && (
         <div style={{ animation: "fadeUp .2s ease" }}>
+          {phaseTitleEl}
           <div style={{ ...cd, textAlign: "center", padding: "20px 18px" }}>
             <div
               style={{
@@ -1237,26 +1295,30 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             >
               {t("battle.continueSame")}
             </button>
+            <button
+              onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }}
+              style={{
+                width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12,
+                background: T.card, color: T.accent, fontSize: 15, fontWeight: 700,
+                transition: "all .15s ease",
+              }}
+            >
+              {t("battle.changeOpp")}
+            </button>
             <div style={{ display: "flex", gap: 8 }}>
               <button
-                onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }}
-                style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 14, fontWeight: 600, transition: "all .15s ease" }}
-              >
-                {t("battle.nextMatch")}
-              </button>
-              <button
                 onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }}
-                style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 14, fontWeight: 600, transition: "all .15s ease" }}
+                style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}
               >
                 {t("battle.changeChar")}
               </button>
+              <button
+                onClick={() => { saveMemo(); setNewMilestones([]); setPhase("endSession"); }}
+                style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}
+              >
+                {t("battle.endSession")}
+              </button>
             </div>
-            <button
-              onClick={() => { saveMemo(); setNewMilestones([]); setPhase("endSession"); }}
-              style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}
-            >
-              {t("battle.endSession")}
-            </button>
           </div>
         </div>
       )}
@@ -1270,6 +1332,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         </div>
       )}
       {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </div>
   );
 
@@ -1545,6 +1608,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         <div style={{ flex: 3, minWidth: 0 }}>
           {phase === "fighting" && (
             <div>
+              {phaseTitleEl}
               <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
                 <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
                   <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 6 }}>{t("battle.powerStart")}</div>
@@ -1606,6 +1670,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           {phase === "endSession" && (
             <div style={{ animation: "fadeUp .2s ease" }}>
+              {phaseTitleEl}
               <div style={{ ...cd, padding: "20px 24px" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("battle.endPower")}</div>
                 <div style={{ fontSize: 12, color: T.dim, marginBottom: 10 }}>{t("battle.endPowerDesc")}</div>
@@ -1665,6 +1730,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           {phase === "pickOpp" && (
             <div>
+              {phaseTitleEl}
               <div style={{ ...cd, textAlign: "center", padding: "24px", background: result === "win" ? T.winBg : T.loseBg, marginBottom: 16 }}>
                 <div style={{ fontSize: 24, fontWeight: 800, color: result === "win" ? T.win : T.lose }}>{result === "win" ? "WIN" : "LOSE"}</div>
               </div>
@@ -1677,6 +1743,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           {phase === "postMatch" && (
             <div>
+              {phaseTitleEl}
               <div style={{ ...cd, textAlign: "center", padding: "28px 24px", marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, letterSpacing: 1.5, fontFamily: "'Chakra Petch', sans-serif" }}>{t("battle.recorded")}</div>
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 8, animation: "slideUp .3s ease .1s both" }}>
@@ -1726,7 +1793,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               )}
               <div style={{ display: "flex", gap: 12, animation: "slideUp .3s ease .3s both" }}>
                 <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("fighting"); setShowOppPicker(false); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
-                <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>{t("battle.nextMatch")}</button>
+                <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("fighting"); }} style={{ flex: 1.5, padding: 20, border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 14, fontWeight: 700 }}>{t("battle.changeOpp")}</button>
                 <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(false); setPhase("setup"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>{t("battle.changeChar")}</button>
                 <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("endSession"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>{t("battle.endSession")}</button>
               </div>
@@ -1999,6 +2066,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         </div>
       </div>
       {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </div>
   );
 }

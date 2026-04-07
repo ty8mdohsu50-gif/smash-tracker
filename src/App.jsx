@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Swords, ClipboardList, BarChart3, Settings as SettingsIcon } from "lucide-react";
+import { Swords, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import { getTheme } from "./styles/theme";
 import { load, save, cloudLoad, cloudSave, migrateLocalToCloud } from "./utils/storage";
 import { supabase } from "./lib/supabase";
@@ -8,11 +8,11 @@ import Settings from "./components/Settings";
 import LegalPage from "./components/LegalPage";
 import AboutPage from "./components/AboutPage";
 import BattleTab from "./components/BattleTab";
-import HistoryTab from "./components/HistoryTab";
+// HistoryTab removed - integrated into AnalysisTab
 import AnalysisTab from "./components/AnalysisTab";
 import { useI18n } from "./i18n/index.jsx";
 
-const TAB_ICONS = [Swords, ClipboardList, BarChart3];
+const TAB_ICONS = [Swords, BarChart3];
 const PC_BREAKPOINT = 1024;
 
 function useIsPC() {
@@ -56,14 +56,17 @@ function useIsLandscape() {
 
 export default function App() {
   const { t } = useI18n();
-  const TABS = [t("app.tabs.battle"), t("app.tabs.history"), t("app.tabs.analysis")];
+  const TABS = [t("app.tabs.battle"), t("app.tabs.analysis")];
   const [user, setUser] = useState(undefined);
   const [skippedAuth, setSkippedAuth] = useState(
     () => localStorage.getItem("smash-skipped-auth") === "1",
   );
   const [data, setData] = useState(() => load());
   const [loading, setLoading] = useState(true);
-  const T = getTheme(data.dark !== undefined ? data.dark : true, data.themeColor || "black");
+  const prefersDark = typeof window.matchMedia === "function"
+    ? window.matchMedia("(prefers-color-scheme: dark)").matches
+    : true;
+  const T = getTheme(data.dark !== undefined ? data.dark : prefersDark, data.themeColor || "black");
   const [tabIdx, setTabIdx] = useState(0);
   const [analysisMode, setAnalysisMode] = useState("myChar");
   const [showSettings, setShowSettings] = useState(false);
@@ -154,7 +157,7 @@ export default function App() {
     wheelRef.current.acc += e.deltaX;
     if (Math.abs(wheelRef.current.acc) > 120) {
       const dir = wheelRef.current.acc > 0 ? 1 : -1;
-      setTabIdx((prev) => Math.max(0, Math.min(2, prev + dir)));
+      setTabIdx((prev) => Math.max(0, Math.min(1, prev + dir)));
       wheelRef.current.acc = 0;
       wheelRef.current.cooldown = true;
       setTimeout(() => { wheelRef.current.cooldown = false; }, 500);
@@ -215,23 +218,23 @@ export default function App() {
     if (!touchRef.current.sw && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10)
       touchRef.current.sw = true;
   };
-  const ANALYSIS_MODES = ["myChar", "oppChar", "trend", "stats"];
+  const ANALYSIS_MODES = ["myChar", "oppChar", "overall"];
   const onTE = (e) => {
     if (!touchRef.current.sw) return;
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     if (Math.abs(dx) > 50 && Date.now() - touchRef.current.t < 400) {
-      if (tabIdx === 2) {
+      if (tabIdx === 1) {
         const idx = ANALYSIS_MODES.indexOf(analysisMode);
         if (dx < 0 && idx < ANALYSIS_MODES.length - 1) {
           setAnalysisMode(ANALYSIS_MODES[idx + 1]);
         } else if (dx > 0 && idx > 0) {
           setAnalysisMode(ANALYSIS_MODES[idx - 1]);
         } else if (dx > 0 && idx === 0) {
-          setTabIdx(1);
+          setTabIdx(0);
         }
         return;
       }
-      if (dx < 0 && tabIdx < 2) setTabIdx(tabIdx + 1);
+      if (dx < 0 && tabIdx < 1) setTabIdx(tabIdx + 1);
       if (dx > 0 && tabIdx > 0) setTabIdx(tabIdx - 1);
     }
   };
@@ -373,7 +376,7 @@ export default function App() {
             <div
               style={{
                 position: "absolute", bottom: 0,
-                left: `${(tabIdx * 100) / 3}%`, width: `${100 / 3}%`,
+                left: `${(tabIdx * 100) / TABS.length}%`, width: `${100 / TABS.length}%`,
                 height: 3,
                 background: T.accentGrad,
                 borderRadius: "3px 3px 0 0",
@@ -386,8 +389,7 @@ export default function App() {
         <div style={{ padding: isLandscape ? "8px 12px 20px" : "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
-            {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} aMode={analysisMode} setAMode={setAnalysisMode} onGoToHistory={() => setTabIdx(1)} />}
+            {tabIdx === 1 && <AnalysisTab data={data} onSave={sv} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>
       </div>
@@ -559,8 +561,7 @@ export default function App() {
         <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
-            {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} onGoToHistory={() => setTabIdx(1)} />}
+            {tabIdx === 1 && <AnalysisTab data={data} onSave={sv} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>
       </main>

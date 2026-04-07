@@ -3,6 +3,8 @@ import { Share2, ArrowLeft, Clock } from "lucide-react";
 import CharPicker from "./CharPicker";
 import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
+import Toast from "./Toast";
+import ConfirmDialog from "./ConfirmDialog";
 import { fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import { today, formatTime, formatDateWithDay, percentStr, recentChars } from "../utils/format";
@@ -21,6 +23,8 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [showAddInput, setShowAddInput] = useState(false);
   const [lastResult, setLastResult] = useState(null);
   const [postRecord, setPostRecord] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const freeMatches = useMemo(() => data.freeMatches || [], [data.freeMatches]);
   const freeOpponents = useMemo(() => data.freeOpponents || [], [data.freeOpponents]);
@@ -45,9 +49,14 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   };
 
   const deleteFreeMatch = (match) => {
-    if (!window.confirm(t("common.deleteConfirm"))) return;
-    const newMatches = freeMatches.filter((m) => m !== match);
-    onSave({ ...data, freeMatches: newMatches });
+    setConfirmAction({
+      message: t("common.deleteConfirm"),
+      onConfirm: () => {
+        const newMatches = freeMatches.filter((m) => m !== match);
+        onSave({ ...data, freeMatches: newMatches });
+        setConfirmAction(null);
+      },
+    });
   };
 
   const addOpponent = () => {
@@ -80,6 +89,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     onSave(updated);
     setLastResult(result);
     setPostRecord(true);
+    setToast(t("battle.toastRecorded"));
   };
 
   const buildShareText = (opponent, matchList) => {
@@ -283,7 +293,10 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
                     </button>
                     <button
                       onClick={() => {
-                        if (window.confirm(`${opponent} を削除しますか？`)) deleteOpponent(opponent);
+                        setConfirmAction({
+                          message: `${opponent} ${t("free.deleteOpponent")}?`,
+                          onConfirm: () => { deleteOpponent(opponent); setConfirmAction(null); },
+                        });
                       }}
                       style={{
                         ...btnBase,
@@ -300,6 +313,16 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               );
             })}
           </div>
+        )}
+        {confirmAction && (
+          <ConfirmDialog
+            message={confirmAction.message}
+            confirmLabel={t("history.delete")}
+            cancelLabel={t("settings.cancel")}
+            onConfirm={confirmAction.onConfirm}
+            onCancel={() => setConfirmAction(null)}
+            T={T}
+          />
         )}
       </div>
     );
@@ -569,6 +592,17 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
           </div>
         )}
         {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+        {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+        {confirmAction && (
+          <ConfirmDialog
+            message={confirmAction.message}
+            confirmLabel={t("history.delete")}
+            cancelLabel={t("settings.cancel")}
+            onConfirm={confirmAction.onConfirm}
+            onCancel={() => setConfirmAction(null)}
+            T={T}
+          />
+        )}
       </div>
     );
   }
@@ -711,6 +745,17 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
           ))
         )}
         {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+        {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+        {confirmAction && (
+          <ConfirmDialog
+            message={confirmAction.message}
+            confirmLabel={t("history.delete")}
+            cancelLabel={t("settings.cancel")}
+            onConfirm={confirmAction.onConfirm}
+            onCancel={() => setConfirmAction(null)}
+            T={T}
+          />
+        )}
       </div>
     );
   }

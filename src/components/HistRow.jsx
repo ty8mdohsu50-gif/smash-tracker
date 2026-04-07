@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { formatTime } from "../utils/format";
 import { shortName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import FighterIcon from "./FighterIcon";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function HistRow({ m, onDelete, T }) {
   const { t, lang } = useI18n();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   return (
     <div
       style={{
@@ -44,7 +48,7 @@ export default function HistRow({ m, onDelete, T }) {
         </div>
         {onDelete && (
           <button
-            onClick={() => { if (window.confirm(t("common.deleteConfirm"))) onDelete(); }}
+            onClick={() => setConfirmDelete(true)}
             aria-label={t("history.delete")}
             style={{
               border: "none",
@@ -60,6 +64,16 @@ export default function HistRow({ m, onDelete, T }) {
           </button>
         )}
       </div>
+      {confirmDelete && (
+        <ConfirmDialog
+          message={t("common.deleteConfirm")}
+          confirmLabel={t("history.delete")}
+          cancelLabel={t("settings.cancel")}
+          onConfirm={() => { setConfirmDelete(false); onDelete(); }}
+          onCancel={() => setConfirmDelete(false)}
+          T={T}
+        />
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Swords, Share2 } from "lucide-react";
 import HistRow from "./HistRow";
 import SharePopup from "./SharePopup";
+import ConfirmDialog from "./ConfirmDialog";
 import FighterIcon from "./FighterIcon";
 import { useI18n } from "../i18n/index.jsx";
 import { fighterName } from "../constants/fighters";
@@ -13,6 +14,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   const [sharePopupText, setSharePopupText] = useState(null);
   const [editingPower, setEditingPower] = useState(false);
   const [editStart, setEditStart] = useState("");
+  const [confirmAction, setConfirmAction] = useState(null);
   const [editEnd, setEditEnd] = useState("");
 
   const doShare = async (text) => {
@@ -470,7 +472,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13 }}>{m.power ? numFormat(m.power) : "\u2014"}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13, whiteSpace: "normal" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
-                          <button onClick={() => { if (window.confirm(t("common.deleteConfirm"))) deleteMatch(e.idx); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
+                          <button onClick={() => setConfirmAction({ idx: e.idx })} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
                         </td>
                       </tr>
                     );
@@ -482,6 +484,16 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
         )}
       </div>
       {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+      {confirmAction && (
+        <ConfirmDialog
+          message={t("common.deleteConfirm")}
+          confirmLabel={t("history.delete")}
+          cancelLabel={t("settings.cancel")}
+          onConfirm={() => { deleteMatch(confirmAction.idx); setConfirmAction(null); }}
+          onCancel={() => setConfirmAction(null)}
+          T={T}
+        />
+      )}
     </div>
   );
 }
