@@ -155,3 +155,9 @@ input:focus-visible {
     background: var(--accent-scroll-hover, rgba(124, 58, 237, 0.35));
   }
 }
+
+@media (orientation: landscape) and (max-height: 500px) {
+  body {
+    font-size: 14px;
+  }
+}

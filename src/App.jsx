@@ -37,6 +37,23 @@ function useIsPC() {
   return isPC;
 }
 
+function useIsLandscape() {
+  const [isLandscape, setIsLandscape] = useState(
+    () => window.innerWidth > window.innerHeight && window.innerHeight < 500,
+  );
+  useEffect(() => {
+    const handler = () =>
+      setIsLandscape(window.innerWidth > window.innerHeight && window.innerHeight < 500);
+    window.addEventListener("resize", handler);
+    window.addEventListener("orientationchange", handler);
+    return () => {
+      window.removeEventListener("resize", handler);
+      window.removeEventListener("orientationchange", handler);
+    };
+  }, []);
+  return isLandscape;
+}
+
 export default function App() {
   const { t } = useI18n();
   const TABS = [t("app.tabs.battle"), t("app.tabs.history"), t("app.tabs.analysis")];
@@ -57,6 +74,7 @@ export default function App() {
   const userRef = useRef(user);
   userRef.current = user;
   const isPC = useIsPC();
+  const isLandscape = useIsLandscape();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -139,8 +157,8 @@ export default function App() {
     if (!isPC) return;
     const el = mainRef.current;
     if (!el) return;
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    el.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () => el.removeEventListener("wheel", onWheel, { capture: true });
   }, [isPC, onWheel]);
 
   const handleLogout = async () => {
@@ -240,7 +258,7 @@ export default function App() {
           minHeight: "100vh",
           background: T.bg,
           margin: "0 auto",
-          touchAction: "pan-y",
+          touchAction: "manipulation",
           fontFamily,
           color: T.text,
         }}
@@ -262,7 +280,7 @@ export default function App() {
         >
           <div
             style={{
-              padding: "12px 20px 0",
+              padding: isLandscape ? "6px 16px 0" : "12px 20px 0",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -274,15 +292,15 @@ export default function App() {
             >
               <div
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: isLandscape ? 28 : 36,
+                  height: isLandscape ? 28 : 36,
                   borderRadius: 10,
                   overflow: "hidden",
                 }}
               >
-                <img src="/icon.png" alt="" style={{ width: 36, height: 36, objectFit: "contain" }} />
+                <img src="/icon.png" alt="" style={{ width: isLandscape ? 28 : 36, height: isLandscape ? 28 : 36, objectFit: "contain" }} />
               </div>
-              <span style={{ fontSize: 17, fontWeight: 700, letterSpacing: 1.5, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
+              <span style={{ fontSize: isLandscape ? 14 : 17, fontWeight: 700, letterSpacing: 1.5, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
                 SMASH TRACKER
               </span>
             </button>
@@ -293,7 +311,7 @@ export default function App() {
                   border: "none", background: T.inp,
                   borderRadius: 10, fontSize: 11, fontWeight: 700,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: T.sub, padding: "6px 12px", height: 36,
+                  color: T.sub, padding: "6px 12px", height: isLandscape ? 28 : 36,
                 }}
               >
                 {t("about.siteAbout")}
@@ -302,7 +320,7 @@ export default function App() {
                 onClick={() => setShowSettings(true)}
                 aria-label={t("app.settings")}
                 style={{
-                  width: 36, height: 36, border: "none", background: T.inp,
+                  width: isLandscape ? 28 : 36, height: isLandscape ? 28 : 36, border: "none", background: T.inp,
                   borderRadius: 10, fontSize: 18,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "background .15s ease",
@@ -321,7 +339,7 @@ export default function App() {
                   key={i}
                   onClick={() => setTabIdx(i)}
                   style={{
-                    flex: 1, padding: "12px 0", background: "transparent", border: "none",
+                    flex: 1, padding: isLandscape ? "8px 0" : "12px 0", background: "transparent", border: "none",
                     fontSize: 13, fontWeight: tabIdx === i ? 700 : 500,
                     color: tabIdx === i ? T.accent : T.dim,
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -346,7 +364,7 @@ export default function App() {
             />
           </div>
         </div>
-        <div style={{ padding: "14px 16px 40px" }}>
+        <div style={{ padding: isLandscape ? "8px 12px 20px" : "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} onGoBattle={() => setTabIdx(0)} />}
