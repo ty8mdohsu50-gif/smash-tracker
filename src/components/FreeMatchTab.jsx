@@ -347,39 +347,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
           )}
         </div>
 
-        {/* Post-record actions */}
-        {postRecord && (
-          <div
-            style={{
-              ...cd,
-              background: lastResult === "win" ? T.winBg : T.loseBg,
-              border: `1px solid ${lastResult === "win" ? T.win : T.lose}44`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-            }}
-          >
-            <div style={{ fontSize: 22, fontWeight: 900, color: lastResult === "win" ? T.win : T.lose, fontFamily: "'Chakra Petch', sans-serif" }}>
-              {lastResult === "win" ? "WIN" : "LOSE"}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={() => setPostRecord(false)}
-                style={{ ...btnBase, padding: "8px 14px", background: T.accentGrad, color: "#fff", fontSize: 13, boxShadow: T.accentGlow }}
-              >
-                {t("free.rematch")}
-              </button>
-              <button
-                onClick={() => { setOppChar(""); setPostRecord(false); }}
-                style={{ ...btnBase, padding: "8px 14px", background: T.inp, color: T.sub, fontSize: 13 }}
-              >
-                {t("free.changeChar")}
-              </button>
-            </div>
-          </div>
-        )}
-
         {!postRecord && (
           <>
             {/* My char */}
@@ -500,6 +467,39 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               </button>
             </div>
           </>
+        )}
+
+        {/* Post-record: same position as win/lose buttons */}
+        {postRecord && (
+          <div style={{ marginBottom: 10 }}>
+            <div
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "10px 0", marginBottom: 10,
+              }}
+            >
+              <span style={{
+                fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif",
+                color: lastResult === "win" ? T.win : T.lose,
+              }}>
+                {lastResult === "win" ? "WIN" : "LOSE"}
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setPostRecord(false)}
+                style={{ ...btnBase, flex: 2, padding: "16px", background: T.accentGrad, color: "#fff", fontSize: 16, fontWeight: 800, boxShadow: T.accentGlow }}
+              >
+                {t("free.rematch")}
+              </button>
+              <button
+                onClick={() => { setOppChar(""); setShowOppPicker(true); setPostRecord(false); }}
+                style={{ ...btnBase, flex: 1, padding: "16px", background: T.card, color: T.text, fontSize: 14, fontWeight: 600, border: `1px solid ${T.brd}` }}
+              >
+                {t("free.changeChar")}
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Today's log */}
