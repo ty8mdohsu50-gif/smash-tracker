@@ -18,7 +18,7 @@ import {
   getDayPowerSummary,
 } from "../utils/format";
 
-export default function AnalysisTab({ data, onSave, T, isPC }) {
+export default function AnalysisTab({ data, onSave, T, isPC, onGoToHistory }) {
   const { t, lang } = useI18n();
   const [aMode, setAMode] = useState("myChar");
   const [period, setPeriod] = useState("all");
@@ -39,7 +39,7 @@ export default function AnalysisTab({ data, onSave, T, isPC }) {
 
   const onSwipeStart = (e) => {
     const touch = e.touches[0];
-    swipeRef.current = { x: touch.clientX, y: touch.clientY, swiping: false };
+    swipeRef.current = { x: touch.clientX, y: touch.clientY, swiping: false, handled: false };
   };
   const onSwipeMove = (e) => {
     const dx = e.touches[0].clientX - swipeRef.current.x;
@@ -53,8 +53,13 @@ export default function AnalysisTab({ data, onSave, T, isPC }) {
     const dx = e.changedTouches[0].clientX - swipeRef.current.x;
     if (Math.abs(dx) > 50) {
       const idx = MODES.indexOf(aMode);
-      if (dx < 0 && idx < MODES.length - 1) setAMode(MODES[idx + 1]);
-      if (dx > 0 && idx > 0) setAMode(MODES[idx - 1]);
+      if (dx < 0 && idx < MODES.length - 1) {
+        setAMode(MODES[idx + 1]);
+      } else if (dx > 0 && idx > 0) {
+        setAMode(MODES[idx - 1]);
+      } else if (dx > 0 && idx === 0 && onGoToHistory) {
+        onGoToHistory();
+      }
     }
   };
 

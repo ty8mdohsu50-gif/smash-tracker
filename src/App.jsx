@@ -190,6 +190,8 @@ export default function App() {
   };
   const onTE = (e) => {
     if (!touchRef.current.sw) return;
+    // Analysis tab handles its own swipe
+    if (tabIdx === 2) return;
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     if (Math.abs(dx) > 50 && Date.now() - touchRef.current.t < 400) {
       if (dx < 0 && tabIdx < 2) setTabIdx(tabIdx + 1);
@@ -348,7 +350,7 @@ export default function App() {
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} />}
+            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} onGoToHistory={() => setTabIdx(1)} />}
           </div>
         </div>
       </div>
@@ -521,7 +523,7 @@ export default function App() {
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} isPC />}
+            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} isPC onGoToHistory={() => setTabIdx(1)} />}
           </div>
         </div>
       </main>
