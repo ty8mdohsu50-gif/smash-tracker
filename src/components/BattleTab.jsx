@@ -830,16 +830,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 lines.push(`${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
               }
               if (ss.showMatchups) {
-                const oppStats = {};
                 tM.forEach((m) => {
-                  if (!oppStats[m.oppChar]) oppStats[m.oppChar] = { w: 0, l: 0 };
-                  m.result === "win" ? oppStats[m.oppChar].w++ : oppStats[m.oppChar].l++;
+                  const line = `${m.result === "win" ? "WIN" : "LOSE"} vs ${fighterName(m.oppChar, lang)}`;
+                  lines.push(m.memo ? `${line}「${m.memo}」` : line);
                 });
-                Object.entries(oppStats)
-                  .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-                  .forEach(([opp, s]) => {
-                    lines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
-                  });
               }
               if (ss.showPower && pStart) {
                 const pStartN = Number(pStart);
@@ -890,11 +884,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           shareLines.push(`${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
         }
         if (ss.showMatchups) {
-          Object.entries(oppStats)
-            .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-            .forEach(([opp, s]) => {
-              shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
-            });
+          tM.forEach((m) => {
+            const line = `${m.result === "win" ? "WIN" : "LOSE"} vs ${fighterName(m.oppChar, lang)}`;
+            shareLines.push(m.memo ? `${line}「${m.memo}」` : line);
+          });
         }
         if (ss.showPower && pStart) {
           shareLines.push("");
@@ -1565,11 +1558,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               shareLines.push(`${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
             }
             if (ss.showMatchups) {
-              Object.entries(oppStatsPC)
-                .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-                .forEach(([opp, s]) => {
-                  shareLines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
-                });
+              tM.forEach((m) => {
+                const line = `${m.result === "win" ? "WIN" : "LOSE"} vs ${fighterName(m.oppChar, lang)}`;
+                shareLines.push(m.memo ? `${line}「${m.memo}」` : line);
+              });
             }
             if (ss.showPower && pStart) {
               shareLines.push("");

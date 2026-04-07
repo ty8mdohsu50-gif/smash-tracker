@@ -29,15 +29,6 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
     const ps = getDayPowerSummary(dp);
     const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
     const myChars = [...new Set(matches.map((m) => m.myChar).filter(Boolean))];
-    const oppStats = (() => {
-      const stats = {};
-      matches.forEach((m) => {
-        if (!m.oppChar) return;
-        if (!stats[m.oppChar]) stats[m.oppChar] = { w: 0, l: 0 };
-        m.result === "win" ? stats[m.oppChar].w++ : stats[m.oppChar].l++;
-      });
-      return stats;
-    })();
     const lines = [`【SMASH TRACKER】${formatDateLong(date)}`];
     if (ss.showChar && myChars.length > 0) {
       const charLabel = ss.showRecord
@@ -48,11 +39,10 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       lines.push(`${w}W ${l}L（勝率 ${percentStr(w, matches.length)}）`);
     }
     if (ss.showMatchups) {
-      Object.entries(oppStats)
-        .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))
-        .forEach(([opp, s]) => {
-          lines.push(`vs ${fighterName(opp, lang)} ${s.w}W:${s.l}L`);
-        });
+      matches.forEach((m) => {
+        const line = `${m.result === "win" ? "WIN" : "LOSE"} vs ${fighterName(m.oppChar, lang)}`;
+        lines.push(m.memo ? `${line}「${m.memo}」` : line);
+      });
     }
     if (ss.showPower && ps.start && ps.end) {
       const delta = ps.end - ps.start;
