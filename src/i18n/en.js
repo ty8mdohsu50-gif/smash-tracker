@@ -50,6 +50,7 @@ export default {
     recentLabel: "Recent",
     recorded: "RECORDED",
     todaySummary: "TODAY'S SUMMARY",
+    monthTrend: "Last 30 Days",
     close: "Close",
     record: "Record",
     powerStart: "Start",

@@ -34,6 +34,30 @@ export default function AnalysisTab({ data, onSave, T, isPC }) {
   const [selectedOpp, setSelectedOpp] = useState(null);
   const [counterMemoText, setCounterMemoText] = useState("");
 
+  const MODES = ["myChar", "oppChar", "trend", "stats"];
+  const swipeRef = useRef({ x: 0, y: 0, swiping: false });
+
+  const onSwipeStart = (e) => {
+    const touch = e.touches[0];
+    swipeRef.current = { x: touch.clientX, y: touch.clientY, swiping: false };
+  };
+  const onSwipeMove = (e) => {
+    const dx = e.touches[0].clientX - swipeRef.current.x;
+    const dy = e.touches[0].clientY - swipeRef.current.y;
+    if (!swipeRef.current.swiping && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+      swipeRef.current.swiping = true;
+    }
+  };
+  const onSwipeEnd = (e) => {
+    if (!swipeRef.current.swiping) return;
+    const dx = e.changedTouches[0].clientX - swipeRef.current.x;
+    if (Math.abs(dx) > 50) {
+      const idx = MODES.indexOf(aMode);
+      if (dx < 0 && idx < MODES.length - 1) setAMode(MODES[idx + 1]);
+      if (dx > 0 && idx > 0) setAMode(MODES[idx - 1]);
+    }
+  };
+
   const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
   const totalL = data.matches.length - totalW;
 
@@ -347,7 +371,12 @@ export default function AnalysisTab({ data, onSave, T, isPC }) {
 
   if (data.matches.length === 0) {
     return (
-      <div>
+      <div
+        onTouchStart={onSwipeStart}
+        onTouchMove={onSwipeMove}
+        onTouchEnd={onSwipeEnd}
+        style={{ touchAction: "pan-y" }}
+      >
         <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
           {pill("myChar", t("analysis.charBased"), aMode, setAMode)}
           {pill("oppChar", t("analysis.matchup"), aMode, setAMode)}
@@ -379,7 +408,12 @@ export default function AnalysisTab({ data, onSave, T, isPC }) {
   }
 
   return (
-    <div>
+    <div
+      onTouchStart={onSwipeStart}
+      onTouchMove={onSwipeMove}
+      onTouchEnd={onSwipeEnd}
+      style={{ touchAction: "pan-y" }}
+    >
       <div
         style={{ display: "flex", gap: 6, marginBottom: 16 }}
       >

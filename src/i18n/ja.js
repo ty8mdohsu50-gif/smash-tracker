@@ -50,6 +50,7 @@ export default {
     recentLabel: "直近",
     recorded: "RECORDED",
     todaySummary: "TODAY'S SUMMARY",
+    monthTrend: "直近1ヶ月の推移",
     close: "閉じる",
     record: "記録する",
     powerStart: "開始",
