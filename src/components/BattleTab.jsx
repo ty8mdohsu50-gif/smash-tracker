@@ -243,6 +243,11 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     <input
       type="text"
       inputMode="numeric"
+      autoComplete="off"
+      autoCorrect="off"
+      data-lpignore="true"
+      data-1p-ignore="true"
+      data-form-type="other"
       value={formatPower(val)}
       onChange={(e) => set(rawPower(e.target.value))}
       onKeyDown={blurOnEnter}

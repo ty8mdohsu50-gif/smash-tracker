@@ -116,8 +116,15 @@ export default function CharPicker({
               }}
               placeholder={t("charPicker.search")}
               autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
               data-lpignore="true"
               data-form-type="other"
+              data-1p-ignore="true"
+              name="fighter-search"
+              id="fighter-search"
+              type="search"
               style={{
                 width: "100%",
                 padding: "10px 12px",
