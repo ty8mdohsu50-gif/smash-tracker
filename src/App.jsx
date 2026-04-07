@@ -65,6 +65,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const T = getTheme(data.dark !== undefined ? data.dark : true, data.themeColor || "black");
   const [tabIdx, setTabIdx] = useState(0);
+  const [analysisMode, setAnalysisMode] = useState("myChar");
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const [aboutPage, setAboutPage] = useState(false);
@@ -206,11 +207,22 @@ export default function App() {
     if (!touchRef.current.sw && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10)
       touchRef.current.sw = true;
   };
+  const ANALYSIS_MODES = ["myChar", "oppChar", "trend", "stats"];
   const onTE = (e) => {
     if (!touchRef.current.sw) return;
-    if (tabIdx === 2) return;
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     if (Math.abs(dx) > 50 && Date.now() - touchRef.current.t < 400) {
+      if (tabIdx === 2) {
+        const idx = ANALYSIS_MODES.indexOf(analysisMode);
+        if (dx < 0 && idx < ANALYSIS_MODES.length - 1) {
+          setAnalysisMode(ANALYSIS_MODES[idx + 1]);
+        } else if (dx > 0 && idx > 0) {
+          setAnalysisMode(ANALYSIS_MODES[idx - 1]);
+        } else if (dx > 0 && idx === 0) {
+          setTabIdx(1);
+        }
+        return;
+      }
       if (dx < 0 && tabIdx < 2) setTabIdx(tabIdx + 1);
       if (dx > 0 && tabIdx > 0) setTabIdx(tabIdx - 1);
     }
@@ -367,7 +379,7 @@ export default function App() {
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} onGoToHistory={() => setTabIdx(1)} />}
+            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} aMode={analysisMode} setAMode={setAnalysisMode} onGoToHistory={() => setTabIdx(1)} />}
           </div>
         </div>
       </div>
@@ -540,7 +552,7 @@ export default function App() {
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} isPC onGoToHistory={() => setTabIdx(1)} />}
+            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} onGoToHistory={() => setTabIdx(1)} />}
           </div>
         </div>
       </main>
