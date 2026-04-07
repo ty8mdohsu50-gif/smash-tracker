@@ -76,6 +76,9 @@ export default {
     nextMilestone: "次のマイルストーン",
     milestoneProgress: "あと{n}戦",
     toastRecorded: "記録しました",
+    ranked: "ランク戦",
+    saveAndShare: "保存してシェア",
+    sessionEnd: "セッション終了",
   },
   history: {
     dailyRecord: "日別戦績",

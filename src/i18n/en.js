@@ -76,6 +76,9 @@ export default {
     nextMilestone: "Next Milestone",
     milestoneProgress: "{n} more",
     toastRecorded: "Recorded!",
+    ranked: "Ranked",
+    saveAndShare: "Save & Share",
+    sessionEnd: "End Session",
   },
   history: {
     dailyRecord: "Daily Records",
