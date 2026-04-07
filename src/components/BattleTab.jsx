@@ -46,6 +46,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
   const [counterEditText, setCounterEditText] = useState("");
   const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
+  const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
 
   const doShare = async (text) => {
     if (navigator.share) {
@@ -84,6 +85,12 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   if (prevOppRef.current !== oppChar) {
     setCounterEditText(data.counterMemos?.[oppChar] || "");
     prevOppRef.current = oppChar;
+  }
+
+  const prevMyCharRef = useRef(myChar);
+  if (prevMyCharRef.current !== myChar) {
+    setCharMemoText(data.charMemos?.[myChar] || "");
+    prevMyCharRef.current = myChar;
   }
 
   const savePower = (s, e) => {
@@ -573,6 +580,28 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           <button onClick={startBattle} disabled={!pStart || !myChar} style={activeBtn(!pStart || !myChar)}>
             {t("battle.startBattle")}
           </button>
+
+          {myChar && (
+            <div style={{ ...cd, padding: "14px 18px", marginTop: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 6 }}>
+                {fighterName(myChar, lang)} {t("battle.charMemo")}
+              </div>
+              <textarea
+                value={charMemoText}
+                onChange={(e) => setCharMemoText(e.target.value)}
+                onBlur={() => {
+                  onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } });
+                }}
+                placeholder={t("battle.charMemoPlaceholder")}
+                rows={2}
+                style={{
+                  width: "100%", padding: "10px 12px", background: T.inp, border: "none",
+                  borderRadius: 10, color: T.text, fontSize: 13, outline: "none",
+                  boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -714,6 +743,28 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           >
             {t("battle.endSession")}
           </button>
+
+          {myChar && (
+            <div style={{ ...cd, padding: "14px 18px", marginTop: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 6 }}>
+                {fighterName(myChar, lang)} {t("battle.charMemo")}
+              </div>
+              <textarea
+                value={charMemoText}
+                onChange={(e) => setCharMemoText(e.target.value)}
+                onBlur={() => {
+                  onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } });
+                }}
+                placeholder={t("battle.charMemoPlaceholder")}
+                rows={2}
+                style={{
+                  width: "100%", padding: "10px 12px", background: T.inp, border: "none",
+                  borderRadius: 10, color: T.text, fontSize: 13, outline: "none",
+                  boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                }}
+              />
+            </div>
+          )}
 
           {oppChar && myChar && (() => {
             const oppMatches = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
@@ -1287,13 +1338,28 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           {/* Start button */}
           <button onClick={startBattle} disabled={!pStart || !myChar} style={activeBtn(!pStart || !myChar)}>{t("battle.startBattle")}</button>
 
-          {/* Recent matches below start button */}
-          <div style={{ ...cd, padding: "16px 20px", marginTop: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("battle.recent")}</div>
-            <div style={{ maxHeight: 280, overflowY: "auto" }}>
-              {recentMatchList}
+          {/* Char memo below start button */}
+          {myChar && (
+            <div style={{ ...cd, padding: "16px 20px", marginTop: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 6 }}>
+                {fighterName(myChar, lang)} {t("battle.charMemo")}
+              </div>
+              <textarea
+                value={charMemoText}
+                onChange={(e) => setCharMemoText(e.target.value)}
+                onBlur={() => {
+                  onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } });
+                }}
+                placeholder={t("battle.charMemoPlaceholder")}
+                rows={2}
+                style={{
+                  width: "100%", padding: "10px 12px", background: T.inp, border: "none",
+                  borderRadius: 10, color: T.text, fontSize: 13, outline: "none",
+                  boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                }}
+              />
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right column: today's power trend + matchup summary + memos */}
@@ -1463,6 +1529,27 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <button onClick={() => { setShareStatus(null); setPhase("endSession"); }} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
                 <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }} style={{ flex: 1, padding: 12, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>{t("battle.backToBattle")}</button>
               </div>
+              {myChar && (
+                <div style={{ ...cd, padding: "16px 20px", marginTop: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 6 }}>
+                    {fighterName(myChar, lang)} {t("battle.charMemo")}
+                  </div>
+                  <textarea
+                    value={charMemoText}
+                    onChange={(e) => setCharMemoText(e.target.value)}
+                    onBlur={() => {
+                      onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } });
+                    }}
+                    placeholder={t("battle.charMemoPlaceholder")}
+                    rows={2}
+                    style={{
+                      width: "100%", padding: "10px 12px", background: T.inp, border: "none",
+                      borderRadius: 10, color: T.text, fontSize: 13, outline: "none",
+                      boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 

@@ -65,6 +65,8 @@ export default {
     counterMemoPlaceholder: "Write counter strategies for this opponent...",
     review: "Daily Review",
     reviewPlaceholder: "Reflect on today's play...",
+    charMemo: "Notes",
+    charMemoPlaceholder: "Things to keep in mind with this fighter...",
   },
   history: {
     dailyRecord: "Daily Records",

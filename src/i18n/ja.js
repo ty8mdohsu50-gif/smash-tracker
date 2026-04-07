@@ -65,6 +65,8 @@ export default {
     counterMemoPlaceholder: "この相手キャラへの対策を記入...",
     review: "今日の振り返り",
     reviewPlaceholder: "今日のプレイを振り返って...",
+    charMemo: "メモ",
+    charMemoPlaceholder: "このキャラで意識すること...",
   },
   history: {
     dailyRecord: "日別戦績",
