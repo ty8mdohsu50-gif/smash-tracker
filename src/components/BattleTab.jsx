@@ -13,10 +13,12 @@ import {
   today,
   formatDateWithDay,
   formatDateLong,
+  formatDateShort,
   formatPower,
   rawPower,
   numFormat,
   percentStr,
+  barColor,
   blurOnEnter,
   getStreak,
   recentChars,
@@ -270,17 +272,22 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     />
   );
 
-  const todayPowerPoints = useMemo(() => {
-    const todayEntry = data.daily?.[today()];
+  const monthPowerPoints = useMemo(() => {
+    const dl = data.daily || {};
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const cutoffStr = cutoff.toISOString().split("T")[0];
     const pts = [];
-    if (todayEntry?.start) {
-      pts.push({ date: today(), value: todayEntry.start, time: null });
-    }
-    tM.filter((m) => m.power).sort((a, b) => a.time.localeCompare(b.time)).forEach((m) => {
-      pts.push({ date: today(), value: m.power, time: m.time });
-    });
+    Object.entries(dl)
+      .filter(([d]) => d >= cutoffStr)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([d, day]) => {
+        const ps = getDayPowerSummary(day);
+        if (ps.start) pts.push({ date: d, value: ps.start });
+        if (ps.end) pts.push({ date: d, value: ps.end });
+      });
     return pts;
-  }, [data, tM]);
+  }, [data]);
 
   const todayOppStats = useMemo(() => {
     const stats = {};
@@ -633,7 +640,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           {/* Opponent char selection - FIRST */}
           <div style={{ ...cd, padding: "14px 16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <div style={{ fontSize: 15, color: T.text, fontWeight: 700 }}>{t("battle.oppChar")}</div>
               {oppChar && (
                 <button
@@ -644,48 +651,36 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 </button>
               )}
             </div>
-            {oppChar && !showOppPicker && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <FighterIcon name={oppChar} size={32} />
-                <span style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{fighterName(oppChar, lang)}</span>
-              </div>
-            )}
             {showOppPicker ? (
-              <div>
-                <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder="相手を選択" recent={recOpp} autoOpen T={T} />
-              </div>
+              <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} />
             ) : (
-              !showOppPicker && (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {recOpp.slice(0, 4).map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setOppChar(c)}
-                      style={{
-                        padding: "10px 14px 10px 8px", borderRadius: 12,
-                        border: oppChar === c ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
-                        background: oppChar === c ? T.accentSoft : T.card,
-                        color: oppChar === c ? T.accent : T.text,
-                        fontSize: 14, fontWeight: 600,
-                        display: "flex", alignItems: "center", gap: 6,
-                        transition: "all .15s ease",
-                      }}
-                    >
-                      <FighterIcon name={c} size={24} />
-                      {fighterName(c, lang)}
-                    </button>
-                  ))}
+              <div>
+                {oppChar ? (
                   <button
                     onClick={() => setShowOppPicker(true)}
                     style={{
-                      padding: "10px 18px", borderRadius: 12, border: `1px dashed ${T.dimmer}`,
-                      background: "transparent", color: T.sub, fontSize: 14, fontWeight: 600,
+                      width: "100%", padding: "14px 16px", background: T.card,
+                      border: `2px solid ${T.accent}`, borderRadius: 12,
+                      display: "flex", alignItems: "center", gap: 10,
+                      textAlign: "left", fontSize: 15, fontWeight: 600, color: T.text,
                     }}
                   >
-                    {t("battle.other")}
+                    <FighterIcon name={oppChar} size={32} />
+                    {fighterName(oppChar, lang)}
                   </button>
-                </div>
-              )
+                ) : (
+                  <button
+                    onClick={() => setShowOppPicker(true)}
+                    style={{
+                      width: "100%", padding: "14px 16px", background: T.card,
+                      border: `2px solid ${T.dimmer}`, borderRadius: 12,
+                      color: T.dim, textAlign: "left", fontSize: 15,
+                    }}
+                  >
+                    {t("charPicker.select")}
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -724,19 +719,47 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             {t("battle.endSession")}
           </button>
 
-          {oppChar && myChar && (
-            <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
-          )}
-          {oppChar && data.counterMemos?.[oppChar] && (
-            <div style={{ ...cd, padding: "12px 16px", marginTop: 8 }}>
-              <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 4 }}>
-                {t("battle.counterMemo")}
+          {oppChar && myChar && (() => {
+            const oppMatches = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+            const oppWinCount = oppMatches.filter((m) => m.result === "win").length;
+            const oppLoseCount = oppMatches.length - oppWinCount;
+            const oppWinRate = oppMatches.length > 0 ? oppWinCount / oppMatches.length : 0;
+            const pastMemos = data.matches
+              .filter((m) => m.myChar === myChar && m.oppChar === oppChar && m.memo)
+              .slice()
+              .reverse();
+            return (
+              <div style={{ ...cd, padding: "14px 16px", marginTop: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <FighterIcon name={oppChar} size={28} />
+                    <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(oppChar, lang)}</span>
+                  </div>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: barColor(oppWinRate), fontFamily: "'Chakra Petch', sans-serif" }}>
+                    {oppWinCount}W:{oppLoseCount}L
+                  </span>
+                </div>
+                {data.counterMemos?.[oppChar] && (
+                  <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap", padding: "8px 0", borderTop: `1px solid ${T.inp}` }}>
+                    <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.counterMemo")}</div>
+                    {data.counterMemos[oppChar]}
+                  </div>
+                )}
+                {pastMemos.length > 0 && (
+                  <div style={{ borderTop: `1px solid ${T.inp}`, paddingTop: 8, marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memo")}</div>
+                    <div style={{ maxHeight: 120, overflowY: "auto" }}>
+                      {pastMemos.map((m, i) => (
+                        <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "3px 0" }}>
+                          <span style={{ color: T.dim, fontSize: 10 }}>{formatDateShort(m.date)}</span> {m.memo}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                {data.counterMemos[oppChar]}
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
@@ -1352,14 +1375,14 @@ export default function BattleTab({ data, onSave, T, isPC }) {
         >
           <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 2 }}>
-              {t("analysis.trend")}（{t("analysis.today")}）
+              {t("battle.monthTrend")}
             </div>
             <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}</div>
           </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-            {todayPowerPoints.length >= 2 ? (
+            {monthPowerPoints.length >= 2 ? (
               <div style={{ marginBottom: 16 }}>
-                <Chart points={todayPowerPoints} T={T} isToday />
+                <Chart points={monthPowerPoints} T={T} />
               </div>
             ) : (
               <div style={{ background: T.inp, borderRadius: 12, padding: "16px", textAlign: "center", marginBottom: 16 }}>
@@ -1751,14 +1774,14 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             <>
               <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>
-                  {t("analysis.trend")}（{t("analysis.today")}）
+                  {t("battle.monthTrend")}
                 </div>
                 <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}</div>
               </div>
               <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-                {todayPowerPoints.length >= 2 ? (
+                {monthPowerPoints.length >= 2 ? (
                   <div style={{ marginBottom: 16 }}>
-                    <Chart points={todayPowerPoints} T={T} isToday />
+                    <Chart points={monthPowerPoints} T={T} />
                   </div>
                 ) : (
                   <div style={{ background: T.inp, borderRadius: 12, padding: "16px", textAlign: "center", marginBottom: 16 }}>
