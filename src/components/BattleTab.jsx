@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { Trophy, X, ChevronUp, ChevronDown, Zap, Share2, Copy } from "lucide-react";
 import CharPicker from "./CharPicker";
+import FreeMatchTab from "./FreeMatchTab";
 import Chart from "./Chart";
 import MatchRow from "./MatchRow";
 import MatchupBadge from "./MatchupBadge";
@@ -47,6 +48,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [counterEditText, setCounterEditText] = useState("");
   const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
   const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
+  const [freeMode, setFreeMode] = useState(false);
 
   const doShare = async (text) => {
     if (navigator.share) {
@@ -579,6 +581,26 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           <button onClick={startBattle} disabled={!pStart || !myChar} style={activeBtn(!pStart || !myChar)}>
             {t("battle.startBattle")}
+          </button>
+
+          <button
+            onClick={() => setFreeMode(true)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              marginTop: 8,
+              border: `1.5px solid ${T.accentBorder}`,
+              borderRadius: 12,
+              background: T.accentSoft,
+              color: T.accent,
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "all .15s ease",
+            }}
+          >
+            {t("free.freeMatch")}
           </button>
 
           {myChar && (
@@ -1251,7 +1273,12 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     </div>
   );
 
-  if (!isPC) return mainContent;
+  if (!isPC) {
+    if (freeMode) {
+      return <FreeMatchTab data={data} onSave={onSave} T={T} isPC={isPC} onBack={() => setFreeMode(false)} />;
+    }
+    return mainContent;
+  }
 
   const statCard = (label, value, color) => {
     const len = String(value).length;
@@ -1263,6 +1290,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
       </div>
     );
   };
+
+  if (freeMode) {
+    return <FreeMatchTab data={data} onSave={onSave} T={T} isPC={isPC} onBack={() => setFreeMode(false)} />;
+  }
 
   if (phase === "setup") {
     return (
@@ -1337,6 +1368,26 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           {/* Start button */}
           <button onClick={startBattle} disabled={!pStart || !myChar} style={activeBtn(!pStart || !myChar)}>{t("battle.startBattle")}</button>
+
+          {/* Free battle button */}
+          <button
+            onClick={() => setFreeMode(true)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              border: `1.5px solid ${T.accentBorder}`,
+              borderRadius: 12,
+              background: T.accentSoft,
+              color: T.accent,
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "all .15s ease",
+            }}
+          >
+            {t("free.freeMatch")}
+          </button>
 
           {/* Char memo below start button */}
           {myChar && (
