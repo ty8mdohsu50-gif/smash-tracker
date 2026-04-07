@@ -50,6 +50,8 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
       lines.push(`${t("battle.power")}: ${numFormat(ps.start)} → ${numFormat(ps.end)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
     }
     if (dp?.vip) lines.push(t("share.vip"));
+    const review = data.daily?.[date]?.review;
+    if (review) lines.push("", review);
     lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
     doShare(lines.join("\n"));
   };
@@ -247,6 +249,15 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                 </div>
               );
             })()}
+            {(() => {
+              const review = data.daily?.[histDate]?.review;
+              return review ? (
+                <div style={{ ...cd, padding: "12px 14px", marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.review")}</div>
+                  <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{review}</div>
+                </div>
+              ) : null;
+            })()}
             {selDayWithIdx.map((e, i) => <HistRow key={i} m={e.m} onDelete={() => deleteMatch(e.idx)} T={T} />)}
           </div>
         )}
@@ -412,6 +423,16 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                   )}
                 </div>
               );
+            })()}
+
+            {(() => {
+              const review = data.daily?.[histDate]?.review;
+              return review ? (
+                <div style={{ ...cd, padding: "12px 18px", marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.review")}</div>
+                  <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{review}</div>
+                </div>
+              ) : null;
             })()}
 
             <div style={{ ...cd, padding: 0, overflow: "hidden" }}>

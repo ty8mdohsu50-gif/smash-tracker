@@ -63,6 +63,8 @@ export default {
     editCounterMemo: "Edit Counter Notes",
     saveCounterMemo: "Save Counter Notes",
     counterMemoPlaceholder: "Write counter strategies for this opponent...",
+    review: "Daily Review",
+    reviewPlaceholder: "Reflect on today's play...",
   },
   history: {
     dailyRecord: "Daily Records",

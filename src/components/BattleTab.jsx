@@ -45,6 +45,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
   const [counterEditText, setCounterEditText] = useState("");
+  const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
 
   const doShare = async (text) => {
     if (navigator.share) {
@@ -74,6 +75,7 @@ export default function BattleTab({ data, onSave, T, isPC }) {
       const newStart = cp.end || cp.start || pe || 0;
       if (newStart !== pStart) setPStart(newStart);
       setPEnd("");
+      setReviewText(data.daily?.[today()]?.review || "");
     }
     prevPhase.current = phase;
   }
@@ -791,9 +793,38 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               }} />
             </button>
           </div>
+          <div style={cd}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 8 }}>
+              {t("battle.review")}
+            </div>
+            <textarea
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder={t("battle.reviewPlaceholder")}
+              rows={3}
+              style={{
+                width: "100%", padding: "10px 12px", background: T.inp, border: "none",
+                borderRadius: 10, color: T.text, fontSize: 13, outline: "none",
+                boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+              }}
+            />
+          </div>
           <button
             onClick={() => {
-              savePower(pStart, pEnd);
+              const d = JSON.parse(JSON.stringify(data));
+              if (!d.daily) d.daily = {};
+              if (!d.daily[today()]) d.daily[today()] = {};
+              const day = d.daily[today()];
+              if (!day.chars) day.chars = {};
+              const existing = day.chars[myChar] || {};
+              day.chars[myChar] = {
+                start: existing.start || (pStart ? Number(pStart) : null),
+                end: pEnd ? Number(pEnd) : existing.end,
+              };
+              if (!day.start) day.start = pStart ? Number(pStart) : null;
+              if (pEnd) day.end = Number(pEnd);
+              day.review = reviewText;
+              onSave(d);
               setShareStatus(null);
               setPhase("summary");
               setShowPowerEdit(false);
@@ -834,6 +865,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 lines.push(`${t("battle.power")}: ${numFormat(pStartN)} → ${numFormat(pEndN)} (${delta >= 0 ? "+" : ""}${numFormat(delta)})`);
               }
               if (todayDaily.vip) lines.push(t("share.vip"));
+              const reviewVal = data.daily?.[today()]?.review;
+              if (reviewVal) lines.push("", reviewVal);
               lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
               doShare(lines.join("\n"));
             }}
@@ -885,6 +918,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           shareLines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
         }
         if (todayDaily.vip) shareLines.push(t("share.vip"));
+        const reviewForShare = data.daily?.[today()]?.review;
+        if (reviewForShare) shareLines.push("", reviewForShare);
         shareLines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
         const shareText = shareLines.join("\n");
 
@@ -1438,9 +1473,44 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <div style={{ fontSize: 12, color: T.dim, marginBottom: 10 }}>{t("battle.endPowerDesc")}</div>
                 {pwrInput(pEnd, setPEnd, t("battle.endPower"), true)}
               </div>
+              <div style={{ ...cd, padding: "16px 24px" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 8 }}>
+                  {t("battle.review")}
+                </div>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder={t("battle.reviewPlaceholder")}
+                  rows={3}
+                  style={{
+                    width: "100%", padding: "10px 12px", background: T.inp, border: "none",
+                    borderRadius: 10, color: T.text, fontSize: 13, outline: "none",
+                    boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                  }}
+                />
+              </div>
               <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
                 <button
-                  onClick={() => { savePower(pStart, pEnd); setShareStatus(null); setPhase("summary"); setShowPowerEdit(false); setShowOppPicker(false); }}
+                  onClick={() => {
+                    const d = JSON.parse(JSON.stringify(data));
+                    if (!d.daily) d.daily = {};
+                    if (!d.daily[today()]) d.daily[today()] = {};
+                    const day = d.daily[today()];
+                    if (!day.chars) day.chars = {};
+                    const existing = day.chars[myChar] || {};
+                    day.chars[myChar] = {
+                      start: existing.start || (pStart ? Number(pStart) : null),
+                      end: pEnd ? Number(pEnd) : existing.end,
+                    };
+                    if (!day.start) day.start = pStart ? Number(pStart) : null;
+                    if (pEnd) day.end = Number(pEnd);
+                    day.review = reviewText;
+                    onSave(d);
+                    setShareStatus(null);
+                    setPhase("summary");
+                    setShowPowerEdit(false);
+                    setShowOppPicker(false);
+                  }}
                   style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}
                 >
                   {t("battle.saveAndEnd")}
@@ -1556,6 +1626,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               shareLines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
             }
             if (todayDaily.vip) shareLines.push(t("share.vip"));
+            const reviewForSharePC = data.daily?.[today()]?.review;
+            if (reviewForSharePC) shareLines.push("", reviewForSharePC);
             shareLines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
             const shareText = shareLines.join("\n");
 

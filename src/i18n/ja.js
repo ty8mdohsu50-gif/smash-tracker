@@ -63,6 +63,8 @@ export default {
     editCounterMemo: "対策メモを編集",
     saveCounterMemo: "対策メモを保存",
     counterMemoPlaceholder: "この相手キャラへの対策を記入...",
+    review: "今日の振り返り",
+    reviewPlaceholder: "今日のプレイを振り返って...",
   },
   history: {
     dailyRecord: "日別戦績",
