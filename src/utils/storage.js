@@ -74,6 +74,7 @@ export async function cloudSave(userId, d) {
     dark: d.dark,
     themeColor: d.themeColor,
     shareSettings: d.shareSettings,
+    counterMemos: d.counterMemos,
   };
 
   const { error } = await supabase

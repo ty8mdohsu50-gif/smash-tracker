@@ -4,7 +4,7 @@ import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import Heatmap from "./Heatmap";
 import SharePopup from "./SharePopup";
-import { shortName, fighterName } from "../constants/fighters";
+import { shortName, fighterName, FIGHTERS } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import {
   today,
@@ -18,7 +18,7 @@ import {
   getDayPowerSummary,
 } from "../utils/format";
 
-export default function AnalysisTab({ data, T, isPC }) {
+export default function AnalysisTab({ data, onSave, T, isPC }) {
   const { t, lang } = useI18n();
   const [aMode, setAMode] = useState("myChar");
   const [period, setPeriod] = useState("all");
@@ -30,6 +30,9 @@ export default function AnalysisTab({ data, T, isPC }) {
   const [shareImageUrl, setShareImageUrl] = useState(null);
   const [expandedRolling, setExpandedRolling] = useState(null);
   const [expandedHour, setExpandedHour] = useState(null);
+  const [matchupView, setMatchupView] = useState("myChar");
+  const [selectedOpp, setSelectedOpp] = useState(null);
+  const [counterMemoText, setCounterMemoText] = useState("");
 
   const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
   const totalL = data.matches.length - totalW;
@@ -664,140 +667,325 @@ export default function AnalysisTab({ data, T, isPC }) {
       {/* Matchup */}
       {aMode === "oppChar" && (
         <div>
-          {mCS.length === 0
-            ? emptyMsg(t("analysis.noMatchupData"))
-            : (
-              <div>
-                {/* Character selector */}
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>
-                  {t("analysis.selectChar")}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                  {mCS.map((s) => {
-                    const active = charDetail === s.c;
-                    const r = s.t ? s.w / s.t : 0;
-                    return (
-                      <button
-                        key={s.c}
-                        onClick={() => setCharDetail(active ? null : s.c)}
-                        style={{
-                          padding: "14px 16px",
-                          borderRadius: 14,
-                          border: active ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
-                          background: active ? T.accentSoft : T.card,
-                          color: active ? T.accent : T.text,
-                          fontSize: 15,
-                          fontWeight: active ? 700 : 500,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          width: "100%",
-                          textAlign: "left",
-                          transition: "all .15s ease",
-                          boxShadow: active ? `0 2px 8px ${T.accent}22` : T.sh,
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                          <FighterIcon name={s.c} size={36} />
-                          <div>
-                            <div style={{ fontSize: 15, fontWeight: 700 }}>{fighterName(s.c, lang)}</div>
-                            <div style={{ fontSize: 11, color: active ? T.accent : T.dim, fontWeight: 500, marginTop: 2 }}>{s.t}{t("analysis.battles")} {s.w}W {s.l}L</div>
-                          </div>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                          <span style={{ fontSize: 10, color: active ? T.accent : T.dim }}>{t("analysis.winRate")}</span>
-                          <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
-                            {percentStr(s.w, s.t)}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* Sub-tab switcher */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+            {[
+              ["myChar", t("analysis.byMyChar")],
+              ["oppChar", t("analysis.byOppChar")],
+            ].map(([k, l]) => (
+              <button
+                key={k}
+                onClick={() => { setMatchupView(k); setCharDetail(null); setSelectedOpp(null); }}
+                style={{
+                  flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+                  fontSize: 13, fontWeight: matchupView === k ? 700 : 500, textAlign: "center",
+                  background: matchupView === k ? T.accentGrad : T.inp,
+                  color: matchupView === k ? "#fff" : T.sub,
+                  transition: "all .15s ease",
+                }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
 
-                {!charDetail ? (
-                  <div style={{ ...cd, padding: "32px 20px", textAlign: "center" }}>
-                    <div style={{ fontSize: 14, color: T.dim }}>
-                      {t("analysis.selectCharDesc")}
-                    </div>
-                  </div>
-                ) : (
+          {/* By My Char sub-view */}
+          {matchupView === "myChar" && (
+            <div>
+              {mCS.length === 0
+                ? emptyMsg(t("analysis.noMatchupData"))
+                : (
                   <div>
-                    <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 } : undefined}>
-                      {charMatchups.slice().sort((a, b) => {
-                        const ra = a.t ? a.w / a.t : 0;
-                        const rb = b.t ? b.w / b.t : 0;
-                        return ra - rb;
-                      }).map((s) => {
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>
+                      {t("analysis.selectChar")}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                      {mCS.map((s) => {
+                        const active = charDetail === s.c;
                         const r = s.t ? s.w / s.t : 0;
-                        const isExpanded = expandedOpp === s.c;
-                        const oppMatches = isExpanded
-                          ? data.matches
-                              .filter((m) => m.myChar === charDetail && m.oppChar === s.c)
-                              .slice()
-                              .reverse()
-                          : [];
                         return (
-                          <div key={s.c} style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "12px 16px" }}>
-                            <div
-                              onClick={() => setExpandedOpp(isExpanded ? null : s.c)}
-                              style={{ cursor: "pointer" }}
-                            >
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <FighterIcon name={s.c} size={26} />
-                                  <div>
-                                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(s.c, lang)}</div>
-                                    <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
-                                  </div>
-                                </div>
-                                <div style={{ textAlign: "right" }}>
-                                  <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                                    <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
-                                    <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
-                                      {percentStr(s.w, s.t)}
-                                    </span>
-                                  </div>
-                                  {renderLabel(r)}
-                                </div>
+                          <button
+                            key={s.c}
+                            onClick={() => setCharDetail(active ? null : s.c)}
+                            style={{
+                              padding: "14px 16px", borderRadius: 14,
+                              border: active ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
+                              background: active ? T.accentSoft : T.card,
+                              color: active ? T.accent : T.text,
+                              fontSize: 15, fontWeight: active ? 700 : 500,
+                              display: "flex", alignItems: "center", justifyContent: "space-between",
+                              width: "100%", textAlign: "left", transition: "all .15s ease",
+                              boxShadow: active ? `0 2px 8px ${T.accent}22` : T.sh,
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                              <FighterIcon name={s.c} size={36} />
+                              <div>
+                                <div style={{ fontSize: 15, fontWeight: 700 }}>{fighterName(s.c, lang)}</div>
+                                <div style={{ fontSize: 11, color: active ? T.accent : T.dim, fontWeight: 500, marginTop: 2 }}>{s.t}{t("analysis.battles")} {s.w}W {s.l}L</div>
                               </div>
-                              {renderBar(r)}
                             </div>
-                            {isExpanded && (
-                              <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
-                                {oppMatches.slice(0, 10).map((m, i) => (
-                                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                                    <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatDateLong(m.date)}</span>
-                                    <span style={{
-                                      fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, flexShrink: 0,
-                                      background: m.result === "win" ? T.winBg : T.loseBg,
-                                      color: m.result === "win" ? T.win : T.lose,
-                                    }}>
-                                      {m.result === "win" ? "WIN" : "LOSE"}
-                                    </span>
-                                    {m.time && (
-                                      <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
-                                    )}
-                                    {m.memo && (
-                                      <span style={{ fontSize: 11, color: T.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.memo}</span>
-                                    )}
+                            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                              <span style={{ fontSize: 10, color: active ? T.accent : T.dim }}>{t("analysis.winRate")}</span>
+                              <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                                {percentStr(s.w, s.t)}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {!charDetail ? (
+                      <div style={{ ...cd, padding: "32px 20px", textAlign: "center" }}>
+                        <div style={{ fontSize: 14, color: T.dim }}>{t("analysis.selectCharDesc")}</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 } : undefined}>
+                          {charMatchups.slice().sort((a, b) => {
+                            const ra = a.t ? a.w / a.t : 0;
+                            const rb = b.t ? b.w / b.t : 0;
+                            return ra - rb;
+                          }).map((s) => {
+                            const r = s.t ? s.w / s.t : 0;
+                            const isExpanded = expandedOpp === s.c;
+                            const oppMatches = isExpanded
+                              ? data.matches
+                                  .filter((m) => m.myChar === charDetail && m.oppChar === s.c)
+                                  .slice()
+                                  .reverse()
+                              : [];
+                            return (
+                              <div key={s.c} style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "12px 16px" }}>
+                                <div onClick={() => setExpandedOpp(isExpanded ? null : s.c)} style={{ cursor: "pointer" }}>
+                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                      <FighterIcon name={s.c} size={26} />
+                                      <div>
+                                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(s.c, lang)}</div>
+                                        <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
+                                      </div>
+                                    </div>
+                                    <div style={{ textAlign: "right" }}>
+                                      <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                                        <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
+                                        <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                                          {percentStr(s.w, s.t)}
+                                        </span>
+                                      </div>
+                                      {renderLabel(r)}
+                                    </div>
                                   </div>
-                                ))}
-                                {oppMatches.length > 10 && (
-                                  <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>
-                                    {t("analysis.others").replace("{n}", oppMatches.length - 10)}
+                                  {renderBar(r)}
+                                </div>
+                                {isExpanded && (
+                                  <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
+                                    {oppMatches.slice(0, 10).map((m, i) => (
+                                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                        <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatDateLong(m.date)}</span>
+                                        <span style={{
+                                          fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, flexShrink: 0,
+                                          background: m.result === "win" ? T.winBg : T.loseBg,
+                                          color: m.result === "win" ? T.win : T.lose,
+                                        }}>
+                                          {m.result === "win" ? "WIN" : "LOSE"}
+                                        </span>
+                                        {m.time && (
+                                          <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
+                                        )}
+                                        {m.memo && (
+                                          <span style={{ fontSize: 11, color: T.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.memo}</span>
+                                        )}
+                                      </div>
+                                    ))}
+                                    {oppMatches.length > 10 && (
+                                      <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>
+                                        {t("analysis.others").replace("{n}", oppMatches.length - 10)}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
-                            )}
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+            </div>
+          )}
+
+          {/* By Opp Char sub-view */}
+          {matchupView === "oppChar" && (() => {
+            const oppStatsAll = {};
+            data.matches.forEach((m) => {
+              if (!oppStatsAll[m.oppChar]) oppStatsAll[m.oppChar] = { w: 0, l: 0 };
+              m.result === "win" ? oppStatsAll[m.oppChar].w++ : oppStatsAll[m.oppChar].l++;
+            });
+            const foughtChars = Object.keys(oppStatsAll);
+            const foughtSet = new Set(foughtChars);
+            const notFought = FIGHTERS.filter((f) => !foughtSet.has(f));
+            const foughtSorted = foughtChars.sort((a, b) => {
+              const ra = oppStatsAll[a].w / (oppStatsAll[a].w + oppStatsAll[a].l);
+              const rb = oppStatsAll[b].w / (oppStatsAll[b].w + oppStatsAll[b].l);
+              return ra - rb;
+            });
+
+            return (
+              <div>
+                {foughtSorted.map((opp) => {
+                  const s = oppStatsAll[opp];
+                  const r = s.w / (s.w + s.l);
+                  const isSelected = selectedOpp === opp;
+                  return (
+                    <div key={opp} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
+                      <div
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedOpp(null);
+                          } else {
+                            setSelectedOpp(opp);
+                            setCounterMemoText(data.counterMemos?.[opp] || "");
+                          }
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <FighterIcon name={opp} size={28} />
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(opp, lang)}</div>
+                              <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.w + s.l}{t("analysis.battles")})</div>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
+                              <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
+                              <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>
+                                {percentStr(s.w, s.w + s.l)}
+                              </span>
+                            </div>
+                            {renderLabel(r)}
+                          </div>
+                        </div>
+                        {renderBar(r)}
+                      </div>
+                      {isSelected && (
+                        <div style={{ marginTop: 12, borderTop: `1px solid ${T.inp}`, paddingTop: 12 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 6 }}>
+                            {t("analysis.counterMemo")}
+                          </div>
+                          <textarea
+                            value={counterMemoText}
+                            onChange={(e) => setCounterMemoText(e.target.value)}
+                            placeholder={t("battle.counterMemoPlaceholder")}
+                            rows={3}
+                            style={{
+                              width: "100%", padding: "10px 12px", background: T.inp,
+                              border: "none", borderRadius: 10, color: T.text, fontSize: 13,
+                              outline: "none", boxSizing: "border-box", resize: "none",
+                              fontFamily: "inherit", lineHeight: 1.6,
+                            }}
+                          />
+                          <button
+                            onClick={() => {
+                              onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [opp]: counterMemoText } });
+                              setSelectedOpp(null);
+                            }}
+                            style={{
+                              width: "100%", padding: "10px 0", marginTop: 8,
+                              border: "none", borderRadius: 10,
+                              background: T.accentGrad, color: "#fff",
+                              fontSize: 13, fontWeight: 700,
+                            }}
+                          >
+                            {t("battle.saveCounterMemo")}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {notFought.length > 0 && (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
+                      {t("analysis.noMatchupData")}
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                      {notFought.map((opp) => {
+                        const isSelected = selectedOpp === opp;
+                        return (
+                          <div
+                            key={opp}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedOpp(null);
+                              } else {
+                                setSelectedOpp(opp);
+                                setCounterMemoText(data.counterMemos?.[opp] || "");
+                              }
+                            }}
+                            style={{
+                              display: "flex", flexDirection: "column", alignItems: "center",
+                              padding: "10px 6px", borderRadius: 10,
+                              background: isSelected ? T.accentSoft : T.inp,
+                              border: isSelected ? `1px solid ${T.accentBorder}` : "none",
+                              cursor: "pointer", opacity: 0.5,
+                            }}
+                          >
+                            <FighterIcon name={opp} size={28} />
+                            <div style={{ fontSize: 10, color: T.dim, marginTop: 4, textAlign: "center", lineHeight: 1.2 }}>
+                              {fighterName(opp, lang)}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
+                    {selectedOpp && !foughtSet.has(selectedOpp) && (
+                      <div style={{ ...cd, marginTop: 12, padding: "14px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                          <FighterIcon name={selectedOpp} size={28} />
+                          <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{fighterName(selectedOpp, lang)}</span>
+                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 6 }}>
+                          {t("analysis.counterMemo")}
+                        </div>
+                        <textarea
+                          value={counterMemoText}
+                          onChange={(e) => setCounterMemoText(e.target.value)}
+                          placeholder={t("battle.counterMemoPlaceholder")}
+                          rows={3}
+                          style={{
+                            width: "100%", padding: "10px 12px", background: T.inp,
+                            border: "none", borderRadius: 10, color: T.text, fontSize: 13,
+                            outline: "none", boxSizing: "border-box", resize: "none",
+                            fontFamily: "inherit", lineHeight: 1.6,
+                          }}
+                        />
+                        <button
+                          onClick={() => {
+                            onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [selectedOpp]: counterMemoText } });
+                            setSelectedOpp(null);
+                          }}
+                          style={{
+                            width: "100%", padding: "10px 0", marginTop: 8,
+                            border: "none", borderRadius: 10,
+                            background: T.accentGrad, color: "#fff",
+                            fontSize: 13, fontWeight: 700,
+                          }}
+                        >
+                          {t("battle.saveCounterMemo")}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+            );
+          })()}
         </div>
       )}
 

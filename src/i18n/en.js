@@ -58,6 +58,10 @@ export default {
     milestoneUnlocked: "MILESTONE UNLOCKED",
     shareError: "Failed",
     oppHistory: "Past Records",
+    counterMemo: "Counter Notes",
+    editCounterMemo: "Edit Counter Notes",
+    saveCounterMemo: "Save Counter Notes",
+    counterMemoPlaceholder: "Write counter strategies for this opponent...",
   },
   history: {
     dailyRecord: "Daily Records",
@@ -117,6 +121,10 @@ export default {
     noCharData: "Record battles to see fighter stats",
     noMatchupData: "Record battles to see matchups",
     others: "{n} more",
+    byMyChar: "By My Fighter",
+    byOppChar: "By Opponent",
+    counterMemo: "Counter Notes",
+    noCounterMemo: "No counter notes yet",
   },
   settings: {
     title: "Settings",

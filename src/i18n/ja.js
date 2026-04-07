@@ -58,6 +58,10 @@ export default {
     milestoneUnlocked: "MILESTONE UNLOCKED",
     shareError: "失敗",
     oppHistory: "の過去の記録",
+    counterMemo: "対策メモ",
+    editCounterMemo: "対策メモを編集",
+    saveCounterMemo: "対策メモを保存",
+    counterMemoPlaceholder: "この相手キャラへの対策を記入...",
   },
   history: {
     dailyRecord: "日別戦績",
@@ -117,6 +121,10 @@ export default {
     noCharData: "対戦を記録するとキャラ別の戦績が表示されます",
     noMatchupData: "対戦を記録するとマッチアップが表示されます",
     others: "他{n}件",
+    byMyChar: "使用キャラ別",
+    byOppChar: "相手キャラ別",
+    counterMemo: "対策メモ",
+    noCounterMemo: "対策メモはまだありません",
   },
   settings: {
     title: "設定",

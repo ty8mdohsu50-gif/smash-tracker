@@ -348,7 +348,7 @@ export default function App() {
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} T={T} />}
+            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} />}
           </div>
         </div>
       </div>
@@ -521,7 +521,7 @@ export default function App() {
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
-            {tabIdx === 2 && <AnalysisTab data={data} T={T} isPC />}
+            {tabIdx === 2 && <AnalysisTab data={data} onSave={sv} T={T} isPC />}
           </div>
         </div>
       </main>

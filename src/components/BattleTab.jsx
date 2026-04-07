@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { Trophy, X, ChevronUp, ChevronDown, Zap, Share2, Copy } from "lucide-react";
 import CharPicker from "./CharPicker";
+import Chart from "./Chart";
 import MatchRow from "./MatchRow";
 import MatchupBadge from "./MatchupBadge";
 import SharePopup from "./SharePopup";
@@ -41,6 +42,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   // editGoals state removed - goals always visible
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
+  const [showCounterEdit, setShowCounterEdit] = useState(false);
+  const [counterEditText, setCounterEditText] = useState("");
 
   const doShare = async (text) => {
     if (navigator.share) {
@@ -96,6 +99,12 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     const nm = [...data.matches];
     nm[nm.length - 1] = { ...nm[nm.length - 1], memo };
     onSave({ ...data, matches: nm });
+  };
+
+  const saveCounterMemo = () => {
+    if (!oppChar) return;
+    onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppChar]: counterEditText } });
+    setShowCounterEdit(false);
   };
 
   const saveGoals = () =>
@@ -260,6 +269,29 @@ export default function BattleTab({ data, onSave, T, isPC }) {
       }}
     />
   );
+
+  const todayPowerPoints = useMemo(() => {
+    const todayEntry = data.daily?.[today()];
+    const pts = [];
+    if (todayEntry?.start) {
+      pts.push({ date: today(), value: todayEntry.start, time: null });
+    }
+    tM.filter((m) => m.power).sort((a, b) => a.time.localeCompare(b.time)).forEach((m) => {
+      pts.push({ date: today(), value: m.power, time: m.time });
+    });
+    return pts;
+  }, [data, tM]);
+
+  const todayOppStats = useMemo(() => {
+    const stats = {};
+    tM.forEach((m) => {
+      if (!stats[m.oppChar]) stats[m.oppChar] = { w: 0, l: 0 };
+      m.result === "win" ? stats[m.oppChar].w++ : stats[m.oppChar].l++;
+    });
+    return Object.entries(stats).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l));
+  }, [tM]);
+
+  const todayMemos = useMemo(() => tM.filter((m) => m.memo), [tM]);
 
   const recentMatchList = tM.length === 0
     ? emptyMsg(t("battle.startMatching"))
@@ -695,6 +727,16 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           {oppChar && myChar && (
             <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
           )}
+          {oppChar && data.counterMemos?.[oppChar] && (
+            <div style={{ ...cd, padding: "12px 16px", marginTop: 8 }}>
+              <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 4 }}>
+                {t("battle.counterMemo")}
+              </div>
+              <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                {data.counterMemos[oppChar]}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1054,6 +1096,51 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             </div>
           )}
 
+          {oppChar && (
+            <div style={{ animation: "slideUp .3s ease .25s both" }}>
+              <button
+                onClick={() => {
+                  setCounterEditText(data.counterMemos?.[oppChar] || "");
+                  setShowCounterEdit(!showCounterEdit);
+                }}
+                style={{
+                  width: "100%", padding: "10px 16px", border: `1px solid ${T.brd}`,
+                  borderRadius: 10, background: T.card, color: T.sub,
+                  fontSize: 13, fontWeight: 600, textAlign: "left",
+                }}
+              >
+                {t("battle.editCounterMemo")}
+              </button>
+              {showCounterEdit && (
+                <div style={{ ...cd, marginTop: 8 }}>
+                  <textarea
+                    value={counterEditText}
+                    onChange={(e) => setCounterEditText(e.target.value)}
+                    placeholder={t("battle.counterMemoPlaceholder")}
+                    rows={3}
+                    style={{
+                      width: "100%", padding: "10px 12px", background: T.inp,
+                      border: "none", borderRadius: 10, color: T.text, fontSize: 13,
+                      outline: "none", boxSizing: "border-box", resize: "none",
+                      fontFamily: "inherit", lineHeight: 1.6,
+                    }}
+                  />
+                  <button
+                    onClick={saveCounterMemo}
+                    style={{
+                      width: "100%", padding: "10px 0", marginTop: 8,
+                      border: "none", borderRadius: 10,
+                      background: T.accentGrad, color: "#fff",
+                      fontSize: 13, fontWeight: 700,
+                    }}
+                  >
+                    {t("battle.saveCounterMemo")}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
             <button
               onClick={() => { saveMemo(); setNewMilestones([]); setPhase("fighting"); setShowOppPicker(false); }}
@@ -1245,9 +1332,17 @@ export default function BattleTab({ data, onSave, T, isPC }) {
 
           {/* Start button */}
           <button onClick={startBattle} disabled={!pStart || !myChar} style={activeBtn(!pStart || !myChar)}>{t("battle.startBattle")}</button>
+
+          {/* Recent matches below start button */}
+          <div style={{ ...cd, padding: "16px 20px", marginTop: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("battle.recent")}</div>
+            <div style={{ maxHeight: 280, overflowY: "auto" }}>
+              {recentMatchList}
+            </div>
+          </div>
         </div>
 
-        {/* Right column: recent matches */}
+        {/* Right column: today's power trend + matchup summary + memos */}
         <div
           style={{
             flex: 2, minWidth: 300, minHeight: 0, background: T.card, borderRadius: 20,
@@ -1256,11 +1351,53 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           }}
         >
           <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
-            <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 2 }}>
+              {t("analysis.trend")}（{t("analysis.today")}）
+            </div>
+            <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}</div>
           </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-            {recentMatchList}
+            {todayPowerPoints.length >= 2 ? (
+              <div style={{ marginBottom: 16 }}>
+                <Chart points={todayPowerPoints} T={T} isToday />
+              </div>
+            ) : (
+              <div style={{ background: T.inp, borderRadius: 12, padding: "16px", textAlign: "center", marginBottom: 16 }}>
+                <div style={{ fontSize: 12, color: T.dim }}>{t("analysis.enterPowerToSee")}</div>
+              </div>
+            )}
+
+            {todayOppStats.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
+                  {t("analysis.matchup")}
+                </div>
+                {todayOppStats.map(([opp, s]) => (
+                  <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6 }}>
+                    <FighterIcon name={opp} size={22} />
+                    <span style={{ fontSize: 13, color: T.text, fontWeight: 600, flex: 1 }}>{fighterName(opp, lang)}</span>
+                    <span style={{ fontSize: 13, fontWeight: 800 }}>
+                      <span style={{ color: T.win }}>{s.w}W</span>
+                      <span style={{ color: T.dimmer, margin: "0 2px" }}>:</span>
+                      <span style={{ color: T.lose }}>{s.l}L</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {todayMemos.length > 0 && (
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
+                  {t("battle.memo")}
+                </div>
+                {todayMemos.map((m, i) => (
+                  <div key={i} style={{ fontSize: 12, color: T.sub, paddingBottom: 4, lineHeight: 1.5 }}>
+                    ・{m.memo}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
@@ -1385,6 +1522,50 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                       <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 4 }}>{m.condition}</div>
                     </div>
                   ))}
+                </div>
+              )}
+              {oppChar && (
+                <div style={{ marginBottom: 12 }}>
+                  <button
+                    onClick={() => {
+                      setCounterEditText(data.counterMemos?.[oppChar] || "");
+                      setShowCounterEdit(!showCounterEdit);
+                    }}
+                    style={{
+                      width: "100%", padding: "10px 16px", border: `1px solid ${T.brd}`,
+                      borderRadius: 10, background: T.card, color: T.sub,
+                      fontSize: 13, fontWeight: 600, textAlign: "left",
+                    }}
+                  >
+                    {t("battle.editCounterMemo")}
+                  </button>
+                  {showCounterEdit && (
+                    <div style={{ ...cd, marginTop: 8 }}>
+                      <textarea
+                        value={counterEditText}
+                        onChange={(e) => setCounterEditText(e.target.value)}
+                        placeholder={t("battle.counterMemoPlaceholder")}
+                        rows={3}
+                        style={{
+                          width: "100%", padding: "10px 12px", background: T.inp,
+                          border: "none", borderRadius: 10, color: T.text, fontSize: 13,
+                          outline: "none", boxSizing: "border-box", resize: "none",
+                          fontFamily: "inherit", lineHeight: 1.6,
+                        }}
+                      />
+                      <button
+                        onClick={saveCounterMemo}
+                        style={{
+                          width: "100%", padding: "10px 0", marginTop: 8,
+                          border: "none", borderRadius: 10,
+                          background: T.accentGrad, color: "#fff",
+                          fontSize: 13, fontWeight: 700,
+                        }}
+                      >
+                        {t("battle.saveCounterMemo")}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               <div style={{ display: "flex", gap: 12, animation: "slideUp .3s ease .3s both" }}>
@@ -1554,16 +1735,66 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 {myChar && (
                   <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
                 )}
+                {data.counterMemos?.[oppChar] && (
+                  <div style={{ ...cd, padding: "12px 16px", marginTop: 8 }}>
+                    <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 4 }}>
+                      {t("battle.counterMemo")}
+                    </div>
+                    <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                      {data.counterMemos[oppChar]}
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           ) : (
             <>
               <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
-                <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>
+                  {t("analysis.trend")}（{t("analysis.today")}）
+                </div>
+                <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}</div>
               </div>
               <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-                {recentMatchList}
+                {todayPowerPoints.length >= 2 ? (
+                  <div style={{ marginBottom: 16 }}>
+                    <Chart points={todayPowerPoints} T={T} isToday />
+                  </div>
+                ) : (
+                  <div style={{ background: T.inp, borderRadius: 12, padding: "16px", textAlign: "center", marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, color: T.dim }}>{t("analysis.enterPowerToSee")}</div>
+                  </div>
+                )}
+                {todayOppStats.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
+                      {t("analysis.matchup")}
+                    </div>
+                    {todayOppStats.map(([opp, s]) => (
+                      <div key={opp} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6 }}>
+                        <FighterIcon name={opp} size={22} />
+                        <span style={{ fontSize: 13, color: T.text, fontWeight: 600, flex: 1 }}>{fighterName(opp, lang)}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800 }}>
+                          <span style={{ color: T.win }}>{s.w}W</span>
+                          <span style={{ color: T.dimmer, margin: "0 2px" }}>:</span>
+                          <span style={{ color: T.lose }}>{s.l}L</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {todayMemos.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>
+                      {t("battle.memo")}
+                    </div>
+                    {todayMemos.map((m, i) => (
+                      <div key={i} style={{ fontSize: 12, color: T.sub, paddingBottom: 4, lineHeight: 1.5 }}>
+                        ・{m.memo}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           )}
