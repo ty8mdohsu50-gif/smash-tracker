@@ -235,14 +235,14 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                             if (!nd.daily) nd.daily = {};
                             if (!nd.daily[histDate]) nd.daily[histDate] = {};
                             const day = nd.daily[histDate];
-                            if (editStart) day.start = Number(editStart);
-                            if (editEnd) day.end = Number(editEnd);
+                            if (editStart !== "") day.start = Number(editStart);
+                            if (editEnd !== "") day.end = Number(editEnd);
                             if (day.chars) {
                               const charKeys = Object.keys(day.chars);
                               if (charKeys.length > 0) {
                                 const firstChar = charKeys[0];
-                                if (editStart && !day.chars[firstChar].start) day.chars[firstChar].start = Number(editStart);
-                                if (editEnd) day.chars[firstChar].end = Number(editEnd);
+                                if (editStart !== "") day.chars[firstChar].start = Number(editStart);
+                                if (editEnd !== "") day.chars[firstChar].end = Number(editEnd);
                               }
                             }
                             onSave(nd);
@@ -400,13 +400,13 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                           if (!nd.daily) nd.daily = {};
                           if (!nd.daily[histDate]) nd.daily[histDate] = {};
                           const day = nd.daily[histDate];
-                          if (editStart) day.start = Number(editStart);
-                          if (editEnd) day.end = Number(editEnd);
+                          if (editStart !== "") day.start = Number(editStart);
+                          if (editEnd !== "") day.end = Number(editEnd);
                           if (day.chars) {
                             const ck = Object.keys(day.chars);
                             if (ck.length > 0) {
-                              if (editStart && !day.chars[ck[0]].start) day.chars[ck[0]].start = Number(editStart);
-                              if (editEnd) day.chars[ck[0]].end = Number(editEnd);
+                              if (editStart !== "") day.chars[ck[0]].start = Number(editStart);
+                              if (editEnd !== "") day.chars[ck[0]].end = Number(editEnd);
                             }
                           }
                           onSave(nd);
