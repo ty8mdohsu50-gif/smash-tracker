@@ -258,11 +258,9 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
                 fontSize: 14, fontWeight: 600,
               }}
             >
-              <option value="0">0:00</option>
-              <option value="3">3:00</option>
-              <option value="4">4:00</option>
-              <option value="5">5:00</option>
-              <option value="6">6:00</option>
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={String(i)}>{i}:00</option>
+              ))}
             </select>
           </div>
 

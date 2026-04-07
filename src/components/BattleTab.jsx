@@ -339,9 +339,9 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
               </div>
             )}
             {pwrDelta !== null ? (
-              statBox("戦闘力変動", `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}`, pwrDelta >= 0 ? T.win : T.lose)
+              statBox(t("battle.powerDelta"), `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}`, pwrDelta >= 0 ? T.win : T.lose)
             ) : todayDaily.start ? (
-              statBox("戦闘力", numFormat(todayDaily.start), T.text)
+              statBox(t("battle.power"), numFormat(todayDaily.start), T.text)
             ) : null}
           </div>
         </div>

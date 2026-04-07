@@ -72,85 +72,77 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
         <div style={{ padding: "20px 24px 28px", overflowY: "auto", flex: 1 }}>
 
           {section(null,
-            text("SMASH TRACKER（スマトラ）は、大乱闘スマッシュブラザーズ SPECIAL の対戦戦績を記録・分析するための無料Webアプリです。日々の対戦を記録して、自分のプレイを振り返り、強くなるためのツールとして活用してください。")
+            text(t("about.description"))
           )}
 
-          {section("非公式ツールについて",
-            text("本サービスは個人が開発した非公式のファンツールです。任天堂株式会社、およびその関連会社・パートナーとは一切関係がなく、これらの企業による承認・推奨・スポンサーシップを受けていません。「大乱闘スマッシュブラザーズ」および関連するゲームタイトル・キャラクター名称は任天堂株式会社の登録商標です。")
+          {section(t("about.unofficial"),
+            text(t("about.unofficialDesc"))
           )}
 
-          {section("使い方", <>
+          {section(t("about.howToUse"), (
             <div style={{ fontSize: 13, color: T.sub, lineHeight: 2 }}>
-              <div style={{ fontWeight: 600, color: T.text, marginBottom: 4 }}>1. 対戦を記録する</div>
-              使用キャラと戦闘力を入力して「対戦開始」。相手キャラを選んで勝ち/負けを記録します。
-              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>2. 分析する</div>
-              「分析」タブでキャラ別勝率、マッチアップ、戦闘力推移、対戦ヒートマップなどを確認できます。
-              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>3. シェアする</div>
-              対戦結果や戦闘力推移をX（Twitter）やLINEでシェアできます。
-              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>4. クラウド同期</div>
-              ログインすると、データがクラウドに保存され、スマホとPCなど複数の端末で利用できます。
+              <div style={{ fontWeight: 600, color: T.text, marginBottom: 4 }}>{t("about.howStep1Title")}</div>
+              {t("about.howStep1Desc")}
+              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>{t("about.howStep2Title")}</div>
+              {t("about.howStep2Desc")}
+              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>{t("about.howStep3Title")}</div>
+              {t("about.howStep3Desc")}
+              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>{t("about.howStep4Title")}</div>
+              {t("about.howStep4Desc")}
             </div>
-          </>)}
+          ))}
 
-          {section("主な機能", <>
+          {section(t("about.features"), (
             <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {[
-                "対戦記録（使用キャラ、相手キャラ、勝敗、戦闘力、メモ）",
-                "キャラ別勝率・マッチアップ分析",
-                "戦闘力の推移グラフ（日単位 / 試合単位）",
-                "日別・時間帯別の戦績分析",
-                "対戦ヒートマップ（GitHub風カレンダー）",
-                "SNSシェア機能（X, LINE, テキストコピー）",
-                "VIP到達記録",
-                "クラウドデータ同期（Google / メール認証）",
-                "多言語対応（日本語・English）",
-                "PWA対応（ホーム画面に追加可能）",
-                "CSVエクスポート",
-              ].map((item, i) => (
+              {t("about.featureList").map((item, i) => (
                 <li key={i} style={{ fontSize: 13, color: T.sub, lineHeight: 1.8 }}>
-                  ・{item}
+                  {item}
                 </li>
               ))}
             </ul>
-          </>)}
+          ))}
 
-          {section("利用規約・プライバシーポリシー", <>
-            <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.8, marginBottom: 12 }}>
-              本サービスのご利用にあたっては、利用規約およびプライバシーポリシーに同意いただく必要があります。
-            </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                onClick={() => { onClose(); if (onOpenLegal) onOpenLegal("terms"); }}
-                style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.card, color: T.accent, fontSize: 13, fontWeight: 600 }}
-              >
-                利用規約
-              </button>
-              <button
-                onClick={() => { onClose(); if (onOpenLegal) onOpenLegal("privacy"); }}
-                style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.card, color: T.accent, fontSize: 13, fontWeight: 600 }}
-              >
-                プライバシーポリシー
-              </button>
-            </div>
-          </>)}
+          {section(t("about.legalSection"), (
+            <>
+              <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.8, marginBottom: 12 }}>
+                {t("about.legalDesc")}
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => { onClose(); if (onOpenLegal) onOpenLegal("terms"); }}
+                  style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.card, color: T.accent, fontSize: 13, fontWeight: 600 }}
+                >
+                  {t("about.terms")}
+                </button>
+                <button
+                  onClick={() => { onClose(); if (onOpenLegal) onOpenLegal("privacy"); }}
+                  style={{ padding: "8px 16px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.card, color: T.accent, fontSize: 13, fontWeight: 600 }}
+                >
+                  {t("about.privacy")}
+                </button>
+              </div>
+            </>
+          ))}
 
-          {section("お問い合わせ", <>
-            <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.8, marginBottom: 10 }}>
-              バグ報告、機能要望、データ削除依頼など、お気軽にお問い合わせください。
-            </div>
-            <a
-              href="https://forms.gle/KtoWRKo1ciJNd7eS9"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block", padding: "8px 20px", borderRadius: 8,
-                background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700,
-                textDecoration: "none",
-              }}
-            >
-              お問い合わせフォーム
-            </a>
-          </>)}
+          {section(t("about.contactSection"), (
+            <>
+              <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.8, marginBottom: 10 }}>
+                {t("about.contactDesc")}
+              </div>
+              <a
+                href="https://forms.gle/KtoWRKo1ciJNd7eS9"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-block", padding: "8px 20px", borderRadius: 8,
+                  background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700,
+                  textDecoration: "none",
+                }}
+              >
+                {t("about.contactForm")}
+              </a>
+            </>
+          ))}
 
         </div>
 

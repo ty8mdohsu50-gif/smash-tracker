@@ -206,6 +206,8 @@ https://forms.gle/KtoWRKo1ciJNd7eS9
   },
 ];
 
+import { useI18n } from "../i18n/index.jsx";
+
 function SectionBlock({ title, content, T }) {
   return (
     <div
@@ -243,9 +245,10 @@ function SectionBlock({ title, content, T }) {
 }
 
 export default function LegalPage({ T, onClose, page }) {
+  const { t } = useI18n();
   const isTerms = page === "terms";
 
-  const title = isTerms ? "利用規約" : "プライバシーポリシー";
+  const title = isTerms ? t("settings.terms") : t("settings.privacy");
   const sections = isTerms ? TERMS_SECTIONS : PRIVACY_SECTIONS;
 
   return (
@@ -308,7 +311,7 @@ export default function LegalPage({ T, onClose, page }) {
                 {title}
               </div>
               <div style={{ fontSize: 11, color: T.dim, marginTop: 3 }}>
-                施行日: 2026年4月6日
+                {t("legal.effectiveDate")}
               </div>
             </div>
             <button
@@ -328,7 +331,7 @@ export default function LegalPage({ T, onClose, page }) {
                 flexShrink: 0,
                 marginLeft: 12,
               }}
-              aria-label="閉じる"
+              aria-label={t("legal.close")}
             >
               x
             </button>
@@ -354,10 +357,10 @@ export default function LegalPage({ T, onClose, page }) {
               }}
             >
               <div style={{ fontSize: 13, color: T.text, fontWeight: 600, marginBottom: 4 }}>
-                はじめにお読みください
+                {t("legal.readFirst")}
               </div>
               <div style={{ fontSize: 12, color: T.sub, lineHeight: 1.7 }}>
-                本規約は、SMASH TRACKERをご利用いただくすべての方に適用されます。本サービスをご利用いただくことで、本規約に同意いただいたものとみなします。
+                {t("legal.readFirstDesc")}
               </div>
             </div>
           )}
@@ -382,7 +385,7 @@ export default function LegalPage({ T, onClose, page }) {
               }}
             >
               <div style={{ fontSize: 12, color: T.sub, lineHeight: 1.7 }}>
-                本ポリシーにご不明な点がございましたら、<a href="https://forms.gle/KtoWRKo1ciJNd7eS9" target="_blank" rel="noopener noreferrer" style={{ color: T.accent, fontWeight: 700 }}>お問い合わせフォーム</a>よりお気軽にご連絡ください。
+                {t("legal.privacyNote")}<a href="https://forms.gle/KtoWRKo1ciJNd7eS9" target="_blank" rel="noopener noreferrer" style={{ color: T.accent, fontWeight: 700 }}>{t("legal.privacyNoteLink")}</a>{t("legal.privacyNoteEnd")}
               </div>
             </div>
           )}
@@ -411,7 +414,7 @@ export default function LegalPage({ T, onClose, page }) {
               letterSpacing: "0.01em",
             }}
           >
-            閉じる
+            {t("legal.close")}
           </button>
         </div>
       </div>

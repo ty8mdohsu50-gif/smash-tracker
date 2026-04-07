@@ -28,6 +28,8 @@ export default function AnalysisTab({ data, T, isPC }) {
   const [expandedOpp, setExpandedOpp] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
   const [shareImageUrl, setShareImageUrl] = useState(null);
+  const [expandedRolling, setExpandedRolling] = useState(null);
+  const [expandedHour, setExpandedHour] = useState(null);
 
   const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
   const totalL = data.matches.length - totalW;
@@ -936,7 +938,7 @@ export default function AnalysisTab({ data, T, isPC }) {
           >
             {t("analysis.recentWinRate")}
           </div>
-          <div style={{ display: "flex", gap: isPC ? 16 : 8, marginBottom: isPC ? 20 : 14 }}>
+          <div style={{ display: "flex", gap: isPC ? 16 : 8, marginBottom: isPC ? 12 : 8 }}>
             {[20, 50].filter((n) => {
               if (n === 50 && data.matches.length <= 20) return false;
               return true;
@@ -944,6 +946,7 @@ export default function AnalysisTab({ data, T, isPC }) {
               const d = rolling[n];
               const r = d.t ? d.w / d.t : 0;
               const label = `${t("battle.recentLabel")} ${d.t}${t("analysis.battles")}`;
+              const isExpanded = expandedRolling === n;
               return (
                 <div
                   key={n}
@@ -953,7 +956,10 @@ export default function AnalysisTab({ data, T, isPC }) {
                     marginBottom: 0,
                     padding: "14px 16px",
                     textAlign: "center",
+                    cursor: "pointer",
+                    outline: isExpanded ? `2px solid ${T.accent}` : "none",
                   }}
+                  onClick={() => setExpandedRolling(isExpanded ? null : n)}
                 >
                   <div
                     style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}
@@ -981,6 +987,54 @@ export default function AnalysisTab({ data, T, isPC }) {
               );
             })}
           </div>
+          {expandedRolling !== null && (() => {
+            const matches = data.matches.slice(-expandedRolling).reverse();
+            return (
+              <div
+                style={{
+                  ...cd,
+                  marginBottom: isPC ? 20 : 14,
+                  padding: "10px 14px",
+                  maxHeight: 240,
+                  overflowY: "auto",
+                }}
+              >
+                {matches.map((m, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "5px 0",
+                      borderBottom: i < matches.length - 1 ? `1px solid ${T.inp}` : "none",
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
+                      {formatDate(m.date)}
+                    </span>
+                    <FighterIcon name={m.myChar} size={20} />
+                    <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
+                    <FighterIcon name={m.oppChar} size={20} />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        flexShrink: 0,
+                        marginLeft: "auto",
+                        background: m.result === "win" ? T.winBg : T.loseBg,
+                        color: m.result === "win" ? T.win : T.lose,
+                      }}
+                    >
+                      {m.result === "win" ? t("common.win") : t("common.lose")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           <div
             style={{
@@ -1005,53 +1059,111 @@ export default function AnalysisTab({ data, T, isPC }) {
                 {t("analysis.noData")}
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)",
-                  gap: 6,
-                }}
-              >
-                {Object.entries(hourlyStats)
-                  .sort((a, b) => Number(a[0]) - Number(b[0]))
-                  .map(([hr, d]) => {
-                    const r = d.w / (d.w + d.l);
-                    return (
-                      <div
-                        key={hr}
-                        style={{
-                          textAlign: "center",
-                          padding: "8px 4px",
-                          borderRadius: 10,
-                          background: T.inp,
-                        }}
-                      >
+              <>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)",
+                    gap: 6,
+                  }}
+                >
+                  {Object.entries(hourlyStats)
+                    .sort((a, b) => Number(a[0]) - Number(b[0]))
+                    .map(([hr, d]) => {
+                      const r = d.w / (d.w + d.l);
+                      const hrNum = Number(hr);
+                      const isExpanded = expandedHour === hrNum;
+                      return (
                         <div
+                          key={hr}
+                          onClick={() => setExpandedHour(isExpanded ? null : hrNum)}
                           style={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: T.text,
+                            textAlign: "center",
+                            padding: "8px 4px",
+                            borderRadius: 10,
+                            background: isExpanded ? T.accentSoft : T.inp,
+                            cursor: "pointer",
+                            outline: isExpanded ? `2px solid ${T.accentBorder}` : "none",
                           }}
                         >
-                          {hr}{t("analysis.hour")}
+                          <div
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: isExpanded ? T.accent : T.text,
+                            }}
+                          >
+                            {hr}{t("analysis.hour")}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 16,
+                              fontWeight: 800,
+                              color: barColor(r),
+                              marginTop: 2,
+                            }}
+                          >
+                            {percentStr(d.w, d.w + d.l)}
+                          </div>
+                          <div style={{ fontSize: 10, color: T.dim }}>
+                            {d.w + d.l}{t("analysis.battles")}
+                          </div>
                         </div>
+                      );
+                    })}
+                </div>
+                {expandedHour !== null && (() => {
+                  const matches = data.matches
+                    .filter((m) => formatHour(m.time) === expandedHour)
+                    .slice()
+                    .reverse();
+                  return (
+                    <div
+                      style={{
+                        marginTop: 10,
+                        borderTop: `1px solid ${T.brd}`,
+                        paddingTop: 10,
+                        maxHeight: 240,
+                        overflowY: "auto",
+                      }}
+                    >
+                      {matches.map((m, i) => (
                         <div
+                          key={i}
                           style={{
-                            fontSize: 16,
-                            fontWeight: 800,
-                            color: barColor(r),
-                            marginTop: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "5px 0",
+                            borderBottom: i < matches.length - 1 ? `1px solid ${T.inp}` : "none",
                           }}
                         >
-                          {percentStr(d.w, d.w + d.l)}
+                          <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
+                            {formatDate(m.date)}
+                          </span>
+                          <FighterIcon name={m.myChar} size={20} />
+                          <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
+                          <FighterIcon name={m.oppChar} size={20} />
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: "2px 8px",
+                              borderRadius: 6,
+                              flexShrink: 0,
+                              marginLeft: "auto",
+                              background: m.result === "win" ? T.winBg : T.loseBg,
+                              color: m.result === "win" ? T.win : T.lose,
+                            }}
+                          >
+                            {m.result === "win" ? t("common.win") : t("common.lose")}
+                          </span>
                         </div>
-                        <div style={{ fontSize: 10, color: T.dim }}>
-                          {d.w + d.l}{t("analysis.battles")}
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </>
             )}
           </div>
         </div>
