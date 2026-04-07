@@ -466,6 +466,26 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode, on
             </div>
           </div>
 
+          {/* Char memo */}
+          <div style={{ ...cd, padding: "12px 16px" }}>
+            <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>
+              {fighterName(charDetail, lang)} {t("battle.charMemo")}
+            </div>
+            <textarea
+              value={data.charMemos?.[charDetail] || ""}
+              onChange={(e) => {
+                onSave({ ...data, charMemos: { ...(data.charMemos || {}), [charDetail]: e.target.value } });
+              }}
+              placeholder={t("battle.charMemoPlaceholder")}
+              rows={2}
+              style={{
+                width: "100%", padding: "8px 10px", background: T.inp, border: "none",
+                borderRadius: 8, color: T.text, fontSize: 13, outline: "none",
+                boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+              }}
+            />
+          </div>
+
           {/* Tab switcher */}
           <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
             {[["matchup", t("analysis.vsOpponent")], ["daily", t("analysis.dailyRecord")]].map(([k, l]) => (
@@ -770,6 +790,25 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode, on
                       </div>
                     ) : (
                       <div>
+                        {/* Char memo */}
+                        <div style={{ ...cd, padding: "12px 16px" }}>
+                          <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>
+                            {fighterName(charDetail, lang)} {t("battle.charMemo")}
+                          </div>
+                          <textarea
+                            value={data.charMemos?.[charDetail] || ""}
+                            onChange={(e) => {
+                              onSave({ ...data, charMemos: { ...(data.charMemos || {}), [charDetail]: e.target.value } });
+                            }}
+                            placeholder={t("battle.charMemoPlaceholder")}
+                            rows={2}
+                            style={{
+                              width: "100%", padding: "8px 10px", background: T.inp, border: "none",
+                              borderRadius: 8, color: T.text, fontSize: 13, outline: "none",
+                              boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                            }}
+                          />
+                        </div>
                         <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 } : undefined}>
                           {charMatchups.slice().sort((a, b) => {
                             const ra = a.t ? a.w / a.t : 0;

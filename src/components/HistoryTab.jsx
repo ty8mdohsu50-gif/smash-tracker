@@ -468,7 +468,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                         <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.oppChar} size={30} />{fighterName(m.oppChar, lang)}</span></td>
                         <td style={{ ...tdStyle, color: T.dim, fontSize: 13 }}>{formatTime(m.time)}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13 }}>{m.power ? numFormat(m.power) : "\u2014"}</td>
-                        <td style={{ ...tdStyle, color: T.sub, fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>{m.memo || "\u2014"}</td>
+                        <td style={{ ...tdStyle, color: T.sub, fontSize: 13, whiteSpace: "normal" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
                           <button onClick={() => { if (window.confirm(t("common.deleteConfirm"))) deleteMatch(e.idx); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
                         </td>

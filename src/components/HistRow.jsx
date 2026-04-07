@@ -16,7 +16,7 @@ export default function HistRow({ m, onDelete, T }) {
         border: T.brd !== "transparent" ? `1px solid ${T.brd}` : "none",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
         <span
           style={{
             width: 40,
@@ -32,40 +32,16 @@ export default function HistRow({ m, onDelete, T }) {
         >
           {m.result === "win" ? "WIN" : "LOSE"}
         </span>
-        <FighterIcon name={m.myChar} size={26} />
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: T.text,
-            width: 56,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-          }}
-        >
-          {shortName(m.myChar, lang)}
-        </span>
-        <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>vs</span>
-        <FighterIcon name={m.oppChar} size={26} />
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: T.text,
-            width: 56,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-          }}
-        >
-          {shortName(m.oppChar, lang)}
-        </span>
-        <span style={{ fontSize: 10, color: T.dim, flexShrink: 0, marginLeft: "auto" }}>
-          {formatTime(m.time)}
-        </span>
+        <FighterIcon name={m.oppChar} size={22} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{shortName(m.oppChar, lang)}</span>
+            <span style={{ fontSize: 10, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
+          </div>
+          {m.memo && (
+            <div style={{ fontSize: 12, color: T.sub, marginTop: 2, lineHeight: 1.4 }}>{m.memo}</div>
+          )}
+        </div>
         {onDelete && (
           <button
             onClick={() => { if (window.confirm(t("common.deleteConfirm"))) onDelete(); }}
@@ -84,11 +60,6 @@ export default function HistRow({ m, onDelete, T }) {
           </button>
         )}
       </div>
-      {m.memo && (
-        <div style={{ fontSize: 11, color: T.sub, marginTop: 3, paddingLeft: 46 }}>
-          {m.memo}
-        </div>
-      )}
     </div>
   );
 }
