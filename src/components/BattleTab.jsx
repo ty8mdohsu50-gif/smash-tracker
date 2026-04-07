@@ -19,6 +19,7 @@ import {
   numFormat,
   percentStr,
   barColor,
+  formatTime,
   blurOnEnter,
   getStreak,
   recentChars,
@@ -1709,31 +1710,44 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                     }}
                   />
                 </div>
-                {/* Past memos */}
+                {/* Past matches as unified log */}
                 {(() => {
-                  const pastMemos = data.matches
-                    .filter((m) => m.myChar === myChar && m.oppChar === oppChar && m.memo)
+                  const pastMatches = data.matches
+                    .filter((m) => m.myChar === myChar && m.oppChar === oppChar)
                     .slice().reverse();
-                  if (pastMemos.length === 0) return null;
+                  if (pastMatches.length === 0) return null;
+                  const w = pastMatches.filter((m) => m.result === "win").length;
+                  const l = pastMatches.length - w;
+                  const rate = pastMatches.length ? w / pastMatches.length : 0;
                   return (
-                    <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.memo")}</div>
-                      <div style={{ maxHeight: 160, overflowY: "auto" }}>
-                        {pastMemos.map((m, i) => (
-                          <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "4px 0", borderBottom: `1px solid ${T.inp}` }}>
-                            <span style={{ color: T.dim, fontSize: 10, marginRight: 6 }}>{formatDateShort(m.date)}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
-                            {m.memo}
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                        <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{pastMatches.length}{t("common.matches")} {w}W {l}L</span>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: barColor(rate), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, pastMatches.length)}</span>
+                      </div>
+                      <div style={{ maxHeight: 240, overflowY: "auto" }}>
+                        {pastMatches.map((m, i) => (
+                          <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{
+                                width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800,
+                                background: m.result === "win" ? T.winBg : T.loseBg,
+                                color: m.result === "win" ? T.win : T.lose,
+                              }}>
+                                {m.result === "win" ? "WIN" : "LOSE"}
+                              </span>
+                              <span style={{ fontSize: 11, color: T.dim }}>{formatDateShort(m.date)}</span>
+                              <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>
+                            </div>
+                            {m.memo && (
+                              <div style={{ fontSize: 12, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>
+                            )}
                           </div>
                         ))}
                       </div>
                     </div>
                   );
                 })()}
-                {/* Matchup stats (no toggle, always open) */}
-                {myChar && (
-                  <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
-                )}
               </div>
             </>
           ) : (
