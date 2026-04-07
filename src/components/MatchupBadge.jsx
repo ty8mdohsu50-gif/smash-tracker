@@ -1,10 +1,13 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import FighterIcon from "./FighterIcon";
 import { fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
+import { formatDateShort, formatTime } from "../utils/format";
 
 export default function MatchupBadge({ myChar, oppChar, matches, T }) {
   const { t, lang } = useI18n();
+  const [expanded, setExpanded] = useState(false);
+
   const stats = useMemo(() => {
     const ms = matches.filter(
       (m) => m.myChar === myChar && m.oppChar === oppChar,
@@ -12,7 +15,12 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
     const w = ms.filter((m) => m.result === "win").length;
     const l = ms.length - w;
     const recent = ms.slice(-5).map((m) => m.result);
-    return { w, l, t: ms.length, recent };
+    const history = ms.slice(-5).reverse().map((m) => ({
+      date: m.date,
+      result: m.result,
+      time: m.time,
+    }));
+    return { w, l, t: ms.length, recent, history };
   }, [matches, myChar, oppChar]);
 
   if (stats.t === 0) {
@@ -52,7 +60,13 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
         boxShadow: T.sh,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          width: "100%", background: "transparent", border: "none", padding: 0, cursor: "pointer",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <FighterIcon name={oppChar} size={32} />
           <div>
@@ -62,20 +76,23 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
             </div>
           </div>
         </div>
-        <div
-          style={{
-            padding: "4px 12px",
-            borderRadius: 8,
-            background: rateBg,
-            color: rateColor,
-            fontSize: 16,
-            fontWeight: 800,
-            fontFamily: "'Chakra Petch', sans-serif",
-          }}
-        >
-          {pct}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div
+            style={{
+              padding: "4px 12px",
+              borderRadius: 8,
+              background: rateBg,
+              color: rateColor,
+              fontSize: 16,
+              fontWeight: 800,
+              fontFamily: "'Chakra Petch', sans-serif",
+            }}
+          >
+            {pct}
+          </div>
+          <span style={{ fontSize: 14, color: T.dim, lineHeight: 1 }}>{expanded ? "▲" : "▼"}</span>
         </div>
-      </div>
+      </button>
 
       {/* Win rate bar */}
       <div
@@ -119,6 +136,40 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
               }}
             >
               {r === "win" ? "W" : "L"}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Expanded history */}
+      {expanded && stats.history.length > 0 && (
+        <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
+          {stats.history.map((h, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "5px 0",
+                borderBottom: i < stats.history.length - 1 ? `1px solid ${T.inp}` : "none",
+              }}
+            >
+              <div style={{ fontSize: 12, color: T.dim }}>
+                {formatDateShort(h.date)}
+                {h.time ? <span style={{ marginLeft: 6 }}>{formatTime(h.time)}</span> : null}
+              </div>
+              <div
+                style={{
+                  padding: "2px 10px",
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  background: h.result === "win" ? T.winBg : T.loseBg,
+                  color: h.result === "win" ? T.win : T.lose,
+                  fontFamily: "'Chakra Petch', sans-serif",
+                }}
+              >
+                {h.result === "win" ? "WIN" : "LOSE"}
+              </div>
             </div>
           ))}
         </div>

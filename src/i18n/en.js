@@ -150,6 +150,8 @@ export default {
     terms: "Terms of Service",
     privacy: "Privacy Policy",
     language: "Language",
+    dayBoundary: "Day boundary",
+    dayBoundaryDesc: "Matches before this time count as the previous day",
   },
   auth: {
     login: "Log In",

@@ -22,6 +22,9 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [dayBoundary, setDayBoundary] = useState(
+    () => localStorage.getItem("smash-day-boundary") || "5",
+  );
 
   const currentColor = data.themeColor || "black";
 
@@ -233,6 +236,34 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Day boundary */}
+          <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: T.text, marginBottom: 4 }}>
+              {t("settings.dayBoundary")}
+            </div>
+            <div style={{ fontSize: 12, color: T.dim, marginBottom: 10 }}>
+              {t("settings.dayBoundaryDesc")}
+            </div>
+            <select
+              value={dayBoundary}
+              onChange={(e) => {
+                setDayBoundary(e.target.value);
+                localStorage.setItem("smash-day-boundary", e.target.value);
+              }}
+              style={{
+                width: "100%", padding: "10px 12px", borderRadius: 10,
+                border: `1px solid ${T.brd}`, background: T.inp, color: T.text,
+                fontSize: 14, fontWeight: 600,
+              }}
+            >
+              <option value="0">0:00</option>
+              <option value="3">3:00</option>
+              <option value="4">4:00</option>
+              <option value="5">5:00</option>
+              <option value="6">6:00</option>
+            </select>
           </div>
 
           {/* Language */}

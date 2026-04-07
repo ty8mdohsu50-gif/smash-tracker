@@ -288,13 +288,13 @@ export default function App() {
               <button
                 onClick={() => setAboutPage(true)}
                 style={{
-                  width: 36, height: 36, border: "none", background: T.inp,
-                  borderRadius: 10, fontSize: 16, fontWeight: 700,
+                  border: "none", background: T.inp,
+                  borderRadius: 10, fontSize: 11, fontWeight: 700,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: T.sub,
+                  color: T.sub, padding: "6px 12px", height: 36,
                 }}
               >
-                ?
+                {t("about.siteAbout")}
               </button>
               <button
                 onClick={() => setShowSettings(true)}

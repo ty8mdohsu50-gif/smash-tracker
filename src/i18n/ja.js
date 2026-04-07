@@ -150,6 +150,8 @@ export default {
     terms: "利用規約",
     privacy: "プライバシーポリシー",
     language: "言語",
+    dayBoundary: "1日の区切り",
+    dayBoundaryDesc: "この時刻より前の対戦は前日扱いになります",
   },
   auth: {
     login: "ログイン",

@@ -1,6 +1,11 @@
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
 
-export const today = () => new Date().toISOString().split("T")[0];
+export const today = () => {
+  const offset = parseInt(localStorage.getItem("smash-day-boundary") || "5", 10);
+  const d = new Date();
+  d.setHours(d.getHours() - offset);
+  return d.toISOString().split("T")[0];
+};
 
 export const formatDate = (d) => {
   const p = d.split("-");

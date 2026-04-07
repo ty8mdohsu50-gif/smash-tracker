@@ -12,6 +12,9 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   const [histDate, setHistDate] = useState(null);
   const [shareStatus, setShareStatus] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
+  const [editingPower, setEditingPower] = useState(false);
+  const [editStart, setEditStart] = useState("");
+  const [editEnd, setEditEnd] = useState("");
 
   const doShare = async (text) => {
     if (navigator.share) {
@@ -157,7 +160,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
         ) : (
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <button onClick={() => setHistDate(null)} style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10 }}>{t("history.back")}</button>
+              <button onClick={() => { setHistDate(null); setEditingPower(false); }} style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10 }}>{t("history.back")}</button>
               <button
                 onClick={() => shareDay(histDate, selDay)}
                 style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}
@@ -167,7 +170,86 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
               </button>
             </div>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.text }}>{formatDateLong(histDate)}</div>
-            {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 16 }}>{selDay.length}{t("common.matches")} · <span style={{ color: T.win, fontWeight: 700 }}>{w}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
+            {(() => { const w = selDay.filter((m) => m.result === "win").length; return <div style={{ fontSize: 14, color: T.sub, marginTop: 4, marginBottom: 12 }}>{selDay.length}{t("common.matches")} · <span style={{ color: T.win, fontWeight: 700 }}>{w}W</span> - <span style={{ color: T.lose, fontWeight: 700 }}>{selDay.length - w}L</span> · {percentStr(w, selDay.length)}</div>; })()}
+            {/* Power edit section */}
+            {(() => {
+              const dp = data.daily?.[histDate] || {};
+              const ps = getDayPowerSummary(dp);
+              return (
+                <div style={{ background: T.card, borderRadius: 12, padding: "12px 14px", marginBottom: 14, border: `1px solid ${T.brd}`, boxShadow: T.sh }}>
+                  {!editingPower ? (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: T.dim, marginBottom: 4 }}>{t("battle.power")}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>
+                          {ps.start ? numFormat(ps.start) : t("analysis.noData")}
+                          {ps.end ? <span style={{ color: T.dim }}> → {numFormat(ps.end)}</span> : null}
+                          {ps.start && ps.end ? (
+                            <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 700, color: (ps.end - ps.start) >= 0 ? T.win : T.lose }}>
+                              {(ps.end - ps.start) >= 0 ? "+" : ""}{numFormat(ps.end - ps.start)}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { setEditStart(ps.start ? String(ps.start) : ""); setEditEnd(ps.end ? String(ps.end) : ""); setEditingPower(true); }}
+                        style={{ background: T.inp, border: "none", color: T.sub, fontSize: 12, fontWeight: 600, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}
+                      >
+                        {t("battle.change")}
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ fontSize: 11, color: T.dim, marginBottom: 8 }}>{t("battle.power")}</div>
+                      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 11, color: T.dim, marginBottom: 4 }}>{t("battle.powerStart")}</div>
+                          <input
+                            type="number"
+                            value={editStart}
+                            onChange={(e) => setEditStart(e.target.value)}
+                            placeholder="0"
+                            style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.inp, color: T.text, fontSize: 14, fontWeight: 600, boxSizing: "border-box" }}
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 11, color: T.dim, marginBottom: 4 }}>{t("battle.powerCurrent")}</div>
+                          <input
+                            type="number"
+                            value={editEnd}
+                            onChange={(e) => setEditEnd(e.target.value)}
+                            placeholder="0"
+                            style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: `1px solid ${T.brd}`, background: T.inp, color: T.text, fontSize: 14, fontWeight: 600, boxSizing: "border-box" }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          onClick={() => setEditingPower(false)}
+                          style={{ flex: 1, padding: "8px 0", border: `1px solid ${T.brd}`, borderRadius: 8, background: "transparent", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                        >
+                          {t("settings.cancel")}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const nd = { ...data };
+                            if (!nd.daily) nd.daily = {};
+                            if (!nd.daily[histDate]) nd.daily[histDate] = {};
+                            if (editStart) nd.daily[histDate].start = Number(editStart);
+                            if (editEnd) nd.daily[histDate].end = Number(editEnd);
+                            onSave(nd);
+                            setEditingPower(false);
+                          }}
+                          style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 8, background: T.accent, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                        >
+                          {t("battle.record")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             {selDayWithIdx.map((e, i) => <HistRow key={i} m={e.m} onDelete={() => deleteMatch(e.idx)} T={T} />)}
           </div>
         )}

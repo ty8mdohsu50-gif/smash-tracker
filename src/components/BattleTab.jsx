@@ -1094,7 +1094,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
       {!isPC && phase === "setup" && (
         <div style={{ marginTop: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("battle.recent")}</div>
-          <div style={{ maxHeight: 300, overflowY: "auto" }}>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
             {recentMatchList}
           </div>
         </div>
