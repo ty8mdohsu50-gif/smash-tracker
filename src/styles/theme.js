@@ -30,7 +30,7 @@ function buildLight(accent) {
     text: "#1E293B",
     sub: "#64748B",
     dim: "#94A3B8",
-    dimmer: "#CBD5E1",
+    dimmer: "#A0AEC0",
     inp: isNeutral ? "#F3F4F6" : hsl(h, 40, 95),
     hdr: "rgba(255,255,255,0.85)",
     tBg: isNeutral

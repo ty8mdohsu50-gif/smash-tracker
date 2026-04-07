@@ -10,7 +10,6 @@ import { formatDateLong, formatTime, numFormat, percentStr, barColor, getDayPowe
 export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
   const { t, lang } = useI18n();
   const [histDate, setHistDate] = useState(null);
-  const [shareStatus, setShareStatus] = useState(null);
   const [sharePopupText, setSharePopupText] = useState(null);
   const [editingPower, setEditingPower] = useState(false);
   const [editStart, setEditStart] = useState("");
@@ -166,7 +165,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                 style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}
               >
                 <Share2 size={14} />
-                {shareStatus === "copied" ? t("battle.copied") : t("battle.share")}
+                {t("battle.share")}
               </button>
             </div>
             <div style={{ fontSize: 20, fontWeight: 800, color: T.text }}>{formatDateLong(histDate)}</div>
@@ -354,7 +353,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                 style={{ background: T.inp, border: "none", color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 16px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
               >
                 <Share2 size={14} />
-                {shareStatus === "copied" ? t("battle.copied") : t("battle.share")}
+                {t("battle.share")}
               </button>
             </div>
 
@@ -435,6 +434,7 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                     <th style={thStyle}>{t("history.myChar")}</th>
                     <th style={thStyle}>{t("history.oppChar")}</th>
                     <th style={thStyle}>{t("history.time")}</th>
+                    <th style={thStyle}>{t("battle.power")}</th>
                     <th style={thStyle}>{t("history.memo")}</th>
                     <th style={{ ...thStyle, textAlign: "center" }}>{t("history.actions")}</th>
                   </tr>
@@ -457,9 +457,10 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                         <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.myChar} size={30} />{fighterName(m.myChar, lang)}</span></td>
                         <td style={{ ...tdStyle, fontWeight: 600, color: T.text }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><FighterIcon name={m.oppChar} size={30} />{fighterName(m.oppChar, lang)}</span></td>
                         <td style={{ ...tdStyle, color: T.dim, fontSize: 13 }}>{formatTime(m.time)}</td>
+                        <td style={{ ...tdStyle, color: T.sub, fontSize: 13 }}>{m.power ? numFormat(m.power) : "\u2014"}</td>
                         <td style={{ ...tdStyle, color: T.sub, fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>{m.memo || "\u2014"}</td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
-                          <button onClick={() => { if (window.confirm("この対戦記録を削除しますか？")) deleteMatch(e.idx); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
+                          <button onClick={() => { if (window.confirm(t("common.deleteConfirm"))) deleteMatch(e.idx); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 8, cursor: "pointer" }}>{t("history.delete")}</button>
                         </td>
                       </tr>
                     );

@@ -169,6 +169,13 @@ export default {
     emailSent: "確認メールを送信しました",
     emailSentDesc: "に確認メールを送りました。メール内のリンクをクリックしてアカウントを有効化してください。",
     backToLogin: "ログイン画面に戻る",
+    errorInvalidLogin: "メールアドレスまたはパスワードが正しくありません",
+    errorAlreadyRegistered: "このメールアドレスは既に登録されています",
+    errorInvalidEmail: "有効なメールアドレスを入力してください",
+    errorPasswordShort: "パスワードは6文字以上で入力してください",
+    errorRateLimit: "しばらく時間をおいてから再度お試しください",
+    errorEmailNotConfirmed: "メールアドレスの確認が完了していません。確認メールをご確認ください",
+    errorProviderDisabled: "Google認証はまだ設定されていません",
   },
   charPicker: {
     search: "ひらがな・カタカナで検索...",
@@ -192,6 +199,7 @@ export default {
     close: "閉じる",
     matches: "戦",
     share: "シェア",
+    deleteConfirm: "この対戦記録を削除しますか？",
   },
   legal: {
     effectiveDate: "施行日: 2026年4月6日",

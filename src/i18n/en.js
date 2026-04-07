@@ -169,6 +169,13 @@ export default {
     emailSent: "Verification email sent",
     emailSentDesc: ". Click the link in the email to activate your account.",
     backToLogin: "Back to login",
+    errorInvalidLogin: "Incorrect email or password",
+    errorAlreadyRegistered: "This email address is already registered",
+    errorInvalidEmail: "Please enter a valid email address",
+    errorPasswordShort: "Password must be at least 6 characters",
+    errorRateLimit: "Please wait a moment before trying again",
+    errorEmailNotConfirmed: "Email not confirmed. Please check your confirmation email",
+    errorProviderDisabled: "Google authentication is not yet configured",
   },
   charPicker: {
     search: "Search fighters...",
@@ -192,6 +199,7 @@ export default {
     close: "Close",
     matches: " matches",
     share: "Share",
+    deleteConfirm: "Delete this match record?",
   },
   legal: {
     effectiveDate: "Effective: April 6, 2026",

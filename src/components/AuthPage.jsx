@@ -14,6 +14,17 @@ export default function AuthPage({ onSkip }) {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
+  const getError = (msg) => {
+    if (msg.includes("Invalid login")) return t("auth.errorInvalidLogin");
+    if (msg.includes("already registered")) return t("auth.errorAlreadyRegistered");
+    if (msg.includes("valid email")) return t("auth.errorInvalidEmail");
+    if (msg.includes("at least 6")) return t("auth.errorPasswordShort");
+    if (msg.includes("rate limit")) return t("auth.errorRateLimit");
+    if (msg.includes("Email not confirmed")) return t("auth.errorEmailNotConfirmed");
+    if (msg.includes("provider is not enabled")) return t("auth.errorProviderDisabled");
+    return msg;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -35,7 +46,7 @@ export default function AuthPage({ onSkip }) {
         setSent(true);
       }
     } catch (err) {
-      setError(translateError(err.message));
+      setError(getError(err.message));
     } finally {
       setLoading(false);
     }
@@ -49,7 +60,7 @@ export default function AuthPage({ onSkip }) {
         redirectTo: window.location.origin + window.location.pathname,
       },
     });
-    if (err) setError(translateError(err.message));
+    if (err) setError(getError(err.message));
   };
 
   if (sent) {
@@ -169,17 +180,6 @@ export default function AuthPage({ onSkip }) {
       </div>
     </div>
   );
-}
-
-function translateError(msg) {
-  if (msg.includes("Invalid login")) return "メールアドレスまたはパスワードが正しくありません";
-  if (msg.includes("already registered")) return "このメールアドレスは既に登録されています";
-  if (msg.includes("valid email")) return "有効なメールアドレスを入力してください";
-  if (msg.includes("at least 6")) return "パスワードは6文字以上で入力してください";
-  if (msg.includes("rate limit")) return "しばらく時間をおいてから再度お試しください";
-  if (msg.includes("Email not confirmed")) return "メールアドレスの確認が完了していません。確認メールをご確認ください";
-  if (msg.includes("provider is not enabled")) return "Google認証はまだ設定されていません";
-  return msg;
 }
 
 const containerStyle = {

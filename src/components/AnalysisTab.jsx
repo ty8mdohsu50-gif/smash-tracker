@@ -1003,33 +1003,37 @@ export default function AnalysisTab({ data, T, isPC }) {
                   <div
                     key={i}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
                       padding: "5px 0",
                       borderBottom: i < matches.length - 1 ? `1px solid ${T.inp}` : "none",
                     }}
                   >
-                    <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
-                      {formatDate(m.date)}
-                    </span>
-                    <FighterIcon name={m.myChar} size={20} />
-                    <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
-                    <FighterIcon name={m.oppChar} size={20} />
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: "2px 8px",
-                        borderRadius: 6,
-                        flexShrink: 0,
-                        marginLeft: "auto",
-                        background: m.result === "win" ? T.winBg : T.loseBg,
-                        color: m.result === "win" ? T.win : T.lose,
-                      }}
-                    >
-                      {m.result === "win" ? t("common.win") : t("common.lose")}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
+                        {formatDate(m.date)}
+                      </span>
+                      <FighterIcon name={m.myChar} size={20} />
+                      <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
+                      <FighterIcon name={m.oppChar} size={20} />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          flexShrink: 0,
+                          marginLeft: "auto",
+                          background: m.result === "win" ? T.winBg : T.loseBg,
+                          color: m.result === "win" ? T.win : T.lose,
+                        }}
+                      >
+                        {m.result === "win" ? t("common.win") : t("common.lose")}
+                      </span>
+                    </div>
+                    {m.memo && (
+                      <div style={{ fontSize: 10, color: T.sub, marginTop: 2, paddingLeft: 4 }}>
+                        {m.memo}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1131,33 +1135,37 @@ export default function AnalysisTab({ data, T, isPC }) {
                         <div
                           key={i}
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
                             padding: "5px 0",
                             borderBottom: i < matches.length - 1 ? `1px solid ${T.inp}` : "none",
                           }}
                         >
-                          <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
-                            {formatDate(m.date)}
-                          </span>
-                          <FighterIcon name={m.myChar} size={20} />
-                          <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
-                          <FighterIcon name={m.oppChar} size={20} />
-                          <span
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 700,
-                              padding: "2px 8px",
-                              borderRadius: 6,
-                              flexShrink: 0,
-                              marginLeft: "auto",
-                              background: m.result === "win" ? T.winBg : T.loseBg,
-                              color: m.result === "win" ? T.win : T.lose,
-                            }}
-                          >
-                            {m.result === "win" ? t("common.win") : t("common.lose")}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
+                              {formatDate(m.date)}
+                            </span>
+                            <FighterIcon name={m.myChar} size={20} />
+                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
+                            <FighterIcon name={m.oppChar} size={20} />
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                padding: "2px 8px",
+                                borderRadius: 6,
+                                flexShrink: 0,
+                                marginLeft: "auto",
+                                background: m.result === "win" ? T.winBg : T.loseBg,
+                                color: m.result === "win" ? T.win : T.lose,
+                              }}
+                            >
+                              {m.result === "win" ? t("common.win") : t("common.lose")}
+                            </span>
+                          </div>
+                          {m.memo && (
+                            <div style={{ fontSize: 10, color: T.sub, marginTop: 2, paddingLeft: 4 }}>
+                              {m.memo}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

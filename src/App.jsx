@@ -346,7 +346,7 @@ export default function App() {
         </div>
         <div style={{ padding: "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} onOpenSettings={() => setShowSettings(true)} />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} onGoBattle={() => setTabIdx(0)} />}
             {tabIdx === 2 && <AnalysisTab data={data} T={T} />}
           </div>
@@ -519,7 +519,7 @@ export default function App() {
 
         <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC onOpenSettings={() => setShowSettings(true)} />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
             {tabIdx === 1 && <HistoryTab data={data} onSave={sv} T={T} isPC onGoBattle={() => setTabIdx(0)} />}
             {tabIdx === 2 && <AnalysisTab data={data} T={T} isPC />}
           </div>

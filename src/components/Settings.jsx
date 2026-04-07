@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { csvDownload } from "../utils/storage";
 import { THEME_KEYS, getThemeLabel } from "../styles/theme";
@@ -27,6 +27,12 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
   );
 
   const currentColor = data.themeColor || "black";
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === "Escape") handleClose(); };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, []);
 
   const handleClose = () => {
     setStep(0);

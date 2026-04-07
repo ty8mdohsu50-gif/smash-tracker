@@ -1,7 +1,14 @@
+import { useEffect } from "react";
 import { useI18n } from "../i18n/index.jsx";
 
 export default function AboutPage({ T, onClose, onOpenLegal }) {
   const { t } = useI18n();
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
 
   const section = (title, children) => (
     <div

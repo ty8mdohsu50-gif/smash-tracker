@@ -23,7 +23,7 @@ import {
   getDayPowerSummary,
 } from "../utils/format";
 
-export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
+export default function BattleTab({ data, onSave, T, isPC }) {
   const { t, lang } = useI18n();
   const [phase, setPhase] = useState("setup");
   const [myChar, setMyChar] = useState(data.settings.myChar || "");
@@ -178,6 +178,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
         result: r,
         memo: "",
         power: pEnd ? Number(pEnd) : (pStart ? Number(pStart) : null),
+        startPower: pStart ? Number(pStart) : null,
       };
       const newMatches = [...data.matches, m];
       onSave({ ...data, matches: newMatches });
@@ -198,6 +199,7 @@ export default function BattleTab({ data, onSave, T, isPC, onOpenSettings }) {
       result,
       memo: "",
       power: pEnd ? Number(pEnd) : (pStart ? Number(pStart) : null),
+      startPower: pStart ? Number(pStart) : null,
     };
     const newMatches = [...data.matches, m];
     onSave({ ...data, matches: newMatches });

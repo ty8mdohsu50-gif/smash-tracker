@@ -4,7 +4,7 @@ import { useI18n } from "../i18n/index.jsx";
 import FighterIcon from "./FighterIcon";
 
 export default function MatchRow({ m, onDelete, showTime, T }) {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <div
       style={{
@@ -70,14 +70,15 @@ export default function MatchRow({ m, onDelete, showTime, T }) {
         )}
         {onDelete && (
           <button
-            onClick={() => { if (window.confirm("この対戦記録を削除しますか？")) onDelete(); }}
+            onClick={() => { if (window.confirm(t("common.deleteConfirm"))) onDelete(); }}
+            aria-label={t("history.delete")}
             style={{
               border: "none",
               background: "transparent",
               color: T.dimmer,
-              fontSize: 16,
+              fontSize: 18,
               cursor: "pointer",
-              padding: "4px",
+              padding: "8px 10px",
               flexShrink: 0,
             }}
           >

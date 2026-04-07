@@ -104,7 +104,7 @@ export async function migrateLocalToCloud(userId) {
 /* ── CSV ── */
 
 export function csvDownload(data) {
-  const hdr = "\uFEFF日付,時刻,使用キャラ,相手キャラ,結果,メモ\n";
+  const hdr = "\uFEFF日付,時刻,使用キャラ,相手キャラ,結果,メモ,戦闘力\n";
   const rows = data.matches
     .map(
       (m) =>
@@ -115,6 +115,7 @@ export function csvDownload(data) {
           `"${m.oppChar}"`,
           m.result === "win" ? "勝ち" : "負け",
           `"${(m.memo || "").replace(/"/g, '""')}"`,
+          m.power || "",
         ].join(","),
     )
     .join("\n");

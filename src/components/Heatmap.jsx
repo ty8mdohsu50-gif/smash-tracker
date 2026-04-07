@@ -69,7 +69,7 @@ export default function Heatmap({ matches, T, isPC }) {
 
   const { cells, monthLabels } = useMemo(() => buildGrid(matches), [matches]);
 
-  const cellSize = isPC ? 22 : 12;
+  const cellSize = isPC ? 22 : 14;
   const gap = isPC ? 5 : 3;
 
   return (

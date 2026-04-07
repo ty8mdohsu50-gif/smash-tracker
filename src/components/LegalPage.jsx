@@ -206,6 +206,7 @@ https://forms.gle/KtoWRKo1ciJNd7eS9
   },
 ];
 
+import { useEffect } from "react";
 import { useI18n } from "../i18n/index.jsx";
 
 function SectionBlock({ title, content, T }) {
@@ -247,6 +248,12 @@ function SectionBlock({ title, content, T }) {
 export default function LegalPage({ T, onClose, page }) {
   const { t } = useI18n();
   const isTerms = page === "terms";
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
 
   const title = isTerms ? t("settings.terms") : t("settings.privacy");
   const sections = isTerms ? TERMS_SECTIONS : PRIVACY_SECTIONS;
