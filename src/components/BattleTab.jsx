@@ -79,6 +79,12 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     prevPhase.current = phase;
   }
 
+  const prevOppRef = useRef(oppChar);
+  if (prevOppRef.current !== oppChar) {
+    setCounterEditText(data.counterMemos?.[oppChar] || "");
+    prevOppRef.current = oppChar;
+  }
+
   const savePower = (s, e) => {
     const d = { ...data };
     if (!d.daily) d.daily = {};
@@ -1697,24 +1703,54 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           {phase === "fighting" && oppChar ? (
             <>
               <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>
-                  {t("common.vs")} {fighterName(oppChar, lang)}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <FighterIcon name={oppChar} size={32} />
+                  <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{fighterName(oppChar, lang)}</div>
                 </div>
-                <div style={{ fontSize: 12, color: T.dim }}>{t("battle.oppHistory")}</div>
               </div>
               <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
+                {/* Counter memo */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>
+                    {t("battle.counterMemo")}
+                  </div>
+                  <textarea
+                    value={counterEditText}
+                    onChange={(e) => setCounterEditText(e.target.value)}
+                    onBlur={() => { onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppChar]: counterEditText } }); }}
+                    placeholder={t("battle.counterMemoPlaceholder")}
+                    rows={3}
+                    style={{
+                      width: "100%", padding: "10px 12px", background: T.inp, border: `1px solid ${T.brd}`,
+                      borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box",
+                      resize: "vertical", fontFamily: "inherit", lineHeight: 1.5,
+                    }}
+                  />
+                </div>
+                {/* Past memos */}
+                {(() => {
+                  const pastMemos = data.matches
+                    .filter((m) => m.myChar === myChar && m.oppChar === oppChar && m.memo)
+                    .slice().reverse();
+                  if (pastMemos.length === 0) return null;
+                  return (
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.memo")}</div>
+                      <div style={{ maxHeight: 160, overflowY: "auto" }}>
+                        {pastMemos.map((m, i) => (
+                          <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "4px 0", borderBottom: `1px solid ${T.inp}` }}>
+                            <span style={{ color: T.dim, fontSize: 10, marginRight: 6 }}>{formatDateShort(m.date)}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
+                            {m.memo}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Matchup stats (no toggle, always open) */}
                 {myChar && (
                   <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
-                )}
-                {data.counterMemos?.[oppChar] && (
-                  <div style={{ ...cd, padding: "12px 16px", marginTop: 8 }}>
-                    <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 4 }}>
-                      {t("battle.counterMemo")}
-                    </div>
-                    <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                      {data.counterMemos[oppChar]}
-                    </div>
-                  </div>
                 )}
               </div>
             </>
