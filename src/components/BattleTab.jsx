@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Trophy, X, ChevronUp, ChevronDown, Zap, Share2, Copy } from "lucide-react";
+import { X, ChevronUp, ChevronDown, Zap, Share2 } from "lucide-react";
 import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
 import MatchRow from "./MatchRow";
@@ -780,12 +780,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
               </div>
 
               {/* Actions */}
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => saveEndSession(true)} style={{ flex: 1, padding: "14px 0", border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: T.accentGlow }}>
-                  <Share2 size={16} /> {t("battle.saveAndShare")}
-                </button>
-                <button onClick={() => saveEndSession(false)} style={{ flex: 1, padding: "14px 0", border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.text, fontSize: 14, fontWeight: 700 }}>{t("battle.close")}</button>
-              </div>
+              <button onClick={() => saveEndSession(false)} style={{ width: "100%", padding: 16, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 16, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}</button>
+              <button onClick={() => saveEndSession(true)} style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <Share2 size={14} /> {t("battle.share")}
+              </button>
               <button onClick={() => setPhase("battle")} style={{ width: "100%", padding: 12, marginTop: 8, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>{t("battle.backToBattle")}</button>
             </div>
           );
@@ -1133,8 +1131,8 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                     style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-                  <button onClick={() => saveEndSession(true)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Share2 size={16} /> {t("battle.saveAndShare")}</button>
-                  <button onClick={() => saveEndSession(false)} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.text, fontSize: 14, fontWeight: 700 }}>{t("battle.close")}</button>
+                  <button onClick={() => saveEndSession(false)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}</button>
+                  <button onClick={() => saveEndSession(true)} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Share2 size={14} /> {t("battle.share")}</button>
                   <button onClick={() => setPhase("battle")} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.backToBattle")}</button>
                 </div>
               </div>
