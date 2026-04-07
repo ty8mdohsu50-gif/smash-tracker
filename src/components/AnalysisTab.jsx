@@ -995,7 +995,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                   ...cd,
                   marginBottom: isPC ? 20 : 14,
                   padding: "10px 14px",
-                  maxHeight: 240,
+                  maxHeight: 320,
                   overflowY: "auto",
                 }}
               >
@@ -1003,34 +1003,37 @@ export default function AnalysisTab({ data, T, isPC }) {
                   <div
                     key={i}
                     style={{
-                      padding: "5px 0",
                       borderBottom: i < matches.length - 1 ? `1px solid ${T.inp}` : "none",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0" }}>
+                      <span style={{ fontSize: 13, color: T.dim, flexShrink: 0, minWidth: 80 }}>
                         {formatDate(m.date)}
                       </span>
-                      <FighterIcon name={m.myChar} size={20} />
-                      <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
-                      <FighterIcon name={m.oppChar} size={20} />
+                      <FighterIcon name={m.myChar} size={24} />
+                      <span style={{ fontSize: 12, color: T.sub, flexShrink: 0 }}>{shortName(m.myChar, lang)}</span>
+                      <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
+                      <FighterIcon name={m.oppChar} size={24} />
+                      <span style={{ fontSize: 12, color: T.sub, flexShrink: 0 }}>{shortName(m.oppChar, lang)}</span>
                       <span
                         style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 800,
+                          width: 40,
+                          textAlign: "center",
                           flexShrink: 0,
                           marginLeft: "auto",
+                          padding: "2px 0",
+                          borderRadius: 6,
                           background: m.result === "win" ? T.winBg : T.loseBg,
                           color: m.result === "win" ? T.win : T.lose,
                         }}
                       >
-                        {m.result === "win" ? t("common.win") : t("common.lose")}
+                        {m.result === "win" ? "WIN" : "LOSE"}
                       </span>
                     </div>
                     {m.memo && (
-                      <div style={{ fontSize: 10, color: T.sub, marginTop: 2, paddingLeft: 4 }}>
+                      <div style={{ fontSize: 12, color: T.sub, paddingBottom: 6, paddingLeft: 2 }}>
                         {m.memo}
                       </div>
                     )}
@@ -1127,7 +1130,7 @@ export default function AnalysisTab({ data, T, isPC }) {
                         marginTop: 10,
                         borderTop: `1px solid ${T.brd}`,
                         paddingTop: 10,
-                        maxHeight: 240,
+                        maxHeight: 320,
                         overflowY: "auto",
                       }}
                     >
@@ -1135,34 +1138,37 @@ export default function AnalysisTab({ data, T, isPC }) {
                         <div
                           key={i}
                           style={{
-                            padding: "5px 0",
                             borderBottom: i < matches.length - 1 ? `1px solid ${T.inp}` : "none",
                           }}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 70 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0" }}>
+                            <span style={{ fontSize: 13, color: T.dim, flexShrink: 0, minWidth: 80 }}>
                               {formatDate(m.date)}
                             </span>
-                            <FighterIcon name={m.myChar} size={20} />
-                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
-                            <FighterIcon name={m.oppChar} size={20} />
+                            <FighterIcon name={m.myChar} size={24} />
+                            <span style={{ fontSize: 12, color: T.sub, flexShrink: 0 }}>{shortName(m.myChar, lang)}</span>
+                            <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{t("common.vs")}</span>
+                            <FighterIcon name={m.oppChar} size={24} />
+                            <span style={{ fontSize: 12, color: T.sub, flexShrink: 0 }}>{shortName(m.oppChar, lang)}</span>
                             <span
                               style={{
-                                fontSize: 11,
-                                fontWeight: 700,
-                                padding: "2px 8px",
-                                borderRadius: 6,
+                                fontSize: 12,
+                                fontWeight: 800,
+                                width: 40,
+                                textAlign: "center",
                                 flexShrink: 0,
                                 marginLeft: "auto",
+                                padding: "2px 0",
+                                borderRadius: 6,
                                 background: m.result === "win" ? T.winBg : T.loseBg,
                                 color: m.result === "win" ? T.win : T.lose,
                               }}
                             >
-                              {m.result === "win" ? t("common.win") : t("common.lose")}
+                              {m.result === "win" ? "WIN" : "LOSE"}
                             </span>
                           </div>
                           {m.memo && (
-                            <div style={{ fontSize: 10, color: T.sub, marginTop: 2, paddingLeft: 4 }}>
+                            <div style={{ fontSize: 12, color: T.sub, paddingBottom: 6, paddingLeft: 2 }}>
                               {m.memo}
                             </div>
                           )}

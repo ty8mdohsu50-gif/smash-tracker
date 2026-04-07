@@ -6,7 +6,7 @@ import { formatDateShort, formatTime } from "../utils/format";
 
 export default function MatchupBadge({ myChar, oppChar, matches, T }) {
   const { t, lang } = useI18n();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   const stats = useMemo(() => {
     const ms = matches.filter(

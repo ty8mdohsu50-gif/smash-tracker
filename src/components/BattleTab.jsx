@@ -1317,9 +1317,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <button onClick={() => { setShareStatus(null); setPhase("endSession"); }} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
                 <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }} style={{ flex: 1, padding: 12, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>{t("battle.backToBattle")}</button>
               </div>
-              {myChar && oppChar && (
-                <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
-              )}
             </div>
           )}
 
@@ -1545,13 +1542,31 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             maxHeight: "calc(100vh - 120px)",
           }}
         >
-          <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
-            <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-            {recentMatchList}
-          </div>
+          {phase === "fighting" && oppChar ? (
+            <>
+              <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>
+                  {t("common.vs")} {fighterName(oppChar, lang)}
+                </div>
+                <div style={{ fontSize: 12, color: T.dim }}>{t("battle.oppHistory")}</div>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
+                {myChar && (
+                  <MatchupBadge myChar={myChar} oppChar={oppChar} matches={data.matches} T={T} />
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>{t("battle.recent")}</div>
+                <div style={{ fontSize: 12, color: T.dim }}>{formatDateWithDay(today())}  {tM.length}{t("battle.matches")}</div>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
+                {recentMatchList}
+              </div>
+            </>
+          )}
         </div>
       </div>
       {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}

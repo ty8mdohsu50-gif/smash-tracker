@@ -57,6 +57,7 @@ export default {
     powerPlaceholder: "終了後",
     milestoneUnlocked: "MILESTONE UNLOCKED",
     shareError: "失敗",
+    oppHistory: "の過去の記録",
   },
   history: {
     dailyRecord: "日別戦績",

@@ -57,6 +57,7 @@ export default {
     powerPlaceholder: "After session",
     milestoneUnlocked: "MILESTONE UNLOCKED",
     shareError: "Failed",
+    oppHistory: "Past Records",
   },
   history: {
     dailyRecord: "Daily Records",
