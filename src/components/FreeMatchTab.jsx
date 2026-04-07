@@ -42,6 +42,12 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     return freeMatches.filter((m) => m.opponent === opponent);
   };
 
+  const deleteFreeMatch = (match) => {
+    if (!window.confirm(t("common.deleteConfirm"))) return;
+    const newMatches = freeMatches.filter((m) => m !== match);
+    onSave({ ...data, freeMatches: newMatches });
+  };
+
   const addOpponent = () => {
     const name = newOpponentName.trim();
     if (!name || freeOpponents.includes(name)) return;
@@ -551,9 +557,16 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
                   <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>
                     {fighterName(m.myChar, lang)} vs {fighterName(m.oppChar, lang)}
                   </span>
-                  <span style={{ marginLeft: "auto", fontSize: 11, color: T.dim, display: "flex", alignItems: "center", gap: 3 }}>
+                  <span style={{ fontSize: 11, color: T.dim, display: "flex", alignItems: "center", gap: 3, marginLeft: "auto" }}>
                     <Clock size={10} /> {formatTime(m.time)}
                   </span>
+                  <button
+                    onClick={() => deleteFreeMatch(m)}
+                    aria-label={t("history.delete")}
+                    style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
@@ -683,9 +696,16 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
                       <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>
                         {fighterName(m.myChar, lang)} vs {fighterName(m.oppChar, lang)}
                       </span>
-                      <span style={{ marginLeft: "auto", fontSize: 11, color: T.dim, display: "flex", alignItems: "center", gap: 3 }}>
+                      <span style={{ fontSize: 11, color: T.dim, display: "flex", alignItems: "center", gap: 3, marginLeft: "auto" }}>
                         <Clock size={10} /> {formatTime(m.time)}
                       </span>
+                      <button
+                        onClick={() => deleteFreeMatch(m)}
+                        aria-label={t("history.delete")}
+                        style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
