@@ -232,11 +232,20 @@ export default function HistoryTab({ data, onSave, T, isPC, onGoBattle }) {
                         </button>
                         <button
                           onClick={() => {
-                            const nd = { ...data };
+                            const nd = JSON.parse(JSON.stringify(data));
                             if (!nd.daily) nd.daily = {};
                             if (!nd.daily[histDate]) nd.daily[histDate] = {};
-                            if (editStart) nd.daily[histDate].start = Number(editStart);
-                            if (editEnd) nd.daily[histDate].end = Number(editEnd);
+                            const day = nd.daily[histDate];
+                            if (editStart) day.start = Number(editStart);
+                            if (editEnd) day.end = Number(editEnd);
+                            if (day.chars) {
+                              const charKeys = Object.keys(day.chars);
+                              if (charKeys.length > 0) {
+                                const firstChar = charKeys[0];
+                                if (editStart && !day.chars[firstChar].start) day.chars[firstChar].start = Number(editStart);
+                                if (editEnd) day.chars[firstChar].end = Number(editEnd);
+                              }
+                            }
                             onSave(nd);
                             setEditingPower(false);
                           }}

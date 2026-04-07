@@ -15,10 +15,11 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
     const w = ms.filter((m) => m.result === "win").length;
     const l = ms.length - w;
     const recent = ms.slice(-5).map((m) => m.result);
-    const history = ms.slice(-5).reverse().map((m) => ({
+    const history = ms.slice().reverse().map((m) => ({
       date: m.date,
       result: m.result,
       time: m.time,
+      memo: m.memo,
     }));
     return { w, l, t: ms.length, recent, history };
   }, [matches, myChar, oppChar]);
@@ -141,35 +142,35 @@ export default function MatchupBadge({ myChar, oppChar, matches, T }) {
         </div>
       )}
 
-      {/* Expanded history */}
+      {/* Expanded full history */}
       {expanded && stats.history.length > 0 && (
-        <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
+        <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10, maxHeight: 240, overflowY: "auto" }}>
           {stats.history.map((h, i) => (
             <div
               key={i}
               style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "5px 0",
+                padding: "6px 0",
                 borderBottom: i < stats.history.length - 1 ? `1px solid ${T.inp}` : "none",
               }}
             >
-              <div style={{ fontSize: 12, color: T.dim }}>
-                {formatDateShort(h.date)}
-                {h.time ? <span style={{ marginLeft: 6 }}>{formatTime(h.time)}</span> : null}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 12, color: T.dim }}>
+                  {formatDateShort(h.date)}
+                  {h.time ? <span style={{ marginLeft: 6 }}>{formatTime(h.time)}</span> : null}
+                </div>
+                <div
+                  style={{
+                    padding: "2px 10px", borderRadius: 6, fontSize: 11, fontWeight: 800,
+                    background: h.result === "win" ? T.winBg : T.loseBg,
+                    color: h.result === "win" ? T.win : T.lose,
+                  }}
+                >
+                  {h.result === "win" ? "WIN" : "LOSE"}
+                </div>
               </div>
-              <div
-                style={{
-                  padding: "2px 10px",
-                  borderRadius: 6,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  background: h.result === "win" ? T.winBg : T.loseBg,
-                  color: h.result === "win" ? T.win : T.lose,
-                  fontFamily: "'Chakra Petch', sans-serif",
-                }}
-              >
-                {h.result === "win" ? "WIN" : "LOSE"}
-              </div>
+              {h.memo && (
+                <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 2 }}>{h.memo}</div>
+              )}
             </div>
           ))}
         </div>
