@@ -148,8 +148,6 @@ export default {
     noHistory: "No match history",
     monthSummary: "{month} Results",
     thisMonth: "This Month",
-    showMore: "Show More",
-    showLess: "Show Less",
   },
   settings: {
     title: "Settings",

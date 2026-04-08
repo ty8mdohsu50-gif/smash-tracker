@@ -148,8 +148,6 @@ export default {
     noHistory: "対戦履歴がありません",
     monthSummary: "{month}の戦績",
     thisMonth: "今月",
-    showMore: "もっと見る",
-    showLess: "閉じる",
   },
   settings: {
     title: "設定",

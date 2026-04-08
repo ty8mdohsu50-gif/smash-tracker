@@ -55,7 +55,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
-  const [dailyShowAll, setDailyShowAll] = useState(false);
 
   // ── Computed data ──
 
@@ -370,7 +369,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   };
 
   const dailyList = (filterFn) => {
-    // Build daily map from filtered matches
     const dailyMap = {};
     data.matches.filter(filterFn).forEach((m) => {
       const idx = data.matches.indexOf(m);
@@ -378,63 +376,124 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       m.result === "win" ? dailyMap[m.date].w++ : dailyMap[m.date].l++;
       dailyMap[m.date].matches.push({ ...m, idx });
     });
-    const allDays = Object.entries(dailyMap).sort((a, b) => b[0].localeCompare(a[0]));
-    if (!allDays.length) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
+    if (!Object.keys(dailyMap).length) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
 
-    // Filter to selected month
-    const monthDays = allDays.filter(([date]) => date.startsWith(dailyMonth));
+    const [yStr, mStr] = dailyMonth.split("-");
+    const year = Number(yStr);
+    const month = parseInt(mStr) - 1;
+    const monthLabel = lang === "ja"
+      ? `${year}年${month + 1}月`
+      : `${new Date(year, month).toLocaleString("en", { month: "long" })} ${year}`;
+
+    // Calendar grid
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startOffset = (firstDay + 6) % 7; // Monday start
+    const todayStr = today();
+    const weekDays = t("heatmap.weekDays");
+
+    const prevMonth = () => {
+      const d = new Date(year, month - 1, 1);
+      setDailyMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      setExpandedDate(null);
+    };
+    const nextMonth = () => {
+      const d = new Date(year, month + 1, 1);
+      setDailyMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      setExpandedDate(null);
+    };
+    const goCurrentMonth = () => {
+      const now = new Date();
+      setDailyMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`);
+      setExpandedDate(null);
+    };
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const isCurrentMonth = dailyMonth === currentMonth;
 
     // Month summary
+    const monthDays = Object.entries(dailyMap).filter(([d]) => d.startsWith(dailyMonth));
     const monthW = monthDays.reduce((a, [, d]) => a + d.w, 0);
     const monthL = monthDays.reduce((a, [, d]) => a + d.l, 0);
     const monthTotal = monthW + monthL;
     const monthR = monthTotal ? monthW / monthTotal : 0;
 
-    // Month label
-    const [yStr, mStr] = dailyMonth.split("-");
-    const monthLabel = lang === "ja"
-      ? `${yStr}年${parseInt(mStr)}月`
-      : `${new Date(Number(yStr), parseInt(mStr) - 1).toLocaleString("en", { month: "long" })} ${yStr}`;
+    const dotColor = (r) => r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A";
 
-    // Available months (for prev/next)
-    const availableMonths = [...new Set(allDays.map(([d]) => d.slice(0, 7)))].sort();
-    const curIdx = availableMonths.indexOf(dailyMonth);
-    const hasPrev = curIdx > 0;
-    const hasNext = curIdx < availableMonths.length - 1;
+    const cellSize = isPC ? 40 : 36;
 
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const isCurrentMonth = dailyMonth === currentMonth;
+    const calendarGrid = (
+      <div>
+        {/* Weekday headers */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
+          {weekDays.map((d, i) => (
+            <div key={i} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: T.dim, padding: "4px 0" }}>{d}</div>
+          ))}
+        </div>
+        {/* Day cells */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+          {Array.from({ length: startOffset }).map((_, i) => <div key={`e${i}`} />)}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
+            const dayData = dailyMap[dateStr];
+            const isFuture = dateStr > todayStr;
+            const isSelected = expandedDate === dateStr;
+            const isToday = dateStr === todayStr;
+            const hasData = !!dayData;
+            const r = hasData ? dayData.w / (dayData.w + dayData.l) : 0;
 
-    const monthNav = (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <button onClick={() => { if (hasPrev) { setDailyMonth(availableMonths[curIdx - 1]); setDailyShowAll(false); setExpandedDate(null); } }} disabled={!hasPrev}
-          style={{ border: "none", background: "transparent", color: hasPrev ? T.text : T.dimmer, padding: 6, cursor: hasPrev ? "pointer" : "default" }}>
-          <ChevronLeft size={20} />
-        </button>
-        <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{monthLabel}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          {!isCurrentMonth && (
-            <button onClick={() => { setDailyMonth(currentMonth); setDailyShowAll(false); setExpandedDate(null); }}
-              style={{ border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}>
-              {t("analysis.thisMonth")}
-            </button>
-          )}
-          <button onClick={() => { if (hasNext) { setDailyMonth(availableMonths[curIdx + 1]); setDailyShowAll(false); setExpandedDate(null); } }} disabled={!hasNext}
-            style={{ border: "none", background: "transparent", color: hasNext ? T.text : T.dimmer, padding: 6, cursor: hasNext ? "pointer" : "default" }}>
-            <ChevronRight size={20} />
-          </button>
+            return (
+              <div
+                key={day}
+                onClick={() => { if (hasData) setExpandedDate(isSelected ? null : dateStr); }}
+                style={{
+                  width: cellSize, height: cellSize, display: "flex", flexDirection: "column",
+                  alignItems: "center", justifyContent: "center", borderRadius: 10, cursor: hasData ? "pointer" : "default",
+                  background: isSelected ? T.accentSoft : "transparent",
+                  border: isSelected ? `2px solid ${T.accent}` : isToday ? `1px solid ${T.dimmer}` : "1px solid transparent",
+                  opacity: isFuture ? 0.3 : 1, transition: "all .1s ease",
+                }}
+              >
+                <span style={{ fontSize: isPC ? 13 : 12, fontWeight: isToday ? 800 : 500, color: isSelected ? T.accent : isToday ? T.text : T.sub }}>
+                  {day}
+                </span>
+                {hasData && (
+                  <div style={{ width: 6, height: 6, borderRadius: 3, background: dotColor(r), marginTop: 2 }} />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
 
+    const monthNav = (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <button onClick={prevMonth} style={{ border: "none", background: "transparent", color: T.text, padding: 6, cursor: "pointer" }}>
+          <ChevronLeft size={20} />
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{monthLabel}</span>
+          {!isCurrentMonth && (
+            <button onClick={goCurrentMonth} style={{ border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 6, cursor: "pointer" }}>
+              {t("analysis.thisMonth")}
+            </button>
+          )}
+        </div>
+        <button onClick={nextMonth} style={{ border: "none", background: "transparent", color: T.text, padding: 6, cursor: "pointer" }}>
+          <ChevronRight size={20} />
+        </button>
+      </div>
+    );
+
     const monthSummary = monthTotal > 0 && (
-      <div style={{ ...cd, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <span style={{ fontSize: 13, color: T.dim }}>{monthTotal}{t("analysis.battles")}</span>
-        <span style={{ fontSize: 16, fontWeight: 800 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 4px", marginBottom: 6, fontSize: 12, color: T.dim }}>
+        <span>{monthTotal}{t("analysis.battles")}</span>
+        <span style={{ fontWeight: 800, fontSize: 14 }}>
           <span style={{ color: T.win }}>{monthW}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{monthL}</span>
         </span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: barColor(monthR) }}>{percentStr(monthW, monthTotal)}</span>
+        <span style={{ fontWeight: 700, fontSize: 13, color: barColor(monthR) }}>{percentStr(monthW, monthTotal)}</span>
       </div>
     );
 
@@ -454,121 +513,60 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       </div>
     ));
 
-    // ── PC: master/detail split layout ──
+    const selectedDayData = expandedDate ? dailyMap[expandedDate] : null;
+
+    const detailPanel = selectedDayData ? (
+      <div style={{ ...cd, padding: "16px 18px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{formatDate(expandedDate)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 18, fontWeight: 800, fontFamily: "'Chakra Petch', sans-serif" }}>
+              <span style={{ color: T.win }}>{selectedDayData.w}</span>
+              <span style={{ color: T.dimmer, fontSize: 13, margin: "0 3px" }}>:</span>
+              <span style={{ color: T.lose }}>{selectedDayData.l}</span>
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: barColor(selectedDayData.w / (selectedDayData.w + selectedDayData.l)) }}>
+              {percentStr(selectedDayData.w, selectedDayData.w + selectedDayData.l)}
+            </span>
+          </div>
+        </div>
+        <div style={{ maxHeight: isPC ? 400 : 300, overflowY: "auto" }}>
+          {matchDetail(selectedDayData.matches)}
+        </div>
+      </div>
+    ) : (
+      <div style={{ ...cd, textAlign: "center", padding: isPC ? "48px 20px" : "24px 16px", color: T.dim, fontSize: 13 }}>
+        {t("history.selectDateDesc")}
+      </div>
+    );
+
+    // ── PC: calendar left (50%) + detail right (50%) ──
     if (isPC) {
-      const selectedDay = expandedDate ? monthDays.find(([d]) => d === expandedDate) : null;
-      const selectedData = selectedDay ? selectedDay[1] : null;
       return (
-        <div>
-          {monthNav}
-          {monthSummary}
-          <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-            {/* Left: day list */}
-            <div style={{ width: 320, flexShrink: 0, maxHeight: 480, overflowY: "auto" }}>
-              {monthDays.length === 0 ? (
-                <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>
-              ) : monthDays.map(([date, d]) => {
-                const total = d.w + d.l;
-                const r = total ? d.w / total : 0;
-                const active = expandedDate === date;
-                return (
-                  <div key={date} onClick={() => setExpandedDate(active ? null : date)}
-                    style={{
-                      padding: "10px 14px", marginBottom: 4, borderRadius: 12, cursor: "pointer",
-                      background: active ? T.accentSoft : T.card,
-                      border: active ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
-                      transition: "all .15s ease",
-                    }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: active ? T.accent : T.text }}>{formatDate(date)}</span>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(d.w, total)}</span>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 4, fontSize: 12, color: T.dim }}>
-                      <span>{total}{t("analysis.battles")}</span>
-                      <span><span style={{ color: T.win }}>{d.w}W</span> <span style={{ color: T.lose }}>{d.l}L</span></span>
-                    </div>
-                  </div>
-                );
-              })}
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ ...cd, padding: "16px 20px" }}>
+              {monthNav}
+              {monthSummary}
+              {calendarGrid}
             </div>
-            {/* Right: match detail */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              {selectedData ? (
-                <div style={{ ...cd, padding: "16px 20px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{formatDate(expandedDate)}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span style={{ fontSize: 20, fontWeight: 800, fontFamily: "'Chakra Petch', sans-serif" }}>
-                        <span style={{ color: T.win }}>{selectedData.w}</span>
-                        <span style={{ color: T.dimmer, fontSize: 14, margin: "0 4px" }}>:</span>
-                        <span style={{ color: T.lose }}>{selectedData.l}</span>
-                      </span>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: barColor(selectedData.w / (selectedData.w + selectedData.l)) }}>
-                        {percentStr(selectedData.w, selectedData.w + selectedData.l)}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ maxHeight: 400, overflowY: "auto" }}>
-                    {matchDetail(selectedData.matches)}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ ...cd, textAlign: "center", padding: "48px 20px", color: T.dim, fontSize: 13 }}>
-                  {t("history.selectDateDesc")}
-                </div>
-              )}
-            </div>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {detailPanel}
           </div>
         </div>
       );
     }
 
-    // ── Mobile: accordion with 5-day limit ──
-    const visibleDays = dailyShowAll ? monthDays : monthDays.slice(0, 5);
-    const hasMore = monthDays.length > 5;
-
+    // ── Mobile: calendar on top + detail below ──
     return (
       <div>
-        {monthNav}
-        {monthSummary}
-        {monthDays.length === 0 ? (
-          <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>
-        ) : (
-          <>
-            {visibleDays.map(([date, d]) => {
-              const total = d.w + d.l;
-              const r = total ? d.w / total : 0;
-              const isExp = expandedDate === date;
-              return (
-                <div key={date} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
-                  <div onClick={() => setExpandedDate(isExp ? null : date)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span style={{ fontSize: 13, color: T.dim }}>{total}{t("analysis.battles")}</span>
-                      <span style={{ fontSize: 16, fontWeight: 800 }}>
-                        <span style={{ color: T.win }}>{d.w}</span>
-                        <span style={{ color: T.dimmer }}> : </span>
-                        <span style={{ color: T.lose }}>{d.l}</span>
-                      </span>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r), minWidth: 40, textAlign: "right" }}>{percentStr(d.w, total)}</span>
-                    </div>
-                  </div>
-                  {isExp && (
-                    <div style={{ borderTop: `1px solid ${T.inp}`, marginTop: 10, paddingTop: 10 }}>
-                      {matchDetail(d.matches)}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {hasMore && (
-              <button onClick={() => setDailyShowAll(!dailyShowAll)}
-                style={{ width: "100%", padding: "10px 0", border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 8 }}>
-                {dailyShowAll ? t("analysis.showLess") : `${t("analysis.showMore")}（${monthDays.length - 5}${lang === "ja" ? "日" : " days"}）`}
-              </button>
-            )}
-          </>
-        )}
+        <div style={{ ...cd, padding: "14px 16px" }}>
+          {monthNav}
+          {monthSummary}
+          {calendarGrid}
+        </div>
+        {expandedDate && detailPanel}
       </div>
     );
   };
@@ -660,9 +658,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     <div>
       {/* Top-level tabs */}
       <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-        {pill("myChar", t("analysis.myChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDailyShowAll(false); setExpandedDate(null); })}
-        {pill("oppChar", t("analysis.oppChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDailyShowAll(false); setExpandedDate(null); })}
-        {pill("overall", t("analysis.overall"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDailyShowAll(false); setExpandedDate(null); })}
+        {pill("myChar", t("analysis.myChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
+        {pill("oppChar", t("analysis.oppChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
+        {pill("overall", t("analysis.overall"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
       </div>
 
       {/* ═══════════════ MODE: MY CHAR ═══════════════ */}
