@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { X, ChevronUp, ChevronDown, Zap, Share2 } from "lucide-react";
+import { X, Zap, Share2 } from "lucide-react";
 import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
 import SharePopup from "./SharePopup";
@@ -551,22 +551,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                       <span style={{ color: T.lose }}>{tL}</span>
                     </div>
                   )}
-                  <button onClick={() => setShowPowerEdit(!showPowerEdit)} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 13, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginTop: 4 }}>
                     {numFormat(pStart)}{pEnd ? " → " + numFormat(pEnd) : ""}
-                    {showPowerEdit ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {showPowerEdit && (
-              <div style={{ ...cd, animation: "fadeUp .15s ease" }}>
-                <div style={{ display: "flex", gap: 12 }}>
-                  <div style={{ flex: 1 }}><div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>{t("battle.powerStart")}</div>{pwrInput(pStart, setPStart, "", false)}</div>
-                  <div style={{ flex: 1 }}><div style={{ fontSize: 13, color: T.sub, marginBottom: 4, fontWeight: 600 }}>{t("battle.powerCurrent")}</div>{pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}</div>
-                </div>
-              </div>
-            )}
 
             {/* Pending result + opp selection */}
             {result && pendingResultBanner}
@@ -643,6 +633,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               </div>
               <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
                 style={{ width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
+            </div>
+
+            {/* Power update */}
+            <div style={{ ...cd, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
+              {pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}
             </div>
 
             {oppChar && (
@@ -955,17 +951,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           {/* PC Battle */}
           {phase === "battle" && (
             <div>
-              <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-                <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
-                  <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 6 }}>{t("battle.powerStart")}</div>
-                  {pwrInput(pStart, setPStart, "", false)}
-                </div>
-                <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
-                  <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 6 }}>{t("battle.powerCurrent")}</div>
-                  {pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}
-                </div>
-              </div>
-
               {result && pendingResultBanner}
 
               <div style={{ ...cd, padding: "20px 24px", marginBottom: 16 }}>
@@ -1025,6 +1010,11 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 </div>
                 <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
                   style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
+              </div>
+              {/* Power update */}
+              <div style={{ ...cd, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>
+                <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
+                <div style={{ flex: 1 }}>{pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}</div>
               </div>
               {oppChar && (
                 <div style={{ ...cd, marginBottom: 12 }}>
