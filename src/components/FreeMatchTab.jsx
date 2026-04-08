@@ -269,6 +269,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
                   <span style={{ fontSize: 10, color: T.dim }}>vs</span>
                   <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
                   <span style={{ fontSize: 10, color: T.dim }}>{formatTime(m.time)}</span>
+                  <button onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
                 </div>
               ))}
             </div>
@@ -342,6 +343,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               <span style={{ fontSize: 10, color: T.dim }}>vs</span>
               <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
               <span style={{ fontSize: 10, color: T.dim }}>{formatTime(m.time)}</span>
+              <button onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
             </div>
           ))}
         </div>
