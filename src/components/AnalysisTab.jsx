@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { BarChart3, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import MatchupNotesEditor, { needsReview } from "./MatchupNotesEditor";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
@@ -42,6 +43,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
   // Editing state
   const [counterMemoText, setCounterMemoText] = useState("");
+  const [noteMode, setNoteMode] = useState("general");
   const [sharePopupText, setSharePopupText] = useState(null);
   const [editingPower, setEditingPower] = useState(false);
   const [editStart, setEditStart] = useState("");
@@ -292,8 +294,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: bg, color }}>{label}</span>;
   };
 
-  const charRow = (s, onClick) => {
+  const charRow = (s, onClick, showReviewBadge) => {
     const r = s.t ? s.w / s.t : 0;
+    const review = showReviewBadge && needsReview(data.matchupNotes?.[s.c], data.matches, s.c);
     return (
       <button key={s.c} onClick={onClick} style={{
         ...cd, marginBottom: isPC ? 0 : 8, padding: "14px 18px", width: "100%", cursor: "pointer", textAlign: "left",
@@ -301,6 +304,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: T.text, display: "flex", alignItems: "center", gap: 8 }}>
             <FighterIcon name={s.c} size={28} />{fighterName(s.c, lang)}
+            {review && <span style={{ fontSize: 9, fontWeight: 700, color: "#FF9F0A", background: "#FF9F0A18", padding: "2px 6px", borderRadius: 6 }}>{t("matchupNotes.reviewNeeded")}</span>}
           </span>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
             <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</span>
@@ -753,7 +757,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           ) : (
             <div>
               <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
-                {oCS.map((s) => charRow(s, () => { setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null); setCounterMemoText(data.counterMemos?.[s.c] || ""); }))}
+                {oCS.map((s) => charRow(s, () => { setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null); setCounterMemoText(data.counterMemos?.[s.c] || ""); setNoteMode("general"); }, true))}
               </div>
 
               {/* Not fought chars */}
@@ -801,20 +805,31 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               </div>
             </div>
 
-            {/* Counter memo */}
-            <div style={{ ...cd, padding: "12px 16px" }}>
-              <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("analysis.counterMemo")}</div>
-              <textarea
-                value={counterMemoText}
-                onChange={(e) => setCounterMemoText(e.target.value)}
-                placeholder={t("battle.counterMemoPlaceholder")}
-                rows={3}
-                style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }}
+            {/* Matchup Notes */}
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t("matchupNotes.title")}</div>
+                {data.settings?.myChar && (
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {[["general", t("matchupNotes.generalNotes")], ["matchup", t("matchupNotes.matchupSpecific")]].map(([k, l]) => (
+                      <button key={k} onClick={() => setNoteMode(k)} style={{
+                        padding: "4px 10px", borderRadius: 8, border: "none", fontSize: 11, fontWeight: noteMode === k ? 700 : 500,
+                        background: noteMode === k ? T.accentGrad : T.inp, color: noteMode === k ? "#fff" : T.sub,
+                      }}>{l}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {noteMode === "matchup" && data.settings?.myChar && (
+                <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>
+                  {fighterName(data.settings.myChar, lang)} {t("matchupNotes.vsLabel")} {fighterName(oppDetail, lang)}
+                </div>
+              )}
+              <MatchupNotesEditor
+                key={noteMode === "matchup" && data.settings?.myChar ? `${data.settings.myChar}|${oppDetail}` : oppDetail}
+                noteKey={noteMode === "matchup" && data.settings?.myChar ? `${data.settings.myChar}|${oppDetail}` : oppDetail}
+                data={data} onSave={onSave} T={T}
               />
-              <button
-                onClick={() => onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppDetail]: counterMemoText } })}
-                style={{ width: "100%", padding: "10px 0", marginTop: 8, border: "none", borderRadius: 10, background: T.accentGrad, color: "#fff", fontSize: 13, fontWeight: 700 }}
-              >{t("battle.saveCounterMemo")}</button>
             </div>
 
             {oppMatches.length > 0 && (

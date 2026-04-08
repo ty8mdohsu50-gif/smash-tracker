@@ -52,7 +52,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
         left: 0,
         right: 0,
         bottom: 0,
-        background: "rgba(0,0,0,.55)",
+        background: "rgba(0,0,0,.7)",
         zIndex: 200,
         display: "flex",
         alignItems: "center",

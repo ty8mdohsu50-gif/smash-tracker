@@ -49,7 +49,7 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
       onClick={onClose}
       style={{
         position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0,0,0,.55)", zIndex: 200,
+        background: "rgba(0,0,0,.7)", zIndex: 200,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "20px 16px", animation: "fadeIn .15s ease",
       }}
@@ -70,7 +70,7 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
               <img src="/icon.png" alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "contain" }} />
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>SMASH TRACKER</div>
-                <div style={{ fontSize: 11, color: T.dim }}>v1.0.0</div>
+                <div style={{ fontSize: 11, color: T.dim }}>v1.1.0</div>
               </div>
             </div>
             <button

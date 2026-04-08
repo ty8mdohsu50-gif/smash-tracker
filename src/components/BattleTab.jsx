@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, Zap, Share2 } from "lucide-react";
+import { FlashDashboard } from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
 import SharePopup from "./SharePopup";
@@ -52,6 +53,8 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const [counterEditText, setCounterEditText] = useState("");
   const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
   const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
+  const [hypothesisText, setHypothesisText] = useState("");
+  const [reviewInsights, setReviewInsights] = useState(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "", nextHypothesis: "" });
 
   // ── Derived data ──
 
@@ -64,6 +67,15 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
   const recMy = useMemo(() => recentChars(data.matches, "myChar"), [data]);
   const recOpp = useMemo(() => recentChars(data.matches, "oppChar"), [data]);
+
+  const prevSessionHypothesis = useMemo(() => {
+    const dailyDates = Object.keys(data.daily || {}).sort().reverse();
+    for (const d of dailyDates) {
+      const h = data.daily[d]?.reviewInsights?.nextHypothesis;
+      if (h && h.trim()) return h;
+    }
+    return null;
+  }, [data]);
 
   const tM = useMemo(() => data.matches.filter((m) => m.date === today()), [data]);
   const tW = tM.filter((m) => m.result === "win").length;
@@ -90,7 +102,9 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       if (newStart !== pStart) setPStart(newStart);
       setPEnd("");
       setReviewText(data.daily?.[today()]?.review || "");
+      setReviewInsights(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "", nextHypothesis: "" });
     }
+    if (phase === "postMatch") setHypothesisText("");
     prevPhase.current = phase;
   }
 
@@ -140,6 +154,14 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const saveCounterMemo = () => {
     if (!oppChar) return;
     onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppChar]: counterEditText } });
+  };
+
+  const saveHypothesis = (text, result) => {
+    const nm = [...data.matches];
+    const last = nm[nm.length - 1];
+    if (!last) return;
+    nm[nm.length - 1] = { ...last, hypothesis: text || last.hypothesis, hypothesisResult: result !== undefined ? result : last.hypothesisResult };
+    onSave({ ...data, matches: nm });
   };
 
   const saveGoals = () => onSave({ ...data, goals: { games: parseInt(gGames) || 0, winRate: parseInt(gWR) || 0 } });
@@ -217,6 +239,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     if (!day.start) day.start = pStart ? Number(pStart) : null;
     if (pEnd) day.end = Number(pEnd);
     day.review = reviewText;
+    day.reviewInsights = reviewInsights;
     onSave(d);
     if (andShare) buildAndShare();
     else { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }
@@ -259,7 +282,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
   const cd = { background: T.card, borderRadius: 16, padding: "16px 18px", marginBottom: 12, boxShadow: T.sh, border: `1px solid ${T.brd}`, transition: "box-shadow .2s ease" };
   const goalInputStyle = { flex: 1, padding: "12px 14px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 16, fontWeight: 700, outline: "none", boxSizing: "border-box", fontFamily: "'Chakra Petch', sans-serif" };
-  const activeBtn = (disabled) => ({ width: "100%", padding: 16, border: "none", borderRadius: 14, background: disabled ? T.inp : T.accentGrad, color: disabled ? T.dim : "#fff", fontSize: 17, fontWeight: 800, boxShadow: disabled ? "none" : T.accentGlow, transition: "all .2s ease" });
+  const activeBtn = (disabled) => ({ width: "100%", padding: 16, border: "none", borderRadius: 14, background: disabled ? T.inp : T.accentGrad, color: disabled ? T.dim : "#fff", fontSize: 17, fontWeight: 800, boxShadow: disabled ? "none" : T.accentGlow, transition: "all .2s ease", marginBottom: 12 });
 
   const pwrInput = (val, set, ph, big) => (
     <input type="text" inputMode="numeric" autoComplete="off" autoCorrect="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other"
@@ -382,7 +405,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         <div style={{ marginBottom: goals.winRate && tM.length > 0 ? 8 : 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: T.sub, marginBottom: 4, fontWeight: 600 }}>
             <span>{tM.length}/{goals.games}{t("settings.gamesUnit")}</span>
-            <span style={{ color: T.text, fontWeight: 700 }}>{Math.min(100, Math.round((tM.length / goals.games) * 100))}%</span>
+            <span style={{ color: tM.length >= goals.games ? T.win : T.text, fontWeight: 700 }}>{tM.length >= goals.games ? `✓ ${t("share.achieved")}` : `${Math.round((tM.length / goals.games) * 100)}%`}</span>
           </div>
           <div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}>
             <div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3, transition: "width .3s ease" }} />
@@ -424,12 +447,10 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             </span>
           )}
         </div>
-        {data.counterMemos?.[oppChar] && (
-          <div style={{ fontSize: 13, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap", padding: "8px 0", borderTop: `1px solid ${T.inp}` }}>
-            <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.counterMemo")}</div>
-            {data.counterMemos[oppChar]}
-          </div>
-        )}
+        {data.matchupNotes?.[`${myChar}|${oppChar}`]?.flash?.trim()
+          ? <FlashDashboard noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
+          : <FlashDashboard noteKey={oppChar} data={data} T={T} />
+        }
         {pastMemos.length > 0 && (
           <div style={{ borderTop: `1px solid ${T.inp}`, paddingTop: 8, marginTop: 4 }}>
             <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memo")}</div>
@@ -593,6 +614,14 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               )}
             </div>
 
+            {/* Previous hypothesis reminder */}
+            {prevSessionHypothesis && !oppChar && (
+              <div style={{ background: `${T.accent}10`, borderRadius: 12, border: `1px solid ${T.accent}30`, padding: "10px 14px", marginBottom: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: T.accent, marginBottom: 3 }}>🔬 {t("matchupNotes.prevHypothesis")}</div>
+                <div style={{ fontSize: 12, color: T.text, lineHeight: 1.5 }}>{prevSessionHypothesis}</div>
+              </div>
+            )}
+
             {/* Context info */}
             {oppContextInfo}
 
@@ -637,19 +666,35 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 style={{ width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
             </div>
 
+            {/* Hypothesis */}
+            <div style={{ ...cd, padding: "12px 16px", animation: "slideUp .2s ease .1s both" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 13 }}>🔬</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: T.accent }}>{t("matchupNotes.hypothesis")}</span>
+              </div>
+              <textarea value={hypothesisText} onChange={(e) => setHypothesisText(e.target.value)} onBlur={() => saveHypothesis(hypothesisText)} placeholder={t("matchupNotes.hypothesisPlaceholder")} rows={1}
+                style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
+              {hypothesisText.trim() && (
+                <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                  {[["confirmed", t("matchupNotes.confirmed"), T.win], ["denied", t("matchupNotes.denied"), T.lose]].map(([v, l, c]) => {
+                    const last = data.matches[data.matches.length - 1];
+                    const active = last?.hypothesisResult === v;
+                    return (
+                      <button key={v} onClick={() => saveHypothesis(hypothesisText, active ? null : v)} style={{
+                        flex: 1, padding: "6px 0", borderRadius: 8, border: active ? `2px solid ${c}` : `1px solid ${T.brd}`,
+                        background: active ? `${c}18` : T.card, color: active ? c : T.sub, fontSize: 11, fontWeight: 700,
+                      }}>{active ? "✓ " : ""}{l}</button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* Power update */}
             <div style={{ ...cd, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
               {pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}
             </div>
-
-            {oppChar && (
-              <div style={{ ...cd, marginTop: 8, animation: "slideUp .3s ease .25s both" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6 }}>{t("battle.counterMemo")}</div>
-                <textarea value={counterEditText} onChange={(e) => setCounterEditText(e.target.value)} onBlur={saveCounterMemo} placeholder={t("battle.counterMemoPlaceholder")} rows={3}
-                  style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
-              </div>
-            )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
               <button onClick={() => { saveMemo(); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
@@ -734,11 +779,22 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 </button>
               </div>
 
-              {/* Review */}
+              {/* Structured Review */}
               <div style={cd}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("battle.review")}</div>
-                <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder={t("battle.reviewPlaceholder")} rows={3}
-                  style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 10 }}>{t("battle.review")}</div>
+                {[
+                  ["whatWorked", t("matchupNotes.whatWorked"), t("matchupNotes.whatWorkedPlaceholder"), T.win],
+                  ["whatFailed", t("matchupNotes.whatFailed"), t("matchupNotes.whatFailedPlaceholder"), T.lose],
+                  ["nextHypothesis", t("matchupNotes.nextHypothesis"), t("matchupNotes.nextHypothesisPlaceholder"), T.accent],
+                ].map(([key, label, ph, color]) => (
+                  <div key={key} style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{label}</div>
+                    <textarea value={reviewInsights[key] || ""} onChange={(e) => setReviewInsights((p) => ({ ...p, [key]: e.target.value }))} placeholder={ph} rows={2}
+                      style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
+                  </div>
+                ))}
+                <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder={t("battle.reviewPlaceholder")} rows={2}
+                  style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
 
               {/* Actions */}
@@ -784,11 +840,10 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             </div>
           </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.counterMemo")}</div>
-              <textarea value={counterEditText} onChange={(e) => setCounterEditText(e.target.value)} onBlur={() => { onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppChar]: counterEditText } }); }} placeholder={t("battle.counterMemoPlaceholder")} rows={3}
-                style={{ width: "100%", padding: "10px 12px", background: T.inp, border: `1px solid ${T.brd}`, borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
-            </div>
+            {data.matchupNotes?.[`${myChar}|${oppChar}`]?.flash?.trim()
+              ? <FlashDashboard noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
+              : <FlashDashboard noteKey={oppChar} data={data} T={T} />
+            }
             {(() => {
               const pastMatches = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar).slice().reverse();
               if (!pastMatches.length) return null;
@@ -849,7 +904,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             </div>
             {(goals.games || (goals.winRate && tM.length > 0)) && (
               <div style={{ display: "flex", gap: 12 }}>
-                {goals.games ? (<div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.sub, marginBottom: 3 }}><span>{tM.length}/{goals.games}{t("settings.gamesUnit")}</span><span style={{ color: T.text, fontWeight: 700 }}>{Math.min(100, Math.round((tM.length / goals.games) * 100))}%</span></div><div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3 }} /></div></div>) : null}
+                {goals.games ? (<div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.sub, marginBottom: 3 }}><span>{tM.length}/{goals.games}{t("settings.gamesUnit")}</span><span style={{ color: tM.length >= goals.games ? T.win : T.text, fontWeight: 700 }}>{tM.length >= goals.games ? `✓ ${t("share.achieved")}` : `${Math.round((tM.length / goals.games) * 100)}%`}</span></div><div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3 }} /></div></div>) : null}
                 {goals.winRate && tM.length > 0 ? (<div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.sub, marginBottom: 3 }}><span>{t("settings.winRate")} {goals.winRate}%</span><span style={{ color: winRate >= goals.winRate ? T.win : T.lose, fontWeight: 700 }}>{winRate}%</span></div><div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : T.lose, borderRadius: 3 }} /></div></div>) : null}
               </div>
             )}
@@ -955,6 +1010,14 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           {/* PC Battle */}
           {phase === "battle" && (
             <div>
+              {/* Previous hypothesis reminder (PC) */}
+              {prevSessionHypothesis && !oppChar && (
+                <div style={{ background: `${T.accent}10`, borderRadius: 12, border: `1px solid ${T.accent}30`, padding: "12px 16px", marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: T.accent, marginBottom: 3 }}>🔬 {t("matchupNotes.prevHypothesis")}</div>
+                  <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{prevSessionHypothesis}</div>
+                </div>
+              )}
+
               {result && pendingResultBanner}
 
               <div style={{ ...cd, padding: "20px 24px", marginBottom: 16 }}>
@@ -1015,18 +1078,34 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
                   style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
+              {/* Hypothesis (PC) */}
+              <div style={{ ...cd, padding: "14px 20px", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 13 }}>🔬</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: T.accent }}>{t("matchupNotes.hypothesis")}</span>
+                </div>
+                <textarea value={hypothesisText} onChange={(e) => setHypothesisText(e.target.value)} onBlur={() => saveHypothesis(hypothesisText)} placeholder={t("matchupNotes.hypothesisPlaceholder")} rows={1}
+                  style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
+                {hypothesisText.trim() && (
+                  <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                    {[["confirmed", t("matchupNotes.confirmed"), T.win], ["denied", t("matchupNotes.denied"), T.lose]].map(([v, l, c]) => {
+                      const last = data.matches[data.matches.length - 1];
+                      const active = last?.hypothesisResult === v;
+                      return (
+                        <button key={v} onClick={() => saveHypothesis(hypothesisText, active ? null : v)} style={{
+                          flex: 1, padding: "6px 0", borderRadius: 8, border: active ? `2px solid ${c}` : `1px solid ${T.brd}`,
+                          background: active ? `${c}18` : T.card, color: active ? c : T.sub, fontSize: 12, fontWeight: 700,
+                        }}>{active ? "✓ " : ""}{l}</button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               {/* Power update */}
               <div style={{ ...cd, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>
                 <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
                 <div style={{ flex: 1 }}>{pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}</div>
               </div>
-              {oppChar && (
-                <div style={{ ...cd, marginBottom: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6 }}>{t("battle.counterMemo")}</div>
-                  <textarea value={counterEditText} onChange={(e) => setCounterEditText(e.target.value)} onBlur={saveCounterMemo} placeholder={t("battle.counterMemoPlaceholder")} rows={3}
-                    style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
-                </div>
-              )}
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={() => { saveMemo(); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: "16px 12px", border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, whiteSpace: "nowrap" }}>{t("battle.continueSame")}</button>
                 <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.2, padding: "16px 12px", border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{t("battle.changeOpp")}</button>
@@ -1086,9 +1165,20 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                   {pwrInput(pEnd, setPEnd, t("battle.endPower"), true)}
                 </div>
                 <div style={{ ...cd, padding: "16px 24px" }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("battle.review")}</div>
-                  <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder={t("battle.reviewPlaceholder")} rows={3}
-                    style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 10 }}>{t("battle.review")}</div>
+                  {[
+                    ["whatWorked", t("matchupNotes.whatWorked"), t("matchupNotes.whatWorkedPlaceholder"), T.win],
+                    ["whatFailed", t("matchupNotes.whatFailed"), t("matchupNotes.whatFailedPlaceholder"), T.lose],
+                    ["nextHypothesis", t("matchupNotes.nextHypothesis"), t("matchupNotes.nextHypothesisPlaceholder"), T.accent],
+                  ].map(([key, label, ph, color]) => (
+                    <div key={key} style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{label}</div>
+                      <textarea value={reviewInsights[key] || ""} onChange={(e) => setReviewInsights((p) => ({ ...p, [key]: e.target.value }))} placeholder={ph} rows={2}
+                        style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
+                    </div>
+                  ))}
+                  <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder={t("battle.reviewPlaceholder")} rows={2}
+                    style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
                   <button onClick={() => saveEndSession(false)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}</button>

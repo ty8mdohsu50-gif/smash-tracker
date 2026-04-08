@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import { Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Share2, ChevronLeft, ChevronRight, Zap, ChevronDown } from "lucide-react";
+import MatchupNotesEditor, { FlashDashboard } from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
@@ -26,16 +27,29 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [expandedMatchup, setExpandedMatchup] = useState(null);
+  const [showNotes, setShowNotes] = useState(false);
+  const [tendencyText, setTendencyText] = useState("");
   const [calMonth, setCalMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
   const [calDate, setCalDate] = useState(null);
 
+  const analysisRef = useRef(null);
+
   const freeMatches = useMemo(() => data.freeMatches || [], [data.freeMatches]);
   const freeOpponents = useMemo(() => data.freeOpponents || [], [data.freeOpponents]);
   const recMy = useMemo(() => recentChars(freeMatches, "myChar"), [freeMatches]);
   const recOpp = useMemo(() => recentChars(freeMatches, "oppChar"), [freeMatches]);
+
+  useEffect(() => {
+    if (postRecord && analysisRef.current && !isPC) {
+      const timer = setTimeout(() => {
+        analysisRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [postRecord, isPC]);
 
   // Analysis data (top-level for hooks rules)
   const oppMs = useMemo(() => selectedOpponent ? freeMatches.filter((m) => m.opponent === selectedOpponent) : [], [freeMatches, selectedOpponent]);
@@ -162,10 +176,10 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               const rate = total > 0 ? Math.round((w / total) * 100) : null;
               return (
                 <div key={opp} style={{ ...cd, display: "flex", alignItems: "center", gap: 12, marginBottom: isPC ? 0 : 10 }}>
-                  <button onClick={() => { setSelectedOpponent(opp); setPostRecord(false); setExpandedMatchup(null); setCalDate(null); }}
+                  <button onClick={() => { setSelectedOpponent(opp); setPostRecord(false); setExpandedMatchup(null); setCalDate(null); setShowNotes(false); setTendencyText(data.matchupNotes?.[`free:${opp}`]?.flash || ""); }}
                     style={{ flex: 1, display: "flex", alignItems: "center", gap: 14, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", fontFamily: "inherit" }}>
                     <div style={{ width: 40, height: 40, borderRadius: "50%", background: T.accentSoft, border: `2px solid ${T.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: T.accent, flexShrink: 0 }}>{opp[0]}</div>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{opp}</div>
                       {total > 0 ? (
                         <div style={{ fontSize: 12, color: T.sub, marginTop: 2 }}>
@@ -174,6 +188,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
                         </div>
                       ) : <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>—</div>}
                     </div>
+                    <ChevronRight size={16} style={{ color: T.dim, flexShrink: 0 }} />
                   </button>
                   <button onClick={() => setConfirmAction({ message: `${opp} ${t("free.deleteOpponent")}?`, onConfirm: () => { deleteOpponent(opp); setConfirmAction(null); } })}
                     style={{ ...btnBase, padding: "6px 10px", background: T.loseBg, color: T.lose, fontSize: 12 }}>×</button>
@@ -278,6 +293,49 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
       </div>
     );
   })();
+
+  // Tendency / notes area
+  const freeNoteKey = `free:${selectedOpponent}`;
+  const tendencyArea = (
+    <div>
+      <FlashDashboard noteKey={freeNoteKey} data={data} T={T} onEdit={() => setShowNotes(true)} />
+      <div style={{ ...cd, padding: "10px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 13 }}>👤</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t("matchupNotes.tendencyMemo")}</span>
+          </div>
+        </div>
+        <textarea
+          defaultValue={data.matchupNotes?.[freeNoteKey]?.neutral || ""}
+          onBlur={(e) => {
+            const cur = data.matchupNotes?.[freeNoteKey] || { flash: "", neutral: "", advantage: "", disadvantage: "", edgeguard: "", stage: "" };
+            if (e.target.value !== (cur.neutral || "")) {
+              onSave({ ...data, matchupNotes: { ...(data.matchupNotes || {}), [freeNoteKey]: { ...cur, neutral: e.target.value } } });
+            }
+          }}
+          placeholder={t("matchupNotes.tendencyPlaceholder")}
+          rows={2}
+          style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.6, minHeight: 36 }}
+        />
+      </div>
+      {showNotes ? (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t("matchupNotes.title")}</span>
+            <button onClick={() => setShowNotes(false)} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", color: T.sub, fontSize: 11 }}>
+              {t("common.close")}
+            </button>
+          </div>
+          <MatchupNotesEditor noteKey={freeNoteKey} data={data} onSave={onSave} T={T} compact />
+        </div>
+      ) : (
+        <button onClick={() => setShowNotes(true)} style={{ width: "100%", padding: "8px 0", marginBottom: 8, border: `1px dashed ${T.brd}`, borderRadius: 10, background: "transparent", color: T.dim, fontSize: 12, cursor: "pointer" }}>
+          {t("matchupNotes.title")} ▸
+        </button>
+      )}
+    </div>
+  );
 
   // Battle area (char selection + win/lose)
   const battleArea = (
@@ -426,20 +484,20 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     return (
       <div style={{ animation: "fadeUp .2s ease" }}>
         {/* Header */}
-        <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px" }}>
-          <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={{ ...btnBase, padding: "8px 14px", background: T.inp, color: T.sub, fontSize: 13 }}>{t("free.back")}</button>
+        <div style={{ background: T.tBg, borderRadius: 16, padding: "14px 18px", marginBottom: 12, boxShadow: T.sh, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={{ ...btnBase, padding: "8px 14px", background: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.8)", fontSize: 13 }}>{t("free.back")}</button>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: T.accentSoft, border: `2px solid ${T.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: T.accent }}>{selectedOpponent[0]}</div>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "2px solid rgba(255,255,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#fff" }}>{selectedOpponent[0]}</div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{selectedOpponent}</div>
-              {oppMs.length > 0 && <div style={{ fontSize: 12, color: T.dim }}>{oppMs.length}{t("analysis.battles")} {totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{selectedOpponent}</div>
+              {oppMs.length > 0 && <div style={{ fontSize: 12, color: "rgba(255,255,255,.7)" }}>{oppMs.length}{t("analysis.battles")} {totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
             </div>
           </div>
-          {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ ...btnBase, padding: "6px 14px", background: T.inp, color: T.sub, fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}><Share2 size={12} />{t("free.share")}</button>}
+          {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ ...btnBase, padding: "6px 14px", background: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.8)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}><Share2 size={12} />{t("free.share")}</button>}
         </div>
 
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <div style={{ flex: 1, minWidth: 0 }}>{battleArea}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>{tendencyArea}{battleArea}</div>
           <div style={{ flex: 1, minWidth: 0 }}>{analysisArea}</div>
         </div>
         {overlays}
@@ -451,20 +509,30 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   return (
     <div style={{ animation: "fadeUp .2s ease" }}>
       {/* Header */}
-      <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px" }}>
-        <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={{ ...btnBase, padding: "6px 12px", background: T.inp, color: T.sub, fontSize: 12 }}>{t("free.back")}</button>
+      <div style={{ background: T.tBg, borderRadius: 16, padding: "14px 16px", marginBottom: 10, boxShadow: T.sh, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={{ ...btnBase, padding: "6px 12px", background: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.8)", fontSize: 12 }}>{t("free.back")}</button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: T.accentSoft, border: `2px solid ${T.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: T.accent }}>{selectedOpponent[0]}</div>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "2px solid rgba(255,255,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "#fff" }}>{selectedOpponent[0]}</div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>{selectedOpponent}</div>
-            {oppMs.length > 0 && <div style={{ fontSize: 11, color: T.dim }}>{totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{selectedOpponent}</div>
+            {oppMs.length > 0 && <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)" }}>{totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
           </div>
         </div>
-        {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}><Share2 size={10} /></button>}
+        {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ border: "none", background: "rgba(255,255,255,.15)", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}><Share2 size={10} /></button>}
       </div>
 
+      {tendencyArea}
       {battleArea}
-      {analysisArea}
+      {oppMs.length > 0 && !postRecord && (
+        <button onClick={() => analysisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          style={{ width: "100%", border: `1.5px dashed ${T.accentBorder}`, borderRadius: 12, padding: "10px 0", background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 10, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          {t("free.viewAnalysis")}
+          <span style={{ fontSize: 11, color: T.sub, fontWeight: 600 }}>
+            {totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})
+          </span>
+        </button>
+      )}
+      <div ref={analysisRef}>{analysisArea}</div>
       {overlays}
     </div>
   );

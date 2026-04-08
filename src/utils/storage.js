@@ -12,10 +12,23 @@ const DEFAULT_DATA = {
 
 /* ── localStorage (offline / anonymous) ── */
 
+function migrateCounterMemos(d) {
+  if (d.counterMemos && !d.matchupNotes) {
+    const notes = {};
+    for (const [key, text] of Object.entries(d.counterMemos)) {
+      if (text && text.trim()) {
+        notes[key] = { flash: text, neutral: "", advantage: "", disadvantage: "", edgeguard: "", stage: "" };
+      }
+    }
+    d.matchupNotes = notes;
+  }
+  return d;
+}
+
 export function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return migrateCounterMemos(JSON.parse(raw));
 
     const old = localStorage.getItem("smash-tracker-v3");
     if (old) {
@@ -56,10 +69,10 @@ export async function cloudLoad(userId) {
   }
 
   if (data?.data) {
-    return {
+    return migrateCounterMemos({
       ...DEFAULT_DATA,
       ...data.data,
-    };
+    });
   }
 
   return null;
@@ -76,6 +89,7 @@ export async function cloudSave(userId, d) {
     shareSettings: d.shareSettings,
     counterMemos: d.counterMemos,
     charMemos: d.charMemos,
+    matchupNotes: d.matchupNotes,
     freeMatches: d.freeMatches,
     freeOpponents: d.freeOpponents,
   };
