@@ -420,51 +420,44 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
     const dotColor = (r) => r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A";
 
-    const cellSize = isPC ? 40 : 36;
-
     const calendarGrid = (
-      <div>
-        {/* Weekday headers */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
-          {weekDays.map((d, i) => (
-            <div key={i} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: T.dim, padding: "4px 0" }}>{d}</div>
-          ))}
-        </div>
-        {/* Day cells */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-          {Array.from({ length: startOffset }).map((_, i) => <div key={`e${i}`} />)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
-            const dayData = dailyMap[dateStr];
-            const isFuture = dateStr > todayStr;
-            const isSelected = expandedDate === dateStr;
-            const isToday = dateStr === todayStr;
-            const hasData = !!dayData;
-            const r = hasData ? dayData.w / (dayData.w + dayData.l) : 0;
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, textAlign: "center" }}>
+        {weekDays.map((d, i) => (
+          <div key={`h${i}`} style={{ fontSize: 10, fontWeight: 600, color: T.dim, padding: "2px 0" }}>{d}</div>
+        ))}
+        {Array.from({ length: startOffset }).map((_, i) => <div key={`e${i}`} />)}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
+          const dayData = dailyMap[dateStr];
+          const isFuture = dateStr > todayStr;
+          const isSelected = expandedDate === dateStr;
+          const isToday = dateStr === todayStr;
+          const hasData = !!dayData;
+          const r = hasData ? dayData.w / (dayData.w + dayData.l) : 0;
 
-            return (
-              <div
-                key={day}
-                onClick={() => { if (hasData) setExpandedDate(isSelected ? null : dateStr); }}
-                style={{
-                  width: cellSize, height: cellSize, display: "flex", flexDirection: "column",
-                  alignItems: "center", justifyContent: "center", borderRadius: 10, cursor: hasData ? "pointer" : "default",
-                  background: isSelected ? T.accentSoft : "transparent",
-                  border: isSelected ? `2px solid ${T.accent}` : isToday ? `1px solid ${T.dimmer}` : "1px solid transparent",
-                  opacity: isFuture ? 0.3 : 1, transition: "all .1s ease",
-                }}
-              >
-                <span style={{ fontSize: isPC ? 13 : 12, fontWeight: isToday ? 800 : 500, color: isSelected ? T.accent : isToday ? T.text : T.sub }}>
-                  {day}
-                </span>
-                {hasData && (
-                  <div style={{ width: 6, height: 6, borderRadius: 3, background: dotColor(r), marginTop: 2 }} />
-                )}
-              </div>
-            );
-          })}
-        </div>
+          return (
+            <div
+              key={day}
+              onClick={() => { if (hasData) setExpandedDate(isSelected ? null : dateStr); }}
+              style={{
+                padding: isPC ? "5px 0" : "4px 0",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                borderRadius: 8, cursor: hasData ? "pointer" : "default",
+                background: isSelected ? T.accentSoft : "transparent",
+                border: isSelected ? `2px solid ${T.accent}` : isToday ? `1px solid ${T.dimmer}` : "1px solid transparent",
+                opacity: isFuture ? 0.3 : 1, transition: "all .1s ease",
+              }}
+            >
+              <span style={{ fontSize: isPC ? 12 : 11, fontWeight: isToday ? 800 : 500, color: isSelected ? T.accent : isToday ? T.text : T.sub, lineHeight: 1 }}>
+                {day}
+              </span>
+              {hasData && (
+                <div style={{ width: 5, height: 5, borderRadius: 3, background: dotColor(r), marginTop: 2 }} />
+              )}
+            </div>
+          );
+        })}
       </div>
     );
 
@@ -515,26 +508,40 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
     const selectedDayData = expandedDate ? dailyMap[expandedDate] : null;
 
-    const detailPanel = selectedDayData ? (
-      <div style={{ ...cd, padding: "16px 18px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{formatDate(expandedDate)}</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 18, fontWeight: 800, fontFamily: "'Chakra Petch', sans-serif" }}>
-              <span style={{ color: T.win }}>{selectedDayData.w}</span>
-              <span style={{ color: T.dimmer, fontSize: 13, margin: "0 3px" }}>:</span>
-              <span style={{ color: T.lose }}>{selectedDayData.l}</span>
-            </span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: barColor(selectedDayData.w / (selectedDayData.w + selectedDayData.l)) }}>
-              {percentStr(selectedDayData.w, selectedDayData.w + selectedDayData.l)}
-            </span>
+    const detailPanel = selectedDayData ? (() => {
+      const total = selectedDayData.w + selectedDayData.l;
+      const r = total ? selectedDayData.w / total : 0;
+      return (
+        <div style={{ ...cd, padding: "16px 18px" }}>
+          {/* Day header with prominent stats */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 10 }}>{formatDate(expandedDate)}</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 3 }}>{t("analysis.winLoss")}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>
+                  <span style={{ color: T.win }}>{selectedDayData.w}</span>
+                  <span style={{ color: T.dimmer, fontSize: 14, margin: "0 3px" }}>:</span>
+                  <span style={{ color: T.lose }}>{selectedDayData.l}</span>
+                </div>
+              </div>
+              <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 3 }}>{t("analysis.winRate")}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>{percentStr(selectedDayData.w, total)}</div>
+              </div>
+              <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 3 }}>{t("analysis.totalMatches")}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: T.text, fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>{total}</div>
+              </div>
+            </div>
+          </div>
+          {/* Match list */}
+          <div style={{ maxHeight: isPC ? 380 : 280, overflowY: "auto" }}>
+            {matchDetail(selectedDayData.matches)}
           </div>
         </div>
-        <div style={{ maxHeight: isPC ? 400 : 300, overflowY: "auto" }}>
-          {matchDetail(selectedDayData.matches)}
-        </div>
-      </div>
-    ) : (
+      );
+    })() : (
       <div style={{ ...cd, textAlign: "center", padding: isPC ? "48px 20px" : "24px 16px", color: T.dim, fontSize: 13 }}>
         {t("history.selectDateDesc")}
       </div>
@@ -545,7 +552,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       return (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ ...cd, padding: "16px 20px" }}>
+            <div style={{ ...cd, padding: "14px 18px" }}>
               {monthNav}
               {monthSummary}
               {calendarGrid}
@@ -561,7 +568,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     // ── Mobile: calendar on top + detail below ──
     return (
       <div>
-        <div style={{ ...cd, padding: "14px 16px" }}>
+        <div style={{ ...cd, padding: "12px 14px" }}>
           {monthNav}
           {monthSummary}
           {calendarGrid}
