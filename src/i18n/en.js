@@ -146,6 +146,10 @@ export default {
     share: "Share",
     selectCharPrompt: "Select a fighter to see details",
     noHistory: "No match history",
+    monthSummary: "{month} Results",
+    thisMonth: "This Month",
+    showMore: "Show More",
+    showLess: "Show Less",
   },
   settings: {
     title: "Settings",

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from "react";
-import { BarChart3, Share2 } from "lucide-react";
+import { BarChart3, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import Heatmap from "./Heatmap";
@@ -49,6 +49,13 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const [editStart, setEditStart] = useState("");
   const [editEnd, setEditEnd] = useState("");
   const [confirmAction, setConfirmAction] = useState(null);
+
+  // Month navigation for daily list
+  const [dailyMonth, setDailyMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [dailyShowAll, setDailyShowAll] = useState(false);
 
   // ── Computed data ──
 
@@ -363,16 +370,48 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   };
 
   const dailyList = (filterFn) => {
+    // Build daily map from filtered matches
     const dailyMap = {};
-    data.matches.filter(filterFn).forEach((m, _, arr) => {
+    data.matches.filter(filterFn).forEach((m) => {
       const idx = data.matches.indexOf(m);
       if (!dailyMap[m.date]) dailyMap[m.date] = { w: 0, l: 0, matches: [] };
       m.result === "win" ? dailyMap[m.date].w++ : dailyMap[m.date].l++;
       dailyMap[m.date].matches.push({ ...m, idx });
     });
-    const days = Object.entries(dailyMap).sort((a, b) => b[0].localeCompare(a[0]));
-    if (!days.length) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
-    return days.map(([date, d]) => {
+    const allDays = Object.entries(dailyMap).sort((a, b) => b[0].localeCompare(a[0]));
+    if (!allDays.length) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
+
+    // Filter to selected month
+    const monthDays = allDays.filter(([date]) => date.startsWith(dailyMonth));
+
+    // Month summary
+    const monthW = monthDays.reduce((a, [, d]) => a + d.w, 0);
+    const monthL = monthDays.reduce((a, [, d]) => a + d.l, 0);
+    const monthTotal = monthW + monthL;
+    const monthR = monthTotal ? monthW / monthTotal : 0;
+
+    // Month label
+    const [yStr, mStr] = dailyMonth.split("-");
+    const monthLabel = lang === "ja"
+      ? `${yStr}年${parseInt(mStr)}月`
+      : `${new Date(Number(yStr), parseInt(mStr) - 1).toLocaleString("en", { month: "long" })} ${yStr}`;
+
+    // Available months (for prev/next)
+    const availableMonths = [...new Set(allDays.map(([d]) => d.slice(0, 7)))].sort();
+    const curIdx = availableMonths.indexOf(dailyMonth);
+    const hasPrev = curIdx > 0;
+    const hasNext = curIdx < availableMonths.length - 1;
+
+    // Current month check
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const isCurrentMonth = dailyMonth === currentMonth;
+
+    // Show 5 days or all
+    const visibleDays = dailyShowAll ? monthDays : monthDays.slice(0, 5);
+    const hasMore = monthDays.length > 5;
+
+    const dayCard = ([date, d]) => {
       const total = d.w + d.l;
       const r = total ? d.w / total : 0;
       const isExp = expandedDate === date;
@@ -413,7 +452,78 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           )}
         </div>
       );
-    });
+    };
+
+    return (
+      <div>
+        {/* Month navigator */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <button
+            onClick={() => { if (hasPrev) { setDailyMonth(availableMonths[curIdx - 1]); setDailyShowAll(false); setExpandedDate(null); } }}
+            disabled={!hasPrev}
+            style={{ border: "none", background: "transparent", color: hasPrev ? T.text : T.dimmer, padding: 6, cursor: hasPrev ? "pointer" : "default" }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{monthLabel}</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {!isCurrentMonth && (
+              <button
+                onClick={() => { setDailyMonth(currentMonth); setDailyShowAll(false); setExpandedDate(null); }}
+                style={{ border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}
+              >
+                {t("analysis.thisMonth")}
+              </button>
+            )}
+            <button
+              onClick={() => { if (hasNext) { setDailyMonth(availableMonths[curIdx + 1]); setDailyShowAll(false); setExpandedDate(null); } }}
+              disabled={!hasNext}
+              style={{ border: "none", background: "transparent", color: hasNext ? T.text : T.dimmer, padding: 6, cursor: hasNext ? "pointer" : "default" }}
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Month summary */}
+        {monthTotal > 0 && (
+          <div style={{ ...cd, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontSize: 13, color: T.dim }}>{monthTotal}{t("analysis.battles")}</span>
+            <span style={{ fontSize: 16, fontWeight: 800 }}>
+              <span style={{ color: T.win }}>{monthW}</span>
+              <span style={{ color: T.dimmer }}> : </span>
+              <span style={{ color: T.lose }}>{monthL}</span>
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: barColor(monthR) }}>{percentStr(monthW, monthTotal)}</span>
+          </div>
+        )}
+
+        {/* Day cards */}
+        {monthDays.length === 0 ? (
+          <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>
+        ) : (
+          <>
+            {visibleDays.map(dayCard)}
+            {hasMore && (
+              <button
+                onClick={() => setDailyShowAll(!dailyShowAll)}
+                style={{
+                  width: "100%", padding: "10px 0", border: `1px solid ${T.brd}`, borderRadius: 10,
+                  background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  marginBottom: 8,
+                }}
+              >
+                {dailyShowAll
+                  ? t("analysis.showLess")
+                  : `${t("analysis.showMore")}（${monthDays.length - 5}${lang === "ja" ? "日" : " days"}）`}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    );
   };
 
   const trendSection = () => {
@@ -503,9 +613,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     <div>
       {/* Top-level tabs */}
       <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-        {pill("myChar", t("analysis.myChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); })}
-        {pill("oppChar", t("analysis.oppChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); })}
-        {pill("overall", t("analysis.overall"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); })}
+        {pill("myChar", t("analysis.myChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDailyShowAll(false); setExpandedDate(null); })}
+        {pill("oppChar", t("analysis.oppChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDailyShowAll(false); setExpandedDate(null); })}
+        {pill("overall", t("analysis.overall"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDailyShowAll(false); setExpandedDate(null); })}
       </div>
 
       {/* ═══════════════ MODE: MY CHAR ═══════════════ */}

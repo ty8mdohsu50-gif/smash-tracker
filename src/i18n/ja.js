@@ -146,6 +146,10 @@ export default {
     share: "シェア",
     selectCharPrompt: "キャラを選択すると詳細が表示されます",
     noHistory: "対戦履歴がありません",
+    monthSummary: "{month}の戦績",
+    thisMonth: "今月",
+    showMore: "もっと見る",
+    showLess: "閉じる",
   },
   settings: {
     title: "設定",
