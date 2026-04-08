@@ -321,7 +321,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const isExp = expandedItem === s.c;
     const matches = isExp ? matchesGetter() : [];
     return (
-      <div key={s.c} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
+      <div key={s.c} style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "12px 16px" }}>
         <div onClick={() => setExpandedItem(isExp ? null : s.c)} style={{ cursor: "pointer" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -728,8 +728,12 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             </div>
 
             {/* Matchup sub-tab */}
-            {charSubTab === "matchup" && charMatchups.map((s) =>
-              matchupRow(s, () => data.matches.filter((m) => m.myChar === charDetail && m.oppChar === s.c).slice().reverse())
+            {charSubTab === "matchup" && (
+              <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
+                {charMatchups.map((s) =>
+                  matchupRow(s, () => data.matches.filter((m) => m.myChar === charDetail && m.oppChar === s.c).slice().reverse())
+                )}
+              </div>
             )}
 
             {/* Trend sub-tab */}
@@ -827,8 +831,12 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 </div>
 
                 {/* My chars used against this opponent */}
-                {oppSubTab === "myChars" && oppMyChars.map((s) =>
-                  matchupRow(s, () => data.matches.filter((m) => m.oppChar === oppDetail && m.myChar === s.c).slice().reverse())
+                {oppSubTab === "myChars" && (
+                  <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
+                    {oppMyChars.map((s) =>
+                      matchupRow(s, () => data.matches.filter((m) => m.oppChar === oppDetail && m.myChar === s.c).slice().reverse())
+                    )}
+                  </div>
                 )}
 
                 {/* Match history */}
