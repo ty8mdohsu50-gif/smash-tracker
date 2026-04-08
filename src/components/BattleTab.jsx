@@ -223,7 +223,9 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   };
 
   const buildShareText = () => {
-    const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
+    const dayStart = todayDaily.chars?.[myChar]?.start || Number(pStart);
+    const dayEnd = pEnd ? Number(pEnd) : (todayDaily.chars?.[myChar]?.end || null);
+    const shareDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
     const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
     const lines = [`【SMASH TRACKER】${formatDateLong(today())}`];
     if (ss.showChar && myChar) {
@@ -241,8 +243,8 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         .join(" / ");
       if (oppSummary) lines.push(oppSummary);
     }
-    if (ss.showPower && pStart) {
-      lines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+    if (ss.showPower && dayStart) {
+      lines.push(`${t("battle.power")}: ${numFormat(dayStart)} → ${numFormat(dayEnd || dayStart)}${shareDelta !== null ? ` (${shareDelta >= 0 ? "+" : ""}${numFormat(shareDelta)})` : ""}`);
     }
     if (todayDaily.vip) lines.push(t("share.vip"));
     const rev = data.daily?.[today()]?.review || reviewText;
@@ -664,7 +666,9 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         {phase === "end" && (() => {
           const oppStats = {};
           tM.forEach((m) => { if (!oppStats[m.oppChar]) oppStats[m.oppChar] = { w: 0, l: 0 }; m.result === "win" ? oppStats[m.oppChar].w++ : oppStats[m.oppChar].l++; });
-          const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
+          const dayStart = todayDaily.chars?.[myChar]?.start || Number(pStart);
+          const dayEnd = pEnd ? Number(pEnd) : (todayDaily.chars?.[myChar]?.end || null);
+          const pDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
           return (
             <div style={{ animation: "fadeUp .2s ease" }}>
               {/* Summary card */}
@@ -693,12 +697,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                     ))}
                   </div>
                 )}
-                {pStart && (
+                {dayStart && (
                   <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{t("battle.power")}</div>
                     <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pStart))}</span>
-                      {pEnd && (<><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>→</span><span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pEnd))}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayStart)}</span>
+                      {dayEnd && (<><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>→</span><span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayEnd)}</span>
                         {pDelta !== null && <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? "#4ade80" : "#f87171", marginLeft: 4 }}>({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})</span>}</>)}
                     </div>
                   </div>
@@ -1036,7 +1040,9 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           {phase === "end" && (() => {
             const oppStats = {};
             tM.forEach((m) => { if (!oppStats[m.oppChar]) oppStats[m.oppChar] = { w: 0, l: 0 }; m.result === "win" ? oppStats[m.oppChar].w++ : oppStats[m.oppChar].l++; });
-            const pDelta = pEnd && pStart ? Number(pEnd) - Number(pStart) : null;
+            const dayStart = todayDaily.chars?.[myChar]?.start || Number(pStart);
+            const dayEnd = pEnd ? Number(pEnd) : (todayDaily.chars?.[myChar]?.end || null);
+            const pDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
             return (
               <div style={{ animation: "fadeUp .2s ease" }}>
                 <div style={{ background: T.tBg, borderRadius: 20, padding: "32px 28px", marginBottom: 20, boxShadow: T.accentGlow }}>
@@ -1064,12 +1070,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                       ))}
                     </div>
                   )}
-                  {pStart && (
+                  {dayStart && (
                     <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{t("battle.power")}</span>
                       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pStart))}</span>
-                        {pEnd && (<><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>→</span><span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(Number(pEnd))}</span>{pDelta !== null && <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? "#4ade80" : "#f87171", marginLeft: 4 }}>({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})</span>}</>)}
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayStart)}</span>
+                        {dayEnd && (<><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>→</span><span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayEnd)}</span>{pDelta !== null && <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? "#4ade80" : "#f87171", marginLeft: 4 }}>({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})</span>}</>)}
                       </div>
                     </div>
                   )}
