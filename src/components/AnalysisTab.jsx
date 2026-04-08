@@ -250,14 +250,14 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       ctx.fillStyle = "#9ca3af"; ctx.font = "16px sans-serif"; ctx.fillText(dateRange, 20, 60);
       ctx.drawImage(img, 0, headerH, img.width * scale, img.height * scale);
       ctx.fillStyle = "#4b5563"; ctx.font = "14px sans-serif";
-      ctx.fillText("smash-tracker.pages.dev  #スマブラ #SmashTracker #スマトラ", 20, canvas.height - 14);
+      ctx.fillText("smash-tracker.pages.dev  #SmashTracker #スマブラ", 20, canvas.height - 14);
       canvas.toBlob(async (blob) => {
         URL.revokeObjectURL(svgUrl);
         if (!blob) return;
         const file = new File([blob], "smash-tracker-trend.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
-            await navigator.share({ files: [file], text: `【SMASH TRACKER】${t("analysis.trend")}（${label}）${dateRange ? "\n" + dateRange : ""}\n\n#スマブラ #SmashTracker #スマトラ\nhttps://smash-tracker.pages.dev/` });
+            await navigator.share({ files: [file], text: `【SMASH TRACKER】${t("analysis.trend")}（${label}）${dateRange ? "\n" + dateRange : ""}\n\n#SmashTracker #スマブラ\nhttps://smash-tracker.pages.dev/` });
             return;
           } catch (_) { /* cancelled */ }
         }

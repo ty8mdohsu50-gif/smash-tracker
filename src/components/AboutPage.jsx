@@ -1,8 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Share2 } from "lucide-react";
+import SharePopup from "./SharePopup";
 import { useI18n } from "../i18n/index.jsx";
 
 export default function AboutPage({ T, onClose, onOpenLegal }) {
   const { t } = useI18n();
+  const [sharePopupText, setSharePopupText] = useState(null);
+
+  const handleShareApp = async () => {
+    const text = t("about.shareAppText");
+    if (navigator.share) {
+      try { await navigator.share({ text }); return; } catch (_) { /* cancelled */ }
+    }
+    setSharePopupText(text);
+  };
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === "Escape") onClose(); };
@@ -154,7 +165,13 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "14px 24px", borderTop: `1px solid ${T.brd}`, flexShrink: 0, display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ padding: "14px 24px", borderTop: `1px solid ${T.brd}`, flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button
+            onClick={handleShareApp}
+            style={{ padding: "10px 20px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <Share2 size={14} /> {t("about.shareApp")}
+          </button>
           <button
             onClick={onClose}
             style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: T.accent, color: "#fff", fontSize: 14, fontWeight: 700 }}
@@ -162,6 +179,7 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
             {t("common.close")}
           </button>
         </div>
+        {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
       </div>
     </div>
   );

@@ -246,7 +246,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     if (todayDaily.vip) lines.push(t("share.vip"));
     const rev = data.daily?.[today()]?.review || reviewText;
     if (rev) lines.push("", rev);
-    lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
+    lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
     return lines.join("\n");
   };
 
@@ -349,7 +349,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
               if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
               if (goals.winRate) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
-              lines.push("", "#スマブラ #SmashTracker #スマトラ", "https://smash-tracker.pages.dev/");
+              lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
               doShare(lines.join("\n"));
             }}
             style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}

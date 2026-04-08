@@ -308,5 +308,7 @@ export default {
     contact: "お問い合わせ",
     terms: "利用規約",
     privacy: "プライバシーポリシー",
+    shareApp: "このアプリをシェア",
+    shareAppText: "SMASH TRACKER - スマブラの対戦戦績を記録・分析できる無料Webアプリ。キャラ別勝率やマッチアップ分析、戦闘力推移グラフなど充実の機能。\n\nhttps://smash-tracker.pages.dev/\n#SmashTracker #スマブラ",
   },
 };

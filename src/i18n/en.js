@@ -308,5 +308,7 @@ export default {
     contact: "Contact",
     terms: "Terms of Service",
     privacy: "Privacy Policy",
+    shareApp: "Share this app",
+    shareAppText: "SMASH TRACKER - Free web app to record and analyze your Super Smash Bros. match results. Fighter win rates, matchup analysis, GSP trends and more.\n\nhttps://smash-tracker.pages.dev/\n#SmashTracker #SmashBros",
   },
 };

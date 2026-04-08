@@ -97,15 +97,15 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     const l = matchList.filter((m) => m.result === "lose").length;
     const rate = matchList.length > 0 ? Math.round((w / matchList.length) * 100) : 0;
     const lines = [
-      `【SMASH TRACKER】フリー対戦 vs ${opponent}`,
+      `【SMASH TRACKER】${t("free.freeMatch")} vs ${opponent}`,
       "",
-      `${w}W ${l}L（勝率 ${rate}%）`,
+      `${w}W ${l}L（${t("battle.winRate")} ${rate}%）`,
       ...matchList.map((m) => {
         const label = m.result === "win" ? "WIN" : "LOSE";
         return `${label} ${fighterName(m.myChar, lang)} vs ${fighterName(m.oppChar, lang)}`;
       }),
       "",
-      "#スマブラ #SmashTracker #スマトラ",
+      "#SmashTracker #スマブラ",
       "https://smash-tracker.pages.dev/",
     ];
     return lines.join("\n");
