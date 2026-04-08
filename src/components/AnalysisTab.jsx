@@ -402,122 +402,169 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const hasPrev = curIdx > 0;
     const hasNext = curIdx < availableMonths.length - 1;
 
-    // Current month check
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const isCurrentMonth = dailyMonth === currentMonth;
 
-    // Show 5 days or all
+    const monthNav = (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <button onClick={() => { if (hasPrev) { setDailyMonth(availableMonths[curIdx - 1]); setDailyShowAll(false); setExpandedDate(null); } }} disabled={!hasPrev}
+          style={{ border: "none", background: "transparent", color: hasPrev ? T.text : T.dimmer, padding: 6, cursor: hasPrev ? "pointer" : "default" }}>
+          <ChevronLeft size={20} />
+        </button>
+        <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{monthLabel}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {!isCurrentMonth && (
+            <button onClick={() => { setDailyMonth(currentMonth); setDailyShowAll(false); setExpandedDate(null); }}
+              style={{ border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}>
+              {t("analysis.thisMonth")}
+            </button>
+          )}
+          <button onClick={() => { if (hasNext) { setDailyMonth(availableMonths[curIdx + 1]); setDailyShowAll(false); setExpandedDate(null); } }} disabled={!hasNext}
+            style={{ border: "none", background: "transparent", color: hasNext ? T.text : T.dimmer, padding: 6, cursor: hasNext ? "pointer" : "default" }}>
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      </div>
+    );
+
+    const monthSummary = monthTotal > 0 && (
+      <div style={{ ...cd, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <span style={{ fontSize: 13, color: T.dim }}>{monthTotal}{t("analysis.battles")}</span>
+        <span style={{ fontSize: 16, fontWeight: 800 }}>
+          <span style={{ color: T.win }}>{monthW}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{monthL}</span>
+        </span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: barColor(monthR) }}>{percentStr(monthW, monthTotal)}</span>
+      </div>
+    );
+
+    const matchDetail = (matches) => matches.slice().reverse().map((m, i) => (
+      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 36 }}>
+          {m.result === "win" ? "WIN" : "LOSE"}
+        </span>
+        <FighterIcon name={m.myChar} size={20} />
+        <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(m.myChar, lang)}</span>
+        <span style={{ fontSize: 11, color: T.dim }}>vs</span>
+        <FighterIcon name={m.oppChar} size={20} />
+        <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
+        {m.time && <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>}
+        <button onClick={(e) => { e.stopPropagation(); setConfirmAction({ idx: m.idx }); }}
+          style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}>×</button>
+      </div>
+    ));
+
+    // ── PC: master/detail split layout ──
+    if (isPC) {
+      const selectedDay = expandedDate ? monthDays.find(([d]) => d === expandedDate) : null;
+      const selectedData = selectedDay ? selectedDay[1] : null;
+      return (
+        <div>
+          {monthNav}
+          {monthSummary}
+          <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+            {/* Left: day list */}
+            <div style={{ width: 320, flexShrink: 0, maxHeight: 480, overflowY: "auto" }}>
+              {monthDays.length === 0 ? (
+                <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>
+              ) : monthDays.map(([date, d]) => {
+                const total = d.w + d.l;
+                const r = total ? d.w / total : 0;
+                const active = expandedDate === date;
+                return (
+                  <div key={date} onClick={() => setExpandedDate(active ? null : date)}
+                    style={{
+                      padding: "10px 14px", marginBottom: 4, borderRadius: 12, cursor: "pointer",
+                      background: active ? T.accentSoft : T.card,
+                      border: active ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
+                      transition: "all .15s ease",
+                    }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: active ? T.accent : T.text }}>{formatDate(date)}</span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(d.w, total)}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 4, fontSize: 12, color: T.dim }}>
+                      <span>{total}{t("analysis.battles")}</span>
+                      <span><span style={{ color: T.win }}>{d.w}W</span> <span style={{ color: T.lose }}>{d.l}L</span></span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {/* Right: match detail */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {selectedData ? (
+                <div style={{ ...cd, padding: "16px 20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{formatDate(expandedDate)}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: 20, fontWeight: 800, fontFamily: "'Chakra Petch', sans-serif" }}>
+                        <span style={{ color: T.win }}>{selectedData.w}</span>
+                        <span style={{ color: T.dimmer, fontSize: 14, margin: "0 4px" }}>:</span>
+                        <span style={{ color: T.lose }}>{selectedData.l}</span>
+                      </span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: barColor(selectedData.w / (selectedData.w + selectedData.l)) }}>
+                        {percentStr(selectedData.w, selectedData.w + selectedData.l)}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ maxHeight: 400, overflowY: "auto" }}>
+                    {matchDetail(selectedData.matches)}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ ...cd, textAlign: "center", padding: "48px 20px", color: T.dim, fontSize: 13 }}>
+                  {t("history.selectDateDesc")}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Mobile: accordion with 5-day limit ──
     const visibleDays = dailyShowAll ? monthDays : monthDays.slice(0, 5);
     const hasMore = monthDays.length > 5;
 
-    const dayCard = ([date, d]) => {
-      const total = d.w + d.l;
-      const r = total ? d.w / total : 0;
-      const isExp = expandedDate === date;
-      return (
-        <div key={date} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
-          <div onClick={() => setExpandedDate(isExp ? null : date)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 13, color: T.dim }}>{total}{t("analysis.battles")}</span>
-              <span style={{ fontSize: 16, fontWeight: 800 }}>
-                <span style={{ color: T.win }}>{d.w}</span>
-                <span style={{ color: T.dimmer }}> : </span>
-                <span style={{ color: T.lose }}>{d.l}</span>
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r), minWidth: 40, textAlign: "right" }}>{percentStr(d.w, total)}</span>
-            </div>
-          </div>
-          {isExp && (
-            <div style={{ borderTop: `1px solid ${T.inp}`, marginTop: 10, paddingTop: 10 }}>
-              {d.matches.slice().reverse().map((m, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 36 }}>
-                    {m.result === "win" ? "WIN" : "LOSE"}
-                  </span>
-                  <FighterIcon name={m.myChar} size={20} />
-                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(m.myChar, lang)}</span>
-                  <span style={{ fontSize: 11, color: T.dim }}>vs</span>
-                  <FighterIcon name={m.oppChar} size={20} />
-                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
-                  {m.time && <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setConfirmAction({ idx: m.idx }); }}
-                    style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}
-                  >×</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      );
-    };
-
     return (
       <div>
-        {/* Month navigator */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <button
-            onClick={() => { if (hasPrev) { setDailyMonth(availableMonths[curIdx - 1]); setDailyShowAll(false); setExpandedDate(null); } }}
-            disabled={!hasPrev}
-            style={{ border: "none", background: "transparent", color: hasPrev ? T.text : T.dimmer, padding: 6, cursor: hasPrev ? "pointer" : "default" }}
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{monthLabel}</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            {!isCurrentMonth && (
-              <button
-                onClick={() => { setDailyMonth(currentMonth); setDailyShowAll(false); setExpandedDate(null); }}
-                style={{ border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 8, cursor: "pointer" }}
-              >
-                {t("analysis.thisMonth")}
-              </button>
-            )}
-            <button
-              onClick={() => { if (hasNext) { setDailyMonth(availableMonths[curIdx + 1]); setDailyShowAll(false); setExpandedDate(null); } }}
-              disabled={!hasNext}
-              style={{ border: "none", background: "transparent", color: hasNext ? T.text : T.dimmer, padding: 6, cursor: hasNext ? "pointer" : "default" }}
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-
-        {/* Month summary */}
-        {monthTotal > 0 && (
-          <div style={{ ...cd, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 13, color: T.dim }}>{monthTotal}{t("analysis.battles")}</span>
-            <span style={{ fontSize: 16, fontWeight: 800 }}>
-              <span style={{ color: T.win }}>{monthW}</span>
-              <span style={{ color: T.dimmer }}> : </span>
-              <span style={{ color: T.lose }}>{monthL}</span>
-            </span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: barColor(monthR) }}>{percentStr(monthW, monthTotal)}</span>
-          </div>
-        )}
-
-        {/* Day cards */}
+        {monthNav}
+        {monthSummary}
         {monthDays.length === 0 ? (
           <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>
         ) : (
           <>
-            {visibleDays.map(dayCard)}
+            {visibleDays.map(([date, d]) => {
+              const total = d.w + d.l;
+              const r = total ? d.w / total : 0;
+              const isExp = expandedDate === date;
+              return (
+                <div key={date} style={{ ...cd, marginBottom: 8, padding: "12px 16px" }}>
+                  <div onClick={() => setExpandedDate(isExp ? null : date)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{formatDate(date)}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: 13, color: T.dim }}>{total}{t("analysis.battles")}</span>
+                      <span style={{ fontSize: 16, fontWeight: 800 }}>
+                        <span style={{ color: T.win }}>{d.w}</span>
+                        <span style={{ color: T.dimmer }}> : </span>
+                        <span style={{ color: T.lose }}>{d.l}</span>
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: barColor(r), minWidth: 40, textAlign: "right" }}>{percentStr(d.w, total)}</span>
+                    </div>
+                  </div>
+                  {isExp && (
+                    <div style={{ borderTop: `1px solid ${T.inp}`, marginTop: 10, paddingTop: 10 }}>
+                      {matchDetail(d.matches)}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {hasMore && (
-              <button
-                onClick={() => setDailyShowAll(!dailyShowAll)}
-                style={{
-                  width: "100%", padding: "10px 0", border: `1px solid ${T.brd}`, borderRadius: 10,
-                  background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer",
-                  marginBottom: 8,
-                }}
-              >
-                {dailyShowAll
-                  ? t("analysis.showLess")
-                  : `${t("analysis.showMore")}（${monthDays.length - 5}${lang === "ja" ? "日" : " days"}）`}
+              <button onClick={() => setDailyShowAll(!dailyShowAll)}
+                style={{ width: "100%", padding: "10px 0", border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 8 }}>
+                {dailyShowAll ? t("analysis.showLess") : `${t("analysis.showMore")}（${monthDays.length - 5}${lang === "ja" ? "日" : " days"}）`}
               </button>
             )}
           </>
