@@ -43,7 +43,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   // Editing state
   const [counterMemoText, setCounterMemoText] = useState("");
   const [sharePopupText, setSharePopupText] = useState(null);
-  const [shareImageUrl, setShareImageUrl] = useState(null);
   const [editingPower, setEditingPower] = useState(false);
   const [editStart, setEditStart] = useState("");
   const [editEnd, setEditEnd] = useState("");
@@ -92,11 +91,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     });
     return Object.entries(s)
       .map(([c, v]) => ({ c, w: v.w, l: v.l, t: v.w + v.l }))
-      .sort((a, b) => {
-        const ra = a.t ? a.w / a.t : 0;
-        const rb = b.t ? b.w / b.t : 0;
-        return ra - rb;
-      });
+      .sort((a, b) => FIGHTERS.indexOf(a.c) - FIGHTERS.indexOf(b.c));
   }, [data, charDetail]);
 
   // Opp detail: my chars used against this opponent
@@ -261,7 +256,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             return;
           } catch (_) { /* cancelled */ }
         }
-        setShareImageUrl(URL.createObjectURL(blob));
+        setSharePopupText(`【SMASH TRACKER】${t("analysis.trend")}（${label}）${dateRange ? "\n" + dateRange : ""}\n\n#SmashTracker #スマブラ\nhttps://smash-tracker.pages.dev/`);
       }, "image/png");
     };
     img.src = svgUrl;
@@ -919,21 +914,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
       {/* Shared overlays */}
       {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
-      {shareImageUrl && (
-        <div onClick={() => { URL.revokeObjectURL(shareImageUrl); setShareImageUrl(null); }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,.7)", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20, animation: "fadeIn .15s ease" }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, width: "100%", textAlign: "center" }}>
-            <img src={shareImageUrl} alt="trend" style={{ width: "100%", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,.4)" }} />
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 16 }}>
-              <a href={shareImageUrl} download="smash-tracker-trend.png" style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: T.accent, color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
-                {t("battle.copyText")}
-              </a>
-              <button onClick={() => { URL.revokeObjectURL(shareImageUrl); setShareImageUrl(null); }} style={{ padding: "10px 24px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>
-                {t("common.close")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {confirmAction && (
         <ConfirmDialog
           message={t("common.deleteConfirm")}

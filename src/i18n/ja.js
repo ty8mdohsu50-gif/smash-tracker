@@ -243,6 +243,11 @@ export default {
     matches: "戦",
     rematch: "連戦する",
     changeChar: "キャラ変更",
+    battle: "対戦",
+    analysis: "分析",
+    winRateTrend: "勝率推移",
+    matchupStats: "マッチアップ",
+    rollingWinRate: "ローリング勝率（直近10戦）",
   },
   common: {
     win: "WIN",

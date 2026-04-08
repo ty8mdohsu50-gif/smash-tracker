@@ -243,6 +243,11 @@ export default {
     matches: " matches",
     rematch: "Rematch",
     changeChar: "Change fighter",
+    battle: "Battle",
+    analysis: "Analysis",
+    winRateTrend: "Win Rate Trend",
+    matchupStats: "Matchups",
+    rollingWinRate: "Rolling Win Rate (last 10)",
   },
   common: {
     win: "WIN",
