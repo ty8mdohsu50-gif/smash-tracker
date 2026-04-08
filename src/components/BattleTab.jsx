@@ -2,7 +2,6 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { X, ChevronUp, ChevronDown, Zap, Share2 } from "lucide-react";
 import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
-import MatchRow from "./MatchRow";
 import SharePopup from "./SharePopup";
 import Toast from "./Toast";
 import FighterIcon from "./FighterIcon";
@@ -228,25 +227,27 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
     const lines = [`【SMASH TRACKER】${formatDateLong(today())}`];
     if (ss.showChar && myChar) {
-      lines.push(ss.showRecord
-        ? `${t("share.used")}: ${fighterName(myChar, lang)} ${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`
-        : `${t("share.used")}: ${fighterName(myChar, lang)}`);
-    } else if (ss.showRecord) {
-      lines.push(`${tW}W ${tL}L（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
+      lines.push(fighterName(myChar, lang));
+    }
+    if (ss.showRecord) {
+      lines.push(`${tW}${lang === "ja" ? "勝" : "W"} ${tL}${lang === "ja" ? "敗" : "L"}（${t("battle.winRate")} ${percentStr(tW, tM.length)}）`);
     }
     if (ss.showMatchups) {
-      tM.forEach((m) => {
-        const line = `${m.result === "win" ? "WIN" : "LOSE"} vs ${fighterName(m.oppChar, lang)}`;
-        lines.push(m.memo ? `${line}「${m.memo}」` : line);
-      });
+      const oppCount = {};
+      tM.forEach((m) => { oppCount[m.oppChar] = (oppCount[m.oppChar] || 0) + 1; });
+      const oppSummary = Object.entries(oppCount)
+        .sort((a, b) => b[1] - a[1])
+        .map(([c, n]) => `vs ${fighterName(c, lang)} ×${n}`)
+        .join(" / ");
+      if (oppSummary) lines.push(oppSummary);
     }
     if (ss.showPower && pStart) {
-      lines.push("", `${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
+      lines.push(`${t("battle.power")}: ${numFormat(Number(pStart))} → ${numFormat(Number(pEnd || pStart))}${pDelta !== null ? ` (${pDelta >= 0 ? "+" : ""}${numFormat(pDelta)})` : ""}`);
     }
     if (todayDaily.vip) lines.push(t("share.vip"));
     const rev = data.daily?.[today()]?.review || reviewText;
     if (rev) lines.push("", rev);
-    lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+    lines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
     return lines.join("\n");
   };
 
@@ -270,7 +271,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const recentMatchList = tM.length === 0
     ? <div style={{ textAlign: "center", padding: "32px 0", color: T.dim, fontSize: 13 }}>{t("battle.startMatching")}</div>
     : tM.slice().reverse().slice(0, 10).map((m, i) => (
-      <MatchRow key={i} m={m} onDelete={() => deleteMatch(data.matches.length - 1 - i)} showTime T={T} />
+      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
+        <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+        <FighterIcon name={m.oppChar} size={22} />
+        <span style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>{fighterName(m.oppChar, lang)}</span>
+        <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
+      </div>
     ));
 
   // ── Mode toggle ──
@@ -989,7 +995,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 <button onClick={() => setPhase("end")} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
-                <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 12, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>{t("battle.backToBattle")}</button>
+                <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 13, fontWeight: 600 }}>{t("battle.changeChar")}</button>
               </div>
 
               {myChar && (
