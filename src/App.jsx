@@ -68,6 +68,7 @@ export default function App() {
     : true;
   const T = getTheme(data.dark !== undefined ? data.dark : prefersDark, data.themeColor || "black");
   const [tabIdx, setTabIdx] = useState(0);
+  const [battleMode, setBattleMode] = useState("ranked");
   const [analysisMode, setAnalysisMode] = useState("myChar");
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
@@ -219,10 +220,22 @@ export default function App() {
       touchRef.current.sw = true;
   };
   const ANALYSIS_MODES = ["myChar", "oppChar", "overall"];
+  // Swipe order: ranked → free → analysis(myChar → oppChar → overall)
   const onTE = (e) => {
     if (!touchRef.current.sw) return;
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     if (Math.abs(dx) > 50 && Date.now() - touchRef.current.t < 400) {
+      if (tabIdx === 0) {
+        if (battleMode === "ranked" && dx < 0) {
+          setBattleMode("free");
+        } else if (battleMode === "free" && dx < 0) {
+          setTabIdx(1);
+          setAnalysisMode("myChar");
+        } else if (battleMode === "free" && dx > 0) {
+          setBattleMode("ranked");
+        }
+        return;
+      }
       if (tabIdx === 1) {
         const idx = ANALYSIS_MODES.indexOf(analysisMode);
         if (dx < 0 && idx < ANALYSIS_MODES.length - 1) {
@@ -231,11 +244,10 @@ export default function App() {
           setAnalysisMode(ANALYSIS_MODES[idx - 1]);
         } else if (dx > 0 && idx === 0) {
           setTabIdx(0);
+          setBattleMode("free");
         }
         return;
       }
-      if (dx < 0 && tabIdx < 1) setTabIdx(tabIdx + 1);
-      if (dx > 0 && tabIdx > 0) setTabIdx(tabIdx - 1);
     }
   };
 
@@ -388,7 +400,7 @@ export default function App() {
         </div>
         <div style={{ padding: isLandscape ? "8px 12px 20px" : "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} battleMode={battleMode} setBattleMode={setBattleMode} />}
             {tabIdx === 1 && <AnalysisTab data={data} onSave={sv} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>
@@ -560,7 +572,7 @@ export default function App() {
 
         <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} />}
             {tabIdx === 1 && <AnalysisTab data={data} onSave={sv} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>

@@ -2,7 +2,6 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import { BarChart3, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
-import Heatmap from "./Heatmap";
 import SharePopup from "./SharePopup";
 import ConfirmDialog from "./ConfirmDialog";
 import { shortName, fighterName, FIGHTERS } from "../constants/fighters";
@@ -77,11 +76,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     });
     return Object.entries(s)
       .map(([c, v]) => ({ c, w: v.w, l: v.l, t: v.w + v.l }))
-      .sort((a, b) => {
-        const ra = a.t ? a.w / a.t : 0;
-        const rb = b.t ? b.w / b.t : 0;
-        return ra - rb;
-      });
+      .sort((a, b) => FIGHTERS.indexOf(a.c) - FIGHTERS.indexOf(b.c));
   }, [data]);
 
   const totalW = useMemo(() => data.matches.filter((m) => m.result === "win").length, [data]);
@@ -855,12 +850,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 <span style={{ color: T.lose }}>{totalL}</span>
               </div>
             </div>
-          </div>
-
-          {/* Heatmap */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("analysis.heatmap")}</div>
-          <div style={{ ...cd, padding: "16px 14px", marginBottom: isPC ? 20 : 14 }}>
-            <Heatmap matches={data.matches} T={T} isPC={isPC} />
           </div>
 
           {/* Recent win rate */}

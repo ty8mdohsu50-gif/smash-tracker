@@ -6,7 +6,6 @@ import MatchRow from "./MatchRow";
 import SharePopup from "./SharePopup";
 import Toast from "./Toast";
 import FighterIcon from "./FighterIcon";
-import { checkMilestones, MILESTONES } from "../constants/milestones";
 import { fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import {
@@ -26,11 +25,11 @@ import {
   lastEndPower,
 } from "../utils/format";
 
-export default function BattleTab({ data, onSave, T, isPC }) {
+export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattleMode }) {
   const { t, lang } = useI18n();
 
-  // Mode: ranked vs free
-  const [mode, setMode] = useState("ranked");
+  const mode = battleMode || "ranked";
+  const setMode = setBattleMode || (() => {});
 
   // Phase: setup → battle → postMatch → end
   const [phase, setPhase] = useState("setup");
@@ -42,8 +41,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
   const [showPowerEdit, setShowPowerEdit] = useState(false);
   const [showMyPicker, setShowMyPicker] = useState(false);
   const [showOppPicker, setShowOppPicker] = useState(false);
-  const [newMilestones, setNewMilestones] = useState([]);
-  const [prevMatchCount, setPrevMatchCount] = useState(data.matches.length);
   const [sharePopupText, setSharePopupText] = useState(null);
   const [shareStatus, setShareStatus] = useState(null);
   const [toast, setToast] = useState(null);
@@ -182,13 +179,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
     const newMatches = [...data.matches, m];
     onSave({ ...data, matches: newMatches });
 
-    const newTotal = newMatches.length;
-    const wins = newMatches.filter((x) => x.result === "win").length;
-    const currentStreak = getStreak(newMatches);
-    const winRatePct = newTotal > 0 ? Math.round((wins / newTotal) * 100) : 0;
-    const achieved = checkMilestones(prevMatchCount, newTotal, currentStreak, winRatePct);
-    setPrevMatchCount(newTotal);
-    setNewMilestones(achieved);
     setLastRes(r);
     setMemo("");
     setCounterEditText(data.counterMemos?.[opp] || "");
@@ -402,28 +392,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
           </div>
         </div>
       ) : null}
-      {/* Next milestone */}
-      {(() => {
-        const totalMatches = data.matches.length;
-        const next = MILESTONES.find((m) => totalMatches < m.matchCount);
-        if (!next) return null;
-        const prev = MILESTONES.filter((m) => totalMatches >= m.matchCount).pop();
-        const base = prev ? prev.matchCount : 0;
-        const progress = ((totalMatches - base) / (next.matchCount - base)) * 100;
-        const remaining = next.matchCount - totalMatches;
-        return (
-          <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${T.inp}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: T.dim }}>{t("battle.nextMilestone")}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>{next.label}</span>
-            </div>
-            <div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden", marginBottom: 3 }}>
-              <div style={{ width: `${Math.min(100, progress)}%`, height: "100%", background: T.accentGrad, borderRadius: 3, transition: "width .3s ease" }} />
-            </div>
-            <div style={{ fontSize: 10, color: T.sub, textAlign: "right", fontWeight: 600 }}>{t("battle.milestoneProgress").replace("{n}", remaining)}</div>
-          </div>
-        );
-      })()}
     </div>
   );
 
@@ -671,18 +639,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 style={{ width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
             </div>
 
-            {newMilestones.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, animation: "popIn .4s ease .2s both" }}>
-                {newMilestones.map((m) => (
-                  <div key={m.id} style={{ background: T.accentGrad, borderRadius: 14, padding: "14px 18px", textAlign: "center", boxShadow: T.accentGlow }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.75)", letterSpacing: 1.5, marginBottom: 4 }}>{t("battle.milestoneUnlocked")}</div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>{m.label}</div>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 4 }}>{m.condition}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {oppChar && (
               <div style={{ ...cd, marginTop: 8, animation: "slideUp .3s ease .25s both" }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6 }}>{t("battle.counterMemo")}</div>
@@ -692,11 +648,11 @@ export default function BattleTab({ data, onSave, T, isPC }) {
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
-              <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
-              <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 15, fontWeight: 700, transition: "all .15s ease" }}>{t("battle.changeOpp")}</button>
+              <button onClick={() => { saveMemo(); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
+              <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 15, fontWeight: 700, transition: "all .15s ease" }}>{t("battle.changeOpp")}</button>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{t("battle.changeChar")}</button>
-                <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("end"); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{t("battle.changeChar")}</button>
+                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
               </div>
             </div>
           </div>
@@ -1051,17 +1007,6 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
                   style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
-              {newMilestones.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16, animation: "popIn .4s ease .2s both" }}>
-                  {newMilestones.map((m) => (
-                    <div key={m.id} style={{ background: T.accentGrad, borderRadius: 14, padding: "16px 24px", textAlign: "center", boxShadow: T.accentGlow }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.75)", letterSpacing: 1.5, marginBottom: 4 }}>{t("battle.milestoneUnlocked")}</div>
-                      <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>{m.label}</div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 4 }}>{m.condition}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
               {oppChar && (
                 <div style={{ ...cd, marginBottom: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginBottom: 6 }}>{t("battle.counterMemo")}</div>
@@ -1070,10 +1015,10 @@ export default function BattleTab({ data, onSave, T, isPC }) {
                 </div>
               )}
               <div style={{ display: "flex", gap: 12 }}>
-                <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
-                <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.5, padding: 20, border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 14, fontWeight: 700 }}>{t("battle.changeOpp")}</button>
-                <button onClick={() => { saveMemo(); setNewMilestones([]); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>{t("battle.changeChar")}</button>
-                <button onClick={() => { saveMemo(); setNewMilestones([]); setPhase("end"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>{t("battle.endSession")}</button>
+                <button onClick={() => { saveMemo(); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.5, padding: 20, border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 14, fontWeight: 700 }}>{t("battle.changeOpp")}</button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>{t("battle.changeChar")}</button>
+                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>{t("battle.endSession")}</button>
               </div>
             </div>
           )}
