@@ -133,6 +133,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       todayMatches.forEach((m) => pts.push({ date: today(), value: m.power, time: m.time }));
       if (!pts.length) return empty;
       const vals = pts.map((p) => p.value);
+      const allSame = vals.every((v) => v === vals[0]);
+      if (allSame && pts.length > 1) return { points: [], cur: vals[0], chg: 0, mx: vals[0], mn: vals[0], isToday: true };
       const cur = pts[pts.length - 1].value;
       return { points: pts, cur, chg: cur - pts[0].value, mx: Math.max(...vals), mn: Math.min(...vals), isToday: true };
     }
@@ -505,7 +507,18 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         <div style={{ ...cd, padding: "16px 18px" }}>
           {/* Day header with prominent stats */}
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 10 }}>{formatDate(expandedDate)}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{formatDate(expandedDate)}</span>
+              <button onClick={() => {
+                const ms = selectedDayData.matches;
+                const lines = [`【SMASH TRACKER】${formatDate(expandedDate)}`, `${selectedDayData.w}W ${selectedDayData.l}L（${t("analysis.winRate")} ${percentStr(selectedDayData.w, total)}）`, "",
+                  ...ms.map((m) => `${m.result === "win" ? "WIN" : "LOSE"} ${fighterName(m.myChar, lang)} vs ${fighterName(m.oppChar, lang)}`),
+                  "", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/"];
+                doShare(lines.join("\n"));
+              }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
+                <Share2 size={12} /> {t("analysis.share")}
+              </button>
+            </div>
             <div style={{ display: "flex", gap: 8 }}>
               <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
                 <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 3 }}>{t("analysis.winLoss")}</div>
