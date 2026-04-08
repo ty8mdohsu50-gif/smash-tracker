@@ -1033,11 +1033,11 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                     style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.6 }} />
                 </div>
               )}
-              <div style={{ display: "flex", gap: 12 }}>
-                <button onClick={() => { saveMemo(); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
-                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.5, padding: 20, border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 14, fontWeight: 700 }}>{t("battle.changeOpp")}</button>
-                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 14, fontWeight: 600 }}>{t("battle.changeChar")}</button>
-                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: 20, border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>{t("battle.endSession")}</button>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => { saveMemo(); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: "16px 12px", border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, whiteSpace: "nowrap" }}>{t("battle.continueSame")}</button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.2, padding: "16px 12px", border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{t("battle.changeOpp")}</button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.changeChar")}</button>
+                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.endSession")}</button>
               </div>
             </div>
           )}

@@ -54,6 +54,8 @@ export default function Chart({ points: pts, T, isToday }) {
 
   const areaPath = `${pathD} L ${x(pts.length - 1)},${P.t + cH} L ${P.l},${P.t + cH} Z`;
 
+  const fmtLabel = (d) => /^\d{4}-\d{2}-\d{2}/.test(d) ? formatDateShort(d) : d;
+
   const dateLabels = [];
   if (isToday) {
     const step = Math.max(1, Math.ceil(pts.length / 6));
@@ -82,7 +84,7 @@ export default function Chart({ points: pts, T, isToday }) {
       seen.add(dateStr);
       dateLabels.push(
         <text key={`xl${xi}`} x={x(xi)} y={H - 8} textAnchor="middle" fontSize={10} fontWeight={500} fill={T.dim}>
-          {formatDateShort(dateStr)}
+          {fmtLabel(dateStr)}
         </text>,
       );
     }
@@ -90,7 +92,7 @@ export default function Chart({ points: pts, T, isToday }) {
     if (!seen.has(lastDate)) {
       dateLabels.push(
         <text key="xll" x={x(pts.length - 1)} y={H - 8} textAnchor="middle" fontSize={10} fontWeight={500} fill={T.dim}>
-          {formatDateShort(lastDate)}
+          {fmtLabel(lastDate)}
         </text>,
       );
     }

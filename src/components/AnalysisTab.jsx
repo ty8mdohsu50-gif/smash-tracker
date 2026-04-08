@@ -748,7 +748,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noCharData")}</div>
           ) : (
             <div>
-              {oCS.map((s) => charRow(s, () => { setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null); setCounterMemoText(data.counterMemos?.[s.c] || ""); }))}
+              <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
+                {oCS.map((s) => charRow(s, () => { setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null); setCounterMemoText(data.counterMemos?.[s.c] || ""); }))}
+              </div>
 
               {/* Not fought chars */}
               {(() => {
