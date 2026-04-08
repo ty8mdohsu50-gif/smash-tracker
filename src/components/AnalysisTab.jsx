@@ -6,6 +6,7 @@ import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
 import ConfirmDialog from "./ConfirmDialog";
 import { shortName, fighterName, FIGHTERS } from "../constants/fighters";
+import { STAGES, stageName, stageImg } from "../constants/stages";
 import { useI18n } from "../i18n/index.jsx";
 import {
   today,
@@ -834,11 +835,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
             {oppMatches.length > 0 && (
               <>
-                {/* Sub-tabs: myChars / history */}
+                {/* Sub-tabs: myChars / history / stages */}
                 <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-                  {[["myChars", t("analysis.myCharUsed")], ["history", t("analysis.matchHistory")]].map(([k, l]) => (
+                  {[["myChars", t("analysis.myCharUsed")], ["history", t("analysis.matchHistory")], ["stages", t("stages.winRateByStage")]].map(([k, l]) => (
                     <button key={k} onClick={() => { setOppSubTab(k); setExpandedItem(null); setExpandedDate(null); }} style={{
-                      flex: 1, padding: "10px 0", borderRadius: 10, border: "none", fontSize: 13,
+                      flex: 1, padding: "10px 0", borderRadius: 10, border: "none", fontSize: 12,
                       fontWeight: oppSubTab === k ? 700 : 500, textAlign: "center",
                       background: oppSubTab === k ? T.accentGrad : T.inp, color: oppSubTab === k ? "#fff" : T.sub, transition: "all .15s ease",
                     }}>{l}</button>
@@ -856,6 +857,50 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
                 {/* Match history */}
                 {oppSubTab === "history" && dailyList((m) => m.oppChar === oppDetail)}
+
+                {/* Stage win rate */}
+                {oppSubTab === "stages" && (() => {
+                  const stageMatches = oppMatches.filter((m) => m.stage);
+                  return (
+                    <div>
+                      {stageMatches.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "24px 0", color: T.dim, fontSize: 13 }}>{t("stages.noData")}</div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          {STAGES.map((stage) => {
+                            const ms = stageMatches.filter((m) => m.stage === stage.id);
+                            const w = ms.filter((m) => m.result === "win").length;
+                            const l = ms.length - w;
+                            const r = ms.length > 0 ? w / ms.length : 0;
+                            return (
+                              <div key={stage.id} style={{ ...cd, padding: "10px 14px", display: "flex", alignItems: "center", gap: 12, opacity: ms.length === 0 ? 0.4 : 1 }}>
+                                <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: 72, height: 40, objectFit: "cover", borderRadius: 6, flexShrink: 0 }} />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 4 }}>{stageName(stage.id, lang)}</div>
+                                  {ms.length > 0 ? (
+                                    <>
+                                      <div style={{ height: 6, borderRadius: 3, background: T.inp, overflow: "hidden", marginBottom: 4 }}>
+                                        <div style={{ height: "100%", width: `${r * 100}%`, background: barColor(r), borderRadius: 3, transition: "width .3s ease" }} />
+                                      </div>
+                                      <div style={{ fontSize: 11, color: T.dim }}>{w}W {l}L</div>
+                                    </>
+                                  ) : (
+                                    <div style={{ fontSize: 11, color: T.dim }}>{t("stages.noData")}</div>
+                                  )}
+                                </div>
+                                {ms.length > 0 && (
+                                  <div style={{ fontSize: 16, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif", flexShrink: 0 }}>
+                                    {Math.round(r * 100)}%
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </>
             )}
           </div>
@@ -943,6 +988,41 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               </>
             )}
           </div>
+
+          {/* Stage win rate (overall) */}
+          {data.matches.some((m) => m.stage) && (
+            <>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("stages.winRateByStage")}</div>
+              <div style={{ ...cd, padding: "12px 14px", marginBottom: isPC ? 20 : 14 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {STAGES.map((stage) => {
+                    const ms = data.matches.filter((m) => m.stage === stage.id);
+                    if (ms.length === 0) return null;
+                    const w = ms.filter((m) => m.result === "win").length;
+                    const l = ms.length - w;
+                    const r = w / ms.length;
+                    return (
+                      <div key={stage.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: 60, height: 34, objectFit: "cover", borderRadius: 6, flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{stageName(stage.id, lang)}</span>
+                            <span style={{ fontSize: 11, color: T.dim }}>{w}W {l}L</span>
+                          </div>
+                          <div style={{ height: 6, borderRadius: 3, background: T.inp, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${r * 100}%`, background: barColor(r), borderRadius: 3 }} />
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif", flexShrink: 0, minWidth: 42, textAlign: "right" }}>
+                          {Math.round(r * 100)}%
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* All daily records (integrated from HistoryTab) */}
           <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("analysis.allDailyRecord")}</div>

@@ -287,6 +287,13 @@ export default {
     tendencyMemo: "癖メモ",
     tendencyPlaceholder: "この相手の癖や傾向...",
   },
+  stages: {
+    label: "ステージ",
+    winRateByStage: "ステージ別勝率",
+    noData: "データなし",
+    selectStage: "使用ステージを選択（任意）",
+    stageWinRate: "ステージ勝率",
+  },
   common: {
     win: "WIN",
     lose: "LOSE",

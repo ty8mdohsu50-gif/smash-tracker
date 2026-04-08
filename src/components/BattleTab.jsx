@@ -7,6 +7,7 @@ import SharePopup from "./SharePopup";
 import Toast from "./Toast";
 import FighterIcon from "./FighterIcon";
 import { fighterName } from "../constants/fighters";
+import { STAGES, stageName, stageImg } from "../constants/stages";
 import { useI18n } from "../i18n/index.jsx";
 import {
   today,
@@ -55,6 +56,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
   const [hypothesisText, setHypothesisText] = useState("");
   const [reviewInsights, setReviewInsights] = useState(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "", nextHypothesis: "" });
+  const [selectedStage, setSelectedStage] = useState(null);
 
   // ── Derived data ──
 
@@ -196,12 +198,14 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       date: today(), time: new Date().toISOString(), myChar, oppChar: opp, result: r, memo: "",
       power: pEnd ? Number(pEnd) : (pStart ? Number(pStart) : null),
       startPower: pStart ? Number(pStart) : null,
+      stage: null,
     };
     const newMatches = [...data.matches, m];
     onSave({ ...data, matches: newMatches });
 
     setLastRes(r);
     setMemo("");
+    setSelectedStage(null);
     setCounterEditText(data.counterMemos?.[opp] || "");
     setToast(t("battle.toastRecorded"));
     setPhase("postMatch");
@@ -226,6 +230,15 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     const nm = [...data.matches];
     nm.splice(idx, 1);
     onSave({ ...data, matches: nm });
+  };
+
+  const saveStage = (stageId) => {
+    const nm = [...data.matches];
+    const last = nm[nm.length - 1];
+    if (!last) return;
+    nm[nm.length - 1] = { ...last, stage: stageId };
+    onSave({ ...data, matches: nm });
+    setSelectedStage(stageId);
   };
 
   const saveEndSession = (andShare) => {
@@ -690,6 +703,31 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               )}
             </div>
 
+            {/* Stage selection (mobile) */}
+            <div style={{ ...cd, padding: "12px 16px", animation: "slideUp .2s ease .15s both" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <span style={{ fontSize: 13 }}>🗺️</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                {STAGES.map((s) => {
+                  const active = selectedStage === s.id;
+                  return (
+                    <button key={s.id} onClick={() => saveStage(active ? null : s.id)} style={{
+                      border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
+                      overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
+                      boxShadow: active ? T.accentGlow : "none",
+                    }}>
+                      <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
+                      <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
+                        {lang === "ja" ? s.jp : s.en}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Power update */}
             <div style={{ ...cd, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
@@ -1100,6 +1138,30 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                     })}
                   </div>
                 )}
+              </div>
+              {/* Stage selection (PC) */}
+              <div style={{ ...cd, padding: "14px 20px", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <span style={{ fontSize: 13 }}>🗺️</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+                  {STAGES.map((s) => {
+                    const active = selectedStage === s.id;
+                    return (
+                      <button key={s.id} onClick={() => saveStage(active ? null : s.id)} style={{
+                        border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
+                        overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
+                        boxShadow: active ? T.accentGlow : "none",
+                      }}>
+                        <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
+                        <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
+                          {lang === "ja" ? s.jp : s.en}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {/* Power update */}
               <div style={{ ...cd, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>

@@ -287,6 +287,13 @@ export default {
     tendencyMemo: "Tendency Notes",
     tendencyPlaceholder: "Opponent habits and tendencies...",
   },
+  stages: {
+    label: "Stage",
+    winRateByStage: "Win Rate by Stage",
+    noData: "No data",
+    selectStage: "Select stage (optional)",
+    stageWinRate: "Stage Win Rate",
+  },
   common: {
     win: "WIN",
     lose: "LOSE",

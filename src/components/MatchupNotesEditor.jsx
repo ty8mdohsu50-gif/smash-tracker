@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { ChevronDown, ChevronRight, Zap } from "lucide-react";
 import { useI18n } from "../i18n/index.jsx";
+import { STAGES, stageName, stageImg } from "../constants/stages";
 
 const SECTIONS = ["flash", "neutral", "advantage", "disadvantage", "edgeguard", "stage"];
 const EMPTY_NOTE = { flash: "", neutral: "", advantage: "", disadvantage: "", edgeguard: "", stage: "" };
@@ -20,11 +21,24 @@ export function needsReview(note, matches, charKey) {
 }
 
 export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [openSections, setOpenSections] = useState({ flash: true });
   const [savedKey, setSavedKey] = useState(null);
 
   const notes = data.matchupNotes?.[noteKey] || EMPTY_NOTE;
+
+  // Derive oppChar from noteKey for stage stats (supports "myChar|oppChar" and "oppChar")
+  const oppCharKey = noteKey.includes("|") ? noteKey.split("|")[1] : noteKey;
+  const stageStats = useMemo(() => {
+    if (!data.matches || oppCharKey.startsWith("free:")) return {};
+    const ms = data.matches.filter((m) => m.oppChar === oppCharKey && m.stage);
+    const stats = {};
+    for (const m of ms) {
+      if (!stats[m.stage]) stats[m.stage] = { w: 0, l: 0 };
+      m.result === "win" ? stats[m.stage].w++ : stats[m.stage].l++;
+    }
+    return stats;
+  }, [data.matches, oppCharKey]);
 
   useEffect(() => {
     const current = data.matchupNotes?.[noteKey];
@@ -96,6 +110,26 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
             {isOpen && (
               <div style={{ padding: compact ? "0 12px 8px" : "0 14px 10px" }}>
                 {isFlash && <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("matchupNotes.flashDesc")}</div>}
+                {s === "stage" && Object.keys(stageStats).length > 0 && (
+                  <div style={{ marginBottom: 8, padding: "6px 8px", background: T.inp, borderRadius: 8 }}>
+                    <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("stages.stageWinRate")}</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 10px" }}>
+                      {STAGES.filter((st) => stageStats[st.id]).map((st) => {
+                        const { w, l } = stageStats[st.id];
+                        const total = w + l;
+                        const r = w / total;
+                        const color = r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A";
+                        return (
+                          <span key={st.id} style={{ fontSize: 10, color: T.sub }}>
+                            <span style={{ color: T.text, fontWeight: 600 }}>{stageName(st.id, lang)}</span>
+                            {" "}<span style={{ color, fontWeight: 700 }}>{Math.round(r * 100)}%</span>
+                            {" "}<span style={{ color: T.dim }}>({w}W{l}L)</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <textarea
                   defaultValue={notes[s] || ""}
                   onBlur={(e) => { if (e.target.value !== (notes[s] || "")) updateSection(s, e.target.value); }}
