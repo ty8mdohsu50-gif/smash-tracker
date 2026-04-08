@@ -89,6 +89,47 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     setSharePopupText(text);
   };
 
+  // ── Analysis data (must be top-level for hooks rules) ──
+  const oppMs = useMemo(() => selectedOpponent ? freeMatches.filter((m) => m.opponent === selectedOpponent) : [], [freeMatches, selectedOpponent]);
+
+  const matchups = useMemo(() => {
+    const s = {};
+    oppMs.forEach((m) => {
+      const k = `${m.myChar}|${m.oppChar}`;
+      if (!s[k]) s[k] = { myChar: m.myChar, oppChar: m.oppChar, w: 0, l: 0, matches: [] };
+      m.result === "win" ? s[k].w++ : s[k].l++;
+      s[k].matches.push(m);
+    });
+    return Object.values(s).sort((a, b) => {
+      const ia = FIGHTERS.indexOf(a.myChar) * 100 + FIGHTERS.indexOf(a.oppChar);
+      const ib = FIGHTERS.indexOf(b.myChar) * 100 + FIGHTERS.indexOf(b.oppChar);
+      return ia - ib;
+    });
+  }, [oppMs]);
+
+  const winRatePoints = useMemo(() => {
+    if (oppMs.length < 2) return [];
+    const pts = [];
+    const w = 10;
+    for (let i = 0; i < oppMs.length; i++) {
+      const start = Math.max(0, i - w + 1);
+      const slice = oppMs.slice(start, i + 1);
+      const wins = slice.filter((m) => m.result === "win").length;
+      pts.push({ date: `#${i + 1}`, value: Math.round((wins / slice.length) * 100) });
+    }
+    return pts;
+  }, [oppMs]);
+
+  const freeDailyMap = useMemo(() => {
+    const map = {};
+    oppMs.forEach((m) => {
+      if (!map[m.date]) map[m.date] = { w: 0, l: 0, matches: [] };
+      m.result === "win" ? map[m.date].w++ : map[m.date].l++;
+      map[m.date].matches.push(m);
+    });
+    return map;
+  }, [oppMs]);
+
   const cd = { background: T.card, borderRadius: 16, border: `1px solid ${T.brd}`, boxShadow: T.sh, padding: "16px 18px", marginBottom: 10 };
   const btnBase = { border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .15s ease", fontFamily: "inherit" };
 
@@ -165,52 +206,12 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   // BATTLE PHASE (with sub-tabs)
   // ══════════════════════════════
   if (phase === "battle") {
-    const oppMs = getOpponentHistory(selectedOpponent);
     const todayMs = getTodayMatches(selectedOpponent);
     const todayW = todayMs.filter((m) => m.result === "win").length;
     const todayL = todayMs.length - todayW;
     const totalW = oppMs.filter((m) => m.result === "win").length;
     const totalL = oppMs.length - totalW;
-
-    // ── Analysis data ──
-    const matchups = useMemo(() => {
-      const s = {};
-      oppMs.forEach((m) => {
-        const k = `${m.myChar}|${m.oppChar}`;
-        if (!s[k]) s[k] = { myChar: m.myChar, oppChar: m.oppChar, w: 0, l: 0, matches: [] };
-        m.result === "win" ? s[k].w++ : s[k].l++;
-        s[k].matches.push(m);
-      });
-      return Object.values(s).sort((a, b) => {
-        const ia = FIGHTERS.indexOf(a.myChar) * 100 + FIGHTERS.indexOf(a.oppChar);
-        const ib = FIGHTERS.indexOf(b.myChar) * 100 + FIGHTERS.indexOf(b.oppChar);
-        return ia - ib;
-      });
-    }, [oppMs]);
-
-    const winRatePoints = useMemo(() => {
-      if (oppMs.length < 2) return [];
-      const pts = [];
-      const window = 10;
-      for (let i = 0; i < oppMs.length; i++) {
-        const start = Math.max(0, i - window + 1);
-        const slice = oppMs.slice(start, i + 1);
-        const w = slice.filter((m) => m.result === "win").length;
-        pts.push({ date: `#${i + 1}`, value: Math.round((w / slice.length) * 100) });
-      }
-      return pts;
-    }, [oppMs]);
-
-    // Calendar data
-    const dailyMap = useMemo(() => {
-      const map = {};
-      oppMs.forEach((m) => {
-        if (!map[m.date]) map[m.date] = { w: 0, l: 0, matches: [] };
-        m.result === "win" ? map[m.date].w++ : map[m.date].l++;
-        map[m.date].matches.push(m);
-      });
-      return map;
-    }, [oppMs]);
+    const dailyMap = freeDailyMap;
 
     const calendarView = (() => {
       const [yStr, mStr] = calMonth.split("-");
