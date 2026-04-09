@@ -10,13 +10,20 @@ export function I18nProvider({ children }) {
     return localStorage.getItem("smash-lang") || "ja";
   });
 
-  const t = (key) => {
-    const keys = key.split(".");
+  const t = (key, vars) => {
+    const keyParts = key.split(".");
     let val = langs[lang];
-    for (const k of keys) {
+    for (const k of keyParts) {
       val = val?.[k];
     }
-    return val || key;
+    if (val == null) return key;
+    if (typeof val !== "string") return val;
+    if (!vars || typeof vars !== "object" || Array.isArray(vars)) return val;
+    let s = val;
+    for (const [vk, vv] of Object.entries(vars)) {
+      s = s.split(`{${vk}}`).join(String(vv));
+    }
+    return s;
   };
 
   const setLanguage = (l) => {

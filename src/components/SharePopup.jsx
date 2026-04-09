@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { getShareLinks } from "../utils/share";
 import { useI18n } from "../i18n/index.jsx";
+import { Z_SHARE_POPUP } from "../constants/zIndex";
 
 const XIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -74,12 +75,15 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
       onClick={onClose}
       style={{
         position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0,0,0,.5)", zIndex: 1100,
+        background: "rgba(0,0,0,.5)", zIndex: Z_SHARE_POPUP,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn .15s ease",
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-popup-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.card, borderRadius: 20, padding: "24px 20px",
@@ -89,13 +93,13 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
           maxHeight: "85vh", overflowY: "auto",
         }}
       >
-        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 18, textAlign: "center" }}>
+        <div id="share-popup-title" style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 18, textAlign: "center" }}>
           {t("common.share")}
         </div>
 
         {imageUrl && (
           <div style={{ marginBottom: 14, borderRadius: 12, overflow: "hidden", border: `1px solid ${T.brd}` }}>
-            <img src={imageUrl} alt="Chart" style={{ width: "100%", display: "block" }} />
+            <img src={imageUrl} alt="" style={{ width: "100%", display: "block" }} />
           </div>
         )}
 

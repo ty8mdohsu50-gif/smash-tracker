@@ -351,7 +351,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
               {t("settings.csvDownloadDesc")}
             </div>
             <div style={{ fontSize: 12, color: T.dim, paddingLeft: 4, marginBottom: 12 }}>
-              {data.matches.length ? t("settings.dataCount").replace("{count}", data.matches.length) : t("settings.noData")}
+              {data.matches.length ? t("settings.dataCount", { count: data.matches.length }) : t("settings.noData")}
             </div>
 
             {step === 0 && (

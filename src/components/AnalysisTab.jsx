@@ -9,6 +9,7 @@ import MatchLogModal from "./MatchLogModal";
 import { shortName, fighterName, FIGHTERS } from "../constants/fighters";
 import { STAGES, stageName, stageImg } from "../constants/stages";
 import { useI18n } from "../i18n/index.jsx";
+import { Z_MATCHUP_OVERLAY, Z_ANALYSIS_FULLSCREEN } from "../constants/zIndex";
 import {
   today,
   formatDate,
@@ -93,6 +94,55 @@ function sortCharStatsRows(rows, mode, hideUnfought) {
   return r;
 }
 
+function computeRollingGraphSeries(allMatches, windowSize) {
+  const len = allMatches.length;
+  if (len < windowSize) return [];
+  const maxPts = 36;
+  const inner = len - windowSize;
+  const step = inner <= maxPts ? 1 : Math.ceil(inner / maxPts);
+  const pts = [];
+  for (let end = windowSize; end <= len; end += step) {
+    const sl = allMatches.slice(end - windowSize, end);
+    pts.push({ end, rate: sl.filter((m) => m.result === "win").length / windowSize });
+  }
+  if (pts.length === 0 || pts[pts.length - 1].end !== len) {
+    const sl = allMatches.slice(-windowSize);
+    pts.push({ end: len, rate: sl.filter((m) => m.result === "win").length / windowSize });
+  }
+  return pts;
+}
+
+function streakStatsInMatches(msChrono) {
+  let maxW = 0;
+  let maxL = 0;
+  let curW = 0;
+  let curL = 0;
+  msChrono.forEach((m) => {
+    if (m.result === "win") {
+      curW += 1;
+      curL = 0;
+      maxW = Math.max(maxW, curW);
+    } else {
+      curL += 1;
+      curW = 0;
+      maxL = Math.max(maxL, curL);
+    }
+  });
+  return { maxWin: maxW, maxLose: maxL };
+}
+
+function topOpponentStats(ms, limit) {
+  const map = {};
+  ms.forEach((m) => {
+    if (!map[m.oppChar]) map[m.oppChar] = { w: 0, l: 0 };
+    m.result === "win" ? map[m.oppChar].w++ : map[m.oppChar].l++;
+  });
+  return Object.entries(map)
+    .map(([c, v]) => ({ c, w: v.w, l: v.l, t: v.w + v.l }))
+    .sort((a, b) => b.t - a.t)
+    .slice(0, limit);
+}
+
 export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) {
   const { t, lang } = useI18n();
 
@@ -129,7 +179,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const [expandedItem, setExpandedItem] = useState(null);
   const [expandedDate, setExpandedDate] = useState(null);
   const [expandedRolling, setExpandedRolling] = useState(null);
-  const [expandedHour, setExpandedHour] = useState(null);
+  const [hourDetailModal, setHourDetailModal] = useState(null);
+  const [stageDetailId, setStageDetailId] = useState(null);
 
   // PC matchup popup
   const [matchupPopup, setMatchupPopup] = useState(null);
@@ -1273,151 +1324,41 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               );
             })}
           </div>
-          {expandedRolling !== null && (() => {
-            const n = expandedRolling;
-            const recentMs = data.matches.slice(-n);
-            const rW = recentMs.filter((m) => m.result === "win").length;
-            const rR = recentMs.length > 0 ? rW / recentMs.length : 0;
-
-            // Rolling win rate graph: compute win rate at each chunk boundary
-            const chunkSize = n === 20 ? 20 : 20;
-            const graphPoints = [];
-            for (let i = chunkSize; i <= data.matches.length; i += chunkSize) {
-              const chunk = data.matches.slice(i - chunkSize, i);
-              const cW = chunk.filter((m) => m.result === "win").length;
-              graphPoints.push({ idx: i, rate: cW / chunk.length });
-            }
-            const remainder = data.matches.length % chunkSize;
-            if (remainder > 0 && data.matches.length > chunkSize) {
-              const chunk = data.matches.slice(-remainder);
-              const cW = chunk.filter((m) => m.result === "win").length;
-              graphPoints.push({ idx: data.matches.length, rate: cW / chunk.length });
-            }
-
-            const graphH = 120;
-            const graphW = 280;
-            const showGraph = graphPoints.length >= 2;
-            const padding = 20;
-            const plotW = graphW - padding * 2;
-            const plotH = graphH - 30;
-
-            return (
-              <div onClick={() => setExpandedRolling(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 1000, display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center", animation: "fadeUp .15s ease" }}>
-                <div onClick={(e) => e.stopPropagation()} style={{
-                  background: T.card, borderRadius: isPC ? 20 : "20px 20px 0 0", width: isPC ? 520 : "100%",
-                  maxHeight: isPC ? "80vh" : "85vh", overflow: "hidden", display: "flex", flexDirection: "column",
-                  boxShadow: "0 20px 60px rgba(0,0,0,.3)", border: `1px solid ${T.brd}`,
-                }}>
-                  {/* Header */}
-                  <div style={{ padding: "18px 20px", borderBottom: `1px solid ${T.inp}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>{t("battle.recentLabel")} {n}{t("analysis.battles")}</div>
-                    <button onClick={() => setExpandedRolling(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18 }}>×</button>
-                  </div>
-
-                  <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", WebkitOverflowScrolling: "touch" }}>
-                    {/* Summary */}
-                    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "12px", textAlign: "center" }}>
-                        <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winRate")}</div>
-                        <div style={{ fontSize: 26, fontWeight: 900, color: barColor(rR), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(rW, recentMs.length)}</div>
-                      </div>
-                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "12px", textAlign: "center" }}>
-                        <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winLoss")}</div>
-                        <div style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
-                          <span style={{ color: T.win }}>{rW}</span>
-                          <span style={{ color: T.dimmer, fontSize: 14, margin: "0 4px" }}>:</span>
-                          <span style={{ color: T.lose }}>{recentMs.length - rW}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Win rate transition graph */}
-                    {showGraph && (
-                      <div style={{ marginBottom: 16 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.winRateTransition")}</div>
-                        <div style={{ background: T.inp, borderRadius: 12, padding: "14px 10px 8px" }}>
-                          <svg viewBox={`0 0 ${graphW} ${graphH}`} style={{ width: "100%", height: "auto" }}>
-                            {/* 50% line */}
-                            <line x1={padding} y1={plotH / 2 + 10} x2={graphW - padding} y2={plotH / 2 + 10} stroke={T.dimmer || "#666"} strokeWidth="1" strokeDasharray="4 4" />
-                            <text x={padding - 2} y={plotH / 2 + 14} fill={T.dim} fontSize="8" textAnchor="end">50%</text>
-                            {/* Graph line */}
-                            <polyline
-                              fill="none"
-                              stroke={T.accent}
-                              strokeWidth="2.5"
-                              strokeLinejoin="round"
-                              points={graphPoints.map((p, i) => {
-                                const x = padding + (i / (graphPoints.length - 1)) * plotW;
-                                const y = 10 + plotH * (1 - p.rate);
-                                return `${x},${y}`;
-                              }).join(" ")}
-                            />
-                            {/* Data points */}
-                            {graphPoints.map((p, i) => {
-                              const x = padding + (i / (graphPoints.length - 1)) * plotW;
-                              const y = 10 + plotH * (1 - p.rate);
-                              return (
-                                <g key={i}>
-                                  <circle cx={x} cy={y} r="4" fill={barColor(p.rate)} />
-                                  <text x={x} y={y - 8} fill={T.text} fontSize="9" textAnchor="middle" fontWeight="700">{Math.round(p.rate * 100)}%</text>
-                                  <text x={x} y={graphH - 2} fill={T.dim} fontSize="7" textAnchor="middle">#{p.idx}</text>
-                                </g>
-                              );
-                            })}
-                          </svg>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Match history */}
-                    <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
-                    <div style={{ maxHeight: isPC ? 300 : 240, overflowY: "auto" }}>
-                      {recentMs.slice().reverse().map((m, i, arr) => matchLogRow(m, i, arr.length))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
 
           {/* Hourly stats */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("analysis.timeOfDay")}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 4 }}>{t("analysis.timeOfDay")}</div>
+          <div style={{ fontSize: 11, color: T.dim, marginBottom: 8 }}>{t("analysis.tapForDetail")}</div>
           <div style={{ ...cd, padding: "14px 12px" }}>
             {Object.keys(hourlyStats).length === 0 ? (
               <div style={{ textAlign: "center", color: T.dim, fontSize: 13, padding: 16 }}>{t("analysis.noData")}</div>
             ) : (
-              <>
-                <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)", gap: 6 }}>
-                  {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
-                    const r = d.w / (d.w + d.l);
-                    const hrNum = Number(hr);
-                    const isExp = expandedHour === hrNum;
-                    return (
-                      <div key={hr} onClick={() => setExpandedHour(isExp ? null : hrNum)} style={{
-                        textAlign: "center", padding: "8px 4px", borderRadius: 10,
-                        background: isExp ? T.accentSoft : T.inp, cursor: "pointer",
-                        outline: isExp ? `2px solid ${T.accentBorder}` : "none",
-                      }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: isExp ? T.accent : T.text }}>{hr}{t("analysis.hour")}</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: barColor(r), marginTop: 2 }}>{percentStr(d.w, d.w + d.l)}</div>
-                        <div style={{ fontSize: 10, color: T.dim }}>{d.w + d.l}{t("analysis.battles")}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-                {expandedHour !== null && (
-                  <div style={{ marginTop: 10, borderTop: `1px solid ${T.brd}`, paddingTop: 10, maxHeight: 320, overflowY: "auto" }}>
-                    {data.matches.filter((m) => formatHour(m.time) === expandedHour).slice().reverse().map((m, i, arr) => matchLogRow(m, i, arr.length))}
-                  </div>
-                )}
-              </>
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)", gap: 6 }}>
+                {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
+                  const r = d.w / (d.w + d.l);
+                  const hrNum = Number(hr);
+                  const active = hourDetailModal === hrNum;
+                  return (
+                    <button key={hr} type="button" onClick={() => setHourDetailModal(hrNum)} style={{
+                      textAlign: "center", padding: "8px 4px", borderRadius: 10,
+                      background: active ? T.accentSoft : T.inp, cursor: "pointer",
+                      border: active ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                      fontFamily: "inherit",
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: active ? T.accent : T.text }}>{hr}{t("analysis.hour")}</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: barColor(r), marginTop: 2 }}>{percentStr(d.w, d.w + d.l)}</div>
+                      <div style={{ fontSize: 10, color: T.dim }}>{d.w + d.l}{t("analysis.battles")}</div>
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
 
           {/* Stage win rate (overall) */}
           {data.matches.some((m) => m.stage) && (
             <>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("stages.winRateByStage")}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 4 }}>{t("stages.winRateByStage")}</div>
+              <div style={{ fontSize: 11, color: T.dim, marginBottom: 8 }}>{t("analysis.tapForDetail")}</div>
               <div style={{ ...cd, padding: "12px 14px", marginBottom: isPC ? 20 : 14 }}>
                 <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 8 }}>
                   {STAGES.map((stage) => {
@@ -1427,12 +1368,15 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     const l = ms.length - w;
                     const r = w / ms.length;
                     return (
-                      <div key={stage.id} style={{ textAlign: "center" }}>
+                      <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
+                        textAlign: "center", border: "none", padding: 4, borderRadius: 10, background: "transparent",
+                        cursor: "pointer", fontFamily: "inherit", width: "100%",
+                      }}>
                         <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: "100%", height: 40, objectFit: "cover", borderRadius: 6 }} />
                         <div style={{ fontSize: 10, fontWeight: 600, color: T.text, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stageName(stage.id, lang)}</div>
                         <div style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{Math.round(r * 100)}%</div>
                         <div style={{ fontSize: 9, color: T.dim }}>{w}W {l}L</div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -1447,6 +1391,316 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       )}
 
       {/* Shared overlays */}
+      {expandedRolling !== null && (() => {
+        const n = expandedRolling;
+        const recentMs = data.matches.slice(-n);
+        const rW = recentMs.filter((m) => m.result === "win").length;
+        const rR = recentMs.length > 0 ? rW / recentMs.length : 0;
+        const overallR = data.matches.length ? totalW / data.matches.length : 0;
+        const diffPt = Math.round((rR - overallR) * 100);
+        const dateFirst = recentMs[0]?.date;
+        const dateLast = recentMs[recentMs.length - 1]?.date;
+        const graphPoints = computeRollingGraphSeries(data.matches, n);
+        const showGraph = graphPoints.length >= 2;
+        const streak = streakStatsInMatches(recentMs);
+        const topOpp = topOpponentStats(recentMs, 6);
+
+        const leftPad = 46;
+        const rightPad = 20;
+        const topPad = 32;
+        const botPad = 56;
+        const vbW = 720;
+        const plotH = 220;
+        const vbH = topPad + plotH + botPad;
+        const xAt = (i, len) => leftPad + (len <= 1 ? 0 : (i / (len - 1)) * (vbW - leftPad - rightPad));
+        const yAt = (rate) => topPad + plotH * (1 - rate);
+        const labelStep = Math.max(1, Math.ceil(graphPoints.length / 7));
+
+        let areaD = `M ${xAt(0, graphPoints.length)} ${topPad + plotH}`;
+        graphPoints.forEach((p, i) => { areaD += ` L ${xAt(i, graphPoints.length)} ${yAt(p.rate)}`; });
+        areaD += ` L ${xAt(graphPoints.length - 1, graphPoints.length)} ${topPad + plotH} Z`;
+
+        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 22, flexShrink: 0 };
+
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="analysis-fs-rolling-title"
+            style={{ position: "fixed", inset: 0, zIndex: Z_ANALYSIS_FULLSCREEN, background: T.bg, display: "flex", flexDirection: "column", animation: "fadeUp .12s ease" }}
+          >
+            <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+              <button type="button" aria-label={t("common.close")} onClick={() => setExpandedRolling(null)} style={closeFs}>×</button>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div id="analysis-fs-rolling-title" style={{ fontSize: 17, fontWeight: 800, color: T.text }}>{t("battle.recentLabel")} {n}{t("analysis.battles")}</div>
+                <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>{t("analysis.rollingDetailSubtitle", { n })}</div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "16px 16px 28px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(4, 1fr)" : "repeat(2, 1fr)", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: barColor(rR), fontFamily: "'Chakra Petch', sans-serif", marginTop: 4 }}>{percentStr(rW, recentMs.length)}</div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    <span style={{ color: T.win }}>{rW}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{recentMs.length - rW}</span>
+                  </div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.vsOverallWr")}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: diffPt >= 0 ? T.win : T.lose, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    {diffPt >= 0 ? "+" : ""}{diffPt}pt
+                  </div>
+                  <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{t("analysis.career")} {percentStr(totalW, data.matches.length)}</div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.periodRange")}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginTop: 6, lineHeight: 1.35 }}>
+                    {dateFirst && dateLast ? `${formatDate(dateFirst)} → ${formatDate(dateLast)}` : "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 140px", background: T.inp, borderRadius: 12, padding: "12px 14px" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.streakInWindow")}</div>
+                  <div style={{ fontSize: 14, color: T.text, lineHeight: 1.5 }}>
+                    <div><span style={{ color: T.win, fontWeight: 800 }}>{t("analysis.streakMaxWin", { n: streak.maxWin })}</span></div>
+                    <div><span style={{ color: T.lose, fontWeight: 800 }}>{t("analysis.streakMaxLose", { n: streak.maxLose })}</span></div>
+                  </div>
+                </div>
+                <div style={{ flex: "2 1 220px", background: T.inp, borderRadius: 12, padding: "12px 14px" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("analysis.topOpponents")}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {topOpp.length === 0 ? <span style={{ fontSize: 12, color: T.dim }}>—</span> : topOpp.map((o) => (
+                      <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <FighterIcon name={o.c} size={26} />
+                        <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(o.c, lang)}</span>
+                        <span style={{ fontSize: 11, color: T.dim }}>{o.w}W{o.l}L</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {showGraph && (
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.winRateTransition")}</div>
+                  <div style={{ fontSize: 11, color: T.dim, marginBottom: 10 }}>{t("analysis.rollingGraphCaption", { n })}</div>
+                  <div style={{ background: T.inp, borderRadius: 16, padding: "12px 8px 8px", width: "100%", maxWidth: 900, margin: "0 auto" }}>
+                    <svg viewBox={`0 0 ${vbW} ${vbH}`} style={{ width: "100%", height: "auto", display: "block", minHeight: 260 }}>
+                      {[0, 0.25, 0.5, 0.75, 1].map((lev) => (
+                        <line key={lev} x1={leftPad} y1={yAt(lev)} x2={vbW - rightPad} y2={yAt(lev)} stroke={T.brd} strokeWidth="1" opacity={0.85} />
+                      ))}
+                      <line x1={leftPad} y1={yAt(0.5)} x2={vbW - rightPad} y2={yAt(0.5)} stroke={T.dimmer} strokeWidth="1.5" strokeDasharray="8 6" />
+                      <text x={leftPad - 6} y={yAt(1) + 4} fill={T.dim} fontSize="11" textAnchor="end">100%</text>
+                      <text x={leftPad - 6} y={yAt(0.75) + 4} fill={T.dim} fontSize="11" textAnchor="end">75%</text>
+                      <text x={leftPad - 6} y={yAt(0.5) + 4} fill={T.dim} fontSize="11" textAnchor="end">50%</text>
+                      <text x={leftPad - 6} y={yAt(0.25) + 4} fill={T.dim} fontSize="11" textAnchor="end">25%</text>
+                      <text x={leftPad - 6} y={yAt(0) + 4} fill={T.dim} fontSize="11" textAnchor="end">0%</text>
+                      <path d={areaD} fill={T.accent} fillOpacity="0.14" />
+                      <polyline fill="none" stroke={T.accent} strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" points={graphPoints.map((p, i) => `${xAt(i, graphPoints.length)},${yAt(p.rate)}`).join(" ")} />
+                      {graphPoints.map((p, i) => {
+                        const showLab = i % labelStep === 0 || i === graphPoints.length - 1;
+                        const cx = xAt(i, graphPoints.length);
+                        const cy = yAt(p.rate);
+                        return (
+                          <g key={i}>
+                            <circle cx={cx} cy={cy} r={5} fill={barColor(p.rate)} stroke={T.card} strokeWidth="1.5" />
+                            {showLab && (
+                              <>
+                                <text x={cx} y={cy - 12} fill={T.text} fontSize="11" textAnchor="middle" fontWeight="800">{Math.round(p.rate * 100)}%</text>
+                                <text x={cx} y={vbH - 12} fill={T.dim} fontSize="10" textAnchor="middle">#{p.end}</text>
+                              </>
+                            )}
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
+              <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.brd}`, padding: "10px 14px 14px" }}>
+                {recentMs.slice().reverse().map((m, i, arr) => matchLogRow(m, i, arr.length))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {hourDetailModal !== null && hourlyStats[hourDetailModal] && (() => {
+        const hr = hourDetailModal;
+        const d = hourlyStats[hr];
+        const tH = d.w + d.l;
+        const rH = tH ? d.w / tH : 0;
+        const careerR = data.matches.length ? totalW / data.matches.length : 0;
+        const diffPt = Math.round((rH - careerR) * 100);
+        const pctOfAll = data.matches.length ? Math.round((tH / data.matches.length) * 100) : 0;
+        const hourMs = matchesWithIdx.filter((m) => formatHour(m.time) === hr).slice().reverse();
+        const adj = [-1, 0, 1].map((delta) => {
+          const h = (hr + delta + 24) % 24;
+          const stat = hourlyStats[h];
+          if (!stat) return { h, t: 0, r: null };
+          const tt = stat.w + stat.l;
+          return { h, t: tt, r: tt ? stat.w / tt : null };
+        });
+        const topO = topOpponentStats(hourMs, 6);
+        const lowSample = tH < 5;
+        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 22, flexShrink: 0 };
+
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="analysis-fs-hour-title"
+            style={{ position: "fixed", inset: 0, zIndex: Z_ANALYSIS_FULLSCREEN, background: T.bg, display: "flex", flexDirection: "column", animation: "fadeUp .12s ease" }}
+          >
+            <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+              <button type="button" aria-label={t("common.close")} onClick={() => setHourDetailModal(null)} style={closeFs}>×</button>
+              <div style={{ flex: 1 }}>
+                <div id="analysis-fs-hour-title" style={{ fontSize: 17, fontWeight: 800, color: T.text }}>{t("analysis.hourDetailTitle", { h: hr })}</div>
+                <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>{t("analysis.hourDetailSubtitle")}</div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 28px" }}>
+              {lowSample && (
+                <div style={{ background: "#FF9F0A22", border: "1px solid #FF9F0A55", borderRadius: 12, padding: "10px 12px", fontSize: 12, color: T.text, marginBottom: 12 }}>{t("analysis.lowSample")}</div>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(4, 1fr)" : "repeat(2, 1fr)", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: barColor(rH), fontFamily: "'Chakra Petch', sans-serif", marginTop: 4 }}>{percentStr(d.w, tH)}</div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    <span style={{ color: T.win }}>{d.w}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{d.l}</span>
+                  </div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.vsOverallWr")}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: diffPt >= 0 ? T.win : T.lose, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>{diffPt >= 0 ? "+" : ""}{diffPt}pt</div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.hourShareOfAll")}</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: T.text, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>{pctOfAll}%</div>
+                  <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{tH}{t("common.matches")}</div>
+                </div>
+              </div>
+
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.adjacentHours")}</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+                {adj.map(({ h: hh, t: tt, r: rr }) => (
+                  <div key={hh} style={{ flex: "1 1 100px", background: T.inp, borderRadius: 12, padding: "10px 8px", textAlign: "center", opacity: tt ? 1 : 0.45 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: hh === hr ? T.accent : T.text }}>{hh}{t("analysis.hour")}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: rr == null ? T.dim : barColor(rr), marginTop: 4 }}>{rr == null ? "—" : `${Math.round(rr * 100)}%`}</div>
+                    <div style={{ fontSize: 10, color: T.dim }}>{tt}{t("analysis.battles")}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ background: T.inp, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("analysis.topOpponents")}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {topO.length === 0 ? <span style={{ fontSize: 12, color: T.dim }}>—</span> : topO.map((o) => (
+                    <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <FighterIcon name={o.c} size={26} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(o.c, lang)}</span>
+                      <span style={{ fontSize: 11, color: T.dim }}>{o.w}W{o.l}L</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
+              <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.brd}`, padding: "10px 14px 14px" }}>
+                {hourMs.map((m, i, arr) => matchLogRow(m, i, arr.length))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {stageDetailId && (() => {
+        const ms = data.matches.filter((m) => m.stage === stageDetailId);
+        if (ms.length === 0) return null;
+        const w = ms.filter((m) => m.result === "win").length;
+        const l = ms.length - w;
+        const rS = w / ms.length;
+        const careerR = data.matches.length ? totalW / data.matches.length : 0;
+        const diffPt = Math.round((rS - careerR) * 100);
+        const staged = data.matches.filter((m) => m.stage);
+        const stagedW = staged.filter((m) => m.result === "win").length;
+        const rStaged = staged.length ? stagedW / staged.length : 0;
+        const diffStaged = Math.round((rS - rStaged) * 100);
+        const stageMsIdx = matchesWithIdx.filter((m) => m.stage === stageDetailId).slice().reverse();
+        const topO = topOpponentStats(ms, 6);
+        const stMeta = STAGES.find((s) => s.id === stageDetailId);
+        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 22, flexShrink: 0 };
+
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="analysis-fs-stage-title"
+            style={{ position: "fixed", inset: 0, zIndex: Z_ANALYSIS_FULLSCREEN, background: T.bg, display: "flex", flexDirection: "column", animation: "fadeUp .12s ease" }}
+          >
+            <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+              <button type="button" aria-label={t("common.close")} onClick={() => setStageDetailId(null)} style={closeFs}>×</button>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                {stMeta && <img src={stageImg(stageDetailId)} alt={stageName(stageDetailId, lang)} style={{ width: 72, height: 40, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />}
+                <div style={{ minWidth: 0 }}>
+                  <div id="analysis-fs-stage-title" style={{ fontSize: 17, fontWeight: 800, color: T.text }}>{stageName(stageDetailId, lang)}</div>
+                  <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>{t("analysis.stageDetailSubtitle")}</div>
+                </div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 28px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(3, 1fr)" : "1fr", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: barColor(rS), fontFamily: "'Chakra Petch', sans-serif", marginTop: 4 }}>{percentStr(w, ms.length)}</div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    <span style={{ color: T.win }}>{w}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{l}</span>
+                  </div>
+                  <div style={{ fontSize: 10, color: T.dim, marginTop: 4 }}>{ms.length}{t("common.matches")}</div>
+                </div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.vsCareerWr")}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: diffPt >= 0 ? T.win : T.lose, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>{diffPt >= 0 ? "+" : ""}{diffPt}pt</div>
+                  <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{t("analysis.vsStagedOnly")} {diffStaged >= 0 ? "+" : ""}{diffStaged}pt</div>
+                </div>
+              </div>
+
+              <div style={{ background: T.inp, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("analysis.topOpponents")}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {topO.map((o) => (
+                    <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <FighterIcon name={o.c} size={26} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(o.c, lang)}</span>
+                      <span style={{ fontSize: 11, color: T.dim }}>{o.w}W{o.l}L</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
+              <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.brd}`, padding: "10px 14px 14px" }}>
+                {stageMsIdx.map((m, i, arr) => matchLogRow(m, i, arr.length))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {matchLogModal && (
         <MatchLogModal
           open
@@ -1500,8 +1754,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         const statPad = isPC ? "14px 16px" : "10px 12px";
 
         return (
-          <div onClick={() => setMatchupPopup(null)} style={{ position: "fixed", inset: 0, background: isPC ? "rgba(0,0,0,.55)" : "rgba(0,0,0,.3)", zIndex: 1000, display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center", animation: "fadeUp .15s ease" }}>
-            <div onClick={(e) => e.stopPropagation()} style={popupStyle}>
+          <div onClick={() => setMatchupPopup(null)} style={{ position: "fixed", inset: 0, background: isPC ? "rgba(0,0,0,.55)" : "rgba(0,0,0,.3)", zIndex: Z_MATCHUP_OVERLAY, display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center", animation: "fadeUp .15s ease" }}>
+            <div role="dialog" aria-modal="true" aria-labelledby="analysis-matchup-popup-title" onClick={(e) => e.stopPropagation()} style={popupStyle}>
               {/* Header */}
               <div style={{ padding: headerPad, borderBottom: `1px solid ${T.inp}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: isPC ? "transparent" : T.card }}>
                 <div style={{ display: "flex", alignItems: "center", gap: isPC ? 12 : 8, flex: 1, minWidth: 0 }}>
@@ -1509,18 +1763,18 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                   <span style={{ fontSize: 12, color: T.dim, fontWeight: 700 }}>vs</span>
                   <FighterIcon name={oppChar} size={iconSz} />
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: titleSz, fontWeight: 800, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fighterName(myChar, lang)} vs {fighterName(oppChar, lang)}</div>
+                    <div id="analysis-matchup-popup-title" style={{ fontSize: titleSz, fontWeight: 800, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fighterName(myChar, lang)} vs {fighterName(oppChar, lang)}</div>
                     <div style={{ fontSize: 11, color: T.dim }}>{ms.length}{t("analysis.battles")}</div>
                   </div>
                 </div>
-                <button onClick={() => {
+                <button type="button" aria-label={t("analysis.share")} onClick={() => {
                   const sLines = [`【SMASH TRACKER】${t("share.matchupShare")}`, `${fighterName(myChar, lang)} vs ${fighterName(oppChar, lang)}`, `${w}W ${l}L（${t("analysis.winRate")} ${percentStr(w, ms.length)}）`];
                   const stageEntries = STAGES.filter((st) => stageData[st.id]).map((st) => { const sd = stageData[st.id]; return `${stageName(st.id, lang)} ${sd.w}W${sd.l}L`; });
                   if (stageEntries.length > 0) sLines.push(stageEntries.join(" / "));
                   sLines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
                   doShare(sLines.join("\n"));
                 }} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, flexShrink: 0 }}><Share2 size={14} /></button>
-                <button onClick={() => setMatchupPopup(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18, flexShrink: 0, marginLeft: 6 }}>×</button>
+                <button type="button" aria-label={t("common.close")} onClick={() => setMatchupPopup(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18, flexShrink: 0, marginLeft: 6 }}>×</button>
               </div>
 
               {/* Content */}

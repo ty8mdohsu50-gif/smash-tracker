@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Z_MATCH_LOG_MODAL } from "../constants/zIndex";
 import FighterIcon from "./FighterIcon";
 import { shortName } from "../constants/fighters";
 import { stageName } from "../constants/stages";
@@ -25,15 +26,15 @@ export default function MatchLogModal({ open, onClose, title, matches, T, t, lan
   const panelW = isPC ? Math.min(720, typeof window !== "undefined" ? window.innerWidth - 48 : 720) : "100%";
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 1100, display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center", animation: "fadeUp .15s ease" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: Z_MATCH_LOG_MODAL, display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center", animation: "fadeUp .15s ease" }}>
+      <div role="dialog" aria-modal="true" aria-labelledby="match-log-modal-title" onClick={(e) => e.stopPropagation()} style={{
         background: T.card, borderRadius: isPC ? 20 : "20px 20px 0 0", width: panelW, maxWidth: "100%",
         maxHeight: isPC ? "85vh" : "90vh", overflow: "hidden", display: "flex", flexDirection: "column",
         boxShadow: "0 20px 60px rgba(0,0,0,.3)", border: `1px solid ${T.brd}`,
       }}>
         <div style={{ padding: "16px 18px", borderBottom: `1px solid ${T.inp}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{title}</div>
-          <button type="button" onClick={onClose} style={{ border: "none", background: T.inp, borderRadius: 10, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 20 }}>×</button>
+          <div id="match-log-modal-title" style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{title}</div>
+          <button type="button" aria-label={t("common.close")} onClick={onClose} style={{ border: "none", background: T.inp, borderRadius: 10, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 20 }}>×</button>
         </div>
 
         <div style={{ padding: "12px 18px", borderBottom: `1px solid ${T.inp}`, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
@@ -76,7 +77,7 @@ export default function MatchLogModal({ open, onClose, title, matches, T, t, lan
             ))
           )}
           {matches.length > MAX_ROWS && (
-            <div style={{ fontSize: 11, color: T.dim, textAlign: "center", marginTop: 8 }}>{String(t("analysis.logTruncated")).replace("{n}", String(MAX_ROWS))}</div>
+            <div style={{ fontSize: 11, color: T.dim, textAlign: "center", marginTop: 8 }}>{t("analysis.logTruncated", { n: MAX_ROWS })}</div>
           )}
         </div>
       </div>
