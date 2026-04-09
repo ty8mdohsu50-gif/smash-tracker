@@ -909,7 +909,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
   // PC sidebar content
   const pcSidebar = (
-    <div style={{ flex: 1, minWidth: 340, background: T.card, borderRadius: 20, padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh, position: "sticky", top: 90, display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: "calc(100vh - 120px)" }}>
+    <div style={{ flex: 1, minWidth: 0, background: T.card, borderRadius: 20, padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh, position: "sticky", top: 90, display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: "calc(100vh - 120px)" }}>
       <div style={{ flex: 1, overflowY: "auto" }}>
         {/* Opponent matchup info (battle phase with opp selected) */}
         {phase === "battle" && oppChar && (
@@ -1040,8 +1040,8 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
           {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
         </div>
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <div style={{ flex: 3, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {data.matches.length === 0 && (
               <div style={{ background: T.accentSoft, borderRadius: 16, padding: "20px 24px", border: `1px solid ${T.accent}33` }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: T.accent, marginBottom: 12 }}>{t("battle.welcome")}</div>
@@ -1099,7 +1099,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
       </div>
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-        <div style={{ flex: 1, minWidth: 0, maxWidth: 480 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
 
           {/* PC Battle */}
           {phase === "battle" && (
