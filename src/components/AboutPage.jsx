@@ -70,7 +70,7 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
               <img src="/icon.png" alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "contain" }} />
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>SMASH TRACKER</div>
-                <div style={{ fontSize: 11, color: T.dim }}>v1.1.0</div>
+                <div style={{ fontSize: 11, color: T.dim }}>v1.2.0</div>
               </div>
             </div>
             <button
