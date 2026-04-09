@@ -57,6 +57,10 @@ export const toHiragana = (s) =>
     String.fromCharCode(c.charCodeAt(0) - 0x60),
   );
 
+/** キャラ検索欄用：カタカナ→ひらがな、互換文字の正規化 */
+export const normalizeCharSearchInput = (s) =>
+  toHiragana(String(s).normalize("NFKC").toLowerCase());
+
 export const formatPower = (v) => {
   if (!v && v !== 0) return "";
   const s = String(v).replace(/[^0-9]/g, "");

@@ -239,7 +239,7 @@ export default {
     errorProviderDisabled: "Google authentication is not yet configured",
   },
   charPicker: {
-    search: "Search fighters...",
+    search: "Search (katakana → hiragana automatically)",
     recent: "Recent",
     notFound: "Not found",
     select: "Select",

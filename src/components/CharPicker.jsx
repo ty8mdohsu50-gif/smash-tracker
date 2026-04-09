@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { FIGHTERS, getSearchText } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
-import { toHiragana } from "../utils/format";
+import { normalizeCharSearchInput } from "../utils/format";
 import FighterIcon from "./FighterIcon";
 
 export default function CharPicker({
@@ -18,6 +18,7 @@ export default function CharPicker({
   const [q, setQ] = useState("");
   const ref = useRef(null);
   const inputRef = useRef(null);
+  const composingRef = useRef(false);
 
   useEffect(() => {
     const fn = (e) => {
@@ -32,21 +33,21 @@ export default function CharPicker({
   }, [open]);
 
   const filtered = useMemo(() => {
-    let base = FIGHTERS;
-    if (!q && recent.length) {
-      const rSet = new Set(recent);
-      base = FIGHTERS.filter((c) => !rSet.has(c));
+    const trimmed = q.trim();
+    if (!trimmed) {
+      const seen = new Set(recent);
+      const recentOrdered = recent.filter((c) => FIGHTERS.includes(c));
+      const rest = FIGHTERS.filter((c) => !seen.has(c));
+      return [...recentOrdered, ...rest];
     }
-    if (!q) return base;
-    const lq = toHiragana(q.toLowerCase());
-    return base
-      .filter((f) => toHiragana(getSearchText(f).toLowerCase()).includes(lq))
+    const lq = normalizeCharSearchInput(trimmed);
+    return FIGHTERS.filter((f) => normalizeCharSearchInput(getSearchText(f)).includes(lq))
       .sort((a, b) => {
-        const ah = toHiragana(a.toLowerCase());
-        const bh = toHiragana(b.toLowerCase());
+        const ah = normalizeCharSearchInput(a);
+        const bh = normalizeCharSearchInput(b);
         const aStart = ah.startsWith(lq) ? 0 : 1;
         const bStart = bh.startsWith(lq) ? 0 : 1;
-        return aStart - bStart;
+        return aStart - bStart || ah.localeCompare(bh, "ja");
       });
   }, [q, recent]);
 
@@ -106,7 +107,21 @@ export default function CharPicker({
             <input
               ref={inputRef}
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              lang="ja"
+              inputMode="text"
+              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionEnd={(e) => {
+                composingRef.current = false;
+                setQ(normalizeCharSearchInput(e.currentTarget.value));
+              }}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (composingRef.current) {
+                  setQ(v);
+                  return;
+                }
+                setQ(normalizeCharSearchInput(v));
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && filtered.length) {
                   onChange(filtered[0]);
@@ -124,7 +139,7 @@ export default function CharPicker({
               data-1p-ignore="true"
               name="fighter-search"
               id="fighter-search"
-              type="search"
+              type="text"
               style={{
                 width: "100%",
                 padding: "10px 12px",
@@ -139,7 +154,7 @@ export default function CharPicker({
             />
           </div>
 
-          {recent.length > 0 && !q && (
+          {recent.length > 0 && !q.trim() && (
             <div
               style={{
                 padding: "6px 12px",
@@ -186,7 +201,7 @@ export default function CharPicker({
             </div>
           )}
 
-          <div style={{ maxHeight: 200, overflowY: "auto" }}>
+          <div style={{ maxHeight: "min(320px, 42vh)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
             {filtered.map((f) => (
               <div
                 key={f}

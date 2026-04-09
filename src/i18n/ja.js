@@ -239,7 +239,7 @@ export default {
     errorProviderDisabled: "Google認証はまだ設定されていません",
   },
   charPicker: {
-    search: "ひらがな・カタカナで検索...",
+    search: "ひらがなで検索（カタカナは自動でひらがなに統一）",
     recent: "最近",
     notFound: "見つかりません",
     select: "選択",

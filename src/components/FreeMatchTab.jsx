@@ -408,40 +408,53 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               </div>
             );
           })()}
-          <div style={cd}>
-            {showMyPicker ? <CharPicker value={myChar} onChange={(c) => { setMyChar(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} /> : (
-              <div>
-                <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>{t("battle.selectChar")}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                  {myChar && <FighterIcon name={myChar} size={32} />}
-                  <span style={{ fontSize: 16, fontWeight: 700, color: myChar ? T.text : T.dim }}>{myChar ? fighterName(myChar, lang) : t("battle.notSelected")}</span>
+          <div style={{ ...cd, padding: "12px 14px" }}>
+            {showMyPicker ? (
+              <CharPicker value={myChar} onChange={(c) => { setMyChar(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} />
+            ) : showOppPicker ? (
+              <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} label={t("battle.oppChar")} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} />
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "1fr 1fr" : "1fr 1fr", gap: isPC ? 12 : 10, alignItems: "start" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>{t("battle.selectChar")}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      {myChar && <FighterIcon name={myChar} size={28} />}
+                      <span style={{ fontSize: 14, fontWeight: 700, color: myChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{myChar ? fighterName(myChar, lang) : t("battle.notSelected")}</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      <button type="button" onClick={() => setShowMyPicker(true)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.sub, fontSize: 11, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                      {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
+                        <button type="button" key={c} onClick={() => setMyChar(c)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.text, fontSize: 11 }}>{fighterName(c, lang)}</button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setShowMyPicker(true)} style={{ ...btnBase, padding: "7px 13px", background: T.inp, color: T.sub, fontSize: 12, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
-                  {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => <button key={c} onClick={() => setMyChar(c)} style={{ ...btnBase, padding: "7px 13px", background: T.inp, color: T.text, fontSize: 12 }}>{fighterName(c, lang)}</button>)}
+                <div style={{ minWidth: 0, borderLeft: `1px solid ${T.inp}`, paddingLeft: 12, marginLeft: -1 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>{t("battle.oppChar")}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      {oppChar && <FighterIcon name={oppChar} size={28} />}
+                      <span style={{ fontSize: 14, fontWeight: 700, color: oppChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{oppChar ? fighterName(oppChar, lang) : t("battle.notSelected")}</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      <button type="button" onClick={() => setShowOppPicker(true)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.sub, fontSize: 11, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                      {recOpp.filter((c) => c !== oppChar).slice(0, 3).map((c) => (
+                        <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.text, fontSize: 11 }}>{fighterName(c, lang)}</button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-          <div style={cd}>
-            {showOppPicker ? <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); }} label={t("battle.oppChar")} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} /> : (
-              <div>
-                <div style={{ fontSize: 13, color: T.sub, marginBottom: 6, fontWeight: 600 }}>{t("battle.oppChar")}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                  {oppChar && <FighterIcon name={oppChar} size={32} />}
-                  <span style={{ fontSize: 16, fontWeight: 700, color: oppChar ? T.text : T.dim }}>{oppChar ? fighterName(oppChar, lang) : t("battle.notSelected")}</span>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setShowOppPicker(true)} style={{ ...btnBase, padding: "7px 13px", background: T.inp, color: T.sub, fontSize: 12, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
-                  {recOpp.filter((c) => c !== oppChar).slice(0, 3).map((c) => <button key={c} onClick={() => setOppChar(c)} style={{ ...btnBase, padding: "7px 13px", background: T.inp, color: T.text, fontSize: 12 }}>{fighterName(c, lang)}</button>)}
-                </div>
-              </div>
-            )}
+          <div style={{ display: "flex", gap: 12, marginBottom: 10 }}>
+            <button type="button" onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #16A34A, #22C55E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(34,197,94,.3)" : "none" }}>{t("battle.win")}</button>
+            <button type="button" onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #E11D48, #F43F5E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(244,63,94,.3)" : "none" }}>{t("battle.lose")}</button>
           </div>
           {noteKey && (
             <BattleNotes noteKey={noteKey} data={data} T={T} onSave={onSave} />
           )}
-          {/* Stage selection */}
           <div style={{ ...cd, padding: "12px 16px" }}>
             <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 8 }}>{t("stages.selectStage")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
@@ -453,10 +466,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
                 </div>
               ))}
             </div>
-          </div>
-          <div style={{ display: "flex", gap: 12, marginBottom: 10 }}>
-            <button onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #16A34A, #22C55E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(34,197,94,.3)" : "none" }}>{t("battle.win")}</button>
-            <button onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #E11D48, #F43F5E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(244,63,94,.3)" : "none" }}>{t("battle.lose")}</button>
           </div>
         </>
       ) : (

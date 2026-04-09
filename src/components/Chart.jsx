@@ -164,7 +164,7 @@ export default function Chart({ points: pts, T, isToday }) {
 }
 
 function getNiceStep(range) {
-  if (range <= 0) return 100000;
+  if (range <= 0 || !Number.isFinite(range)) return 1;
   const rough = range / 4;
   const mag = Math.pow(10, Math.floor(Math.log10(rough)));
   const norm = rough / mag;
