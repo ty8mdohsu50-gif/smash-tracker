@@ -5,6 +5,7 @@ import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
 import ConfirmDialog from "./ConfirmDialog";
+import MatchLogModal from "./MatchLogModal";
 import { shortName, fighterName, FIGHTERS } from "../constants/fighters";
 import { STAGES, stageName, stageImg } from "../constants/stages";
 import { useI18n } from "../i18n/index.jsx";
@@ -21,6 +22,76 @@ import {
   formatHour,
   blurOnEnter,
 } from "../utils/format";
+
+const ANALYSIS_PREFS_KEY = "st_analysis_prefs_v1";
+
+function defaultAnalysisPrefs() {
+  return {
+    topMySort: "officialAsc",
+    topMyHide: false,
+    myMuSort: "officialAsc",
+    myMuHide: false,
+    topOppSort: "officialAsc",
+    topOppHide: false,
+    oppMySort: "gamesDesc",
+    oppMyHide: false,
+  };
+}
+
+function loadAnalysisPrefs() {
+  try {
+    const raw = localStorage.getItem(ANALYSIS_PREFS_KEY);
+    if (!raw) return defaultAnalysisPrefs();
+    return { ...defaultAnalysisPrefs(), ...JSON.parse(raw) };
+  } catch {
+    return defaultAnalysisPrefs();
+  }
+}
+
+function sortCharStatsRows(rows, mode, hideUnfought) {
+  const idx = (c) => FIGHTERS.indexOf(c);
+  let r = hideUnfought ? rows.filter((x) => x.t > 0) : [...rows];
+  const tieBreakT = (a, b) => (b.t !== a.t ? b.t - a.t : idx(a.c) - idx(b.c));
+  switch (mode) {
+    case "officialAsc":
+      r.sort((a, b) => idx(a.c) - idx(b.c));
+      break;
+    case "officialDesc":
+      r.sort((a, b) => idx(b.c) - idx(a.c));
+      break;
+    case "wrDesc":
+      r.sort((a, b) => {
+        if (a.t === 0 && b.t === 0) return idx(a.c) - idx(b.c);
+        if (a.t === 0) return 1;
+        if (b.t === 0) return -1;
+        const ra = a.w / a.t;
+        const rb = b.w / b.t;
+        if (rb !== ra) return rb - ra;
+        return tieBreakT(a, b);
+      });
+      break;
+    case "wrAsc":
+      r.sort((a, b) => {
+        if (a.t === 0 && b.t === 0) return idx(a.c) - idx(b.c);
+        if (a.t === 0) return 1;
+        if (b.t === 0) return -1;
+        const ra = a.w / a.t;
+        const rb = b.w / b.t;
+        if (ra !== rb) return ra - rb;
+        return tieBreakT(a, b);
+      });
+      break;
+    case "gamesDesc":
+      r.sort((a, b) => b.t - a.t || idx(a.c) - idx(b.c));
+      break;
+    case "gamesAsc":
+      r.sort((a, b) => a.t - b.t || idx(a.c) - idx(b.c));
+      break;
+    default:
+      r.sort((a, b) => idx(a.c) - idx(b.c));
+  }
+  return r;
+}
 
 export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) {
   const { t, lang } = useI18n();
@@ -68,6 +139,22 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const [sharePopup, setSharePopup] = useState(null); // { text, imageBlob? }
   const [confirmAction, setConfirmAction] = useState(null);
   const [editingStageIdx, setEditingStageIdx] = useState(null);
+  const [analysisPrefs, setAnalysisPrefsState] = useState(loadAnalysisPrefs);
+  const [matchLogModal, setMatchLogModal] = useState(null);
+
+  const setAnalysisPrefs = useCallback((patch) => {
+    setAnalysisPrefsState((prev) => {
+      const n = { ...prev, ...patch };
+      try {
+        localStorage.setItem(ANALYSIS_PREFS_KEY, JSON.stringify(n));
+      } catch {
+        /* ignore */
+      }
+      return n;
+    });
+  }, []);
+
+  const matchesWithIdx = useMemo(() => data.matches.map((m, idx) => ({ ...m, idx })), [data.matches]);
 
   // Month navigation for daily list
   const [dailyMonth, setDailyMonth] = useState(() => {
@@ -361,6 +448,33 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     );
   };
 
+  const stageGridColsDisplay = isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)";
+
+  const charSortToolbar = (sortKey, hideKey) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 12 }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: T.dim, fontWeight: 600, cursor: "pointer" }}>
+        <input type="checkbox" checked={analysisPrefs[hideKey]} onChange={(e) => setAnalysisPrefs({ [hideKey]: e.target.checked })} style={{ accentColor: T.accent, cursor: "pointer" }} />
+        {t("analysis.hideUnfought")}
+      </label>
+      <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.sortBy")}</span>
+      <select
+        value={analysisPrefs[sortKey]}
+        onChange={(e) => setAnalysisPrefs({ [sortKey]: e.target.value })}
+        style={{
+          padding: "8px 10px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.inp, color: T.text, fontSize: 12, fontFamily: "inherit",
+          maxWidth: isPC ? 240 : "100%", flex: isPC ? "none" : 1, minWidth: 0, cursor: "pointer",
+        }}
+      >
+        <option value="officialAsc">{t("analysis.sortOfficialAsc")}</option>
+        <option value="officialDesc">{t("analysis.sortOfficialDesc")}</option>
+        <option value="wrDesc">{t("analysis.sortWrHigh")}</option>
+        <option value="wrAsc">{t("analysis.sortWrLow")}</option>
+        <option value="gamesDesc">{t("analysis.sortGamesHigh")}</option>
+        <option value="gamesAsc">{t("analysis.sortGamesLow")}</option>
+      </select>
+    </div>
+  );
+
   const dailyList = (filterFn) => {
     const dailyMap = {};
     data.matches.filter(filterFn).forEach((m) => {
@@ -647,7 +761,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           {Object.keys(stageDist).length > 0 && (
             <div style={{ marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 6 }}>{t("stages.winRateByStage")}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+              <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 6 }}>
                 {STAGES.filter((st) => stageDist[st.id]).map((st) => {
                   const sd = stageDist[st.id];
                   const sr = sd.w / (sd.w + sd.l);
@@ -798,6 +912,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         {pill("oppChar", t("analysis.oppChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
         {pill("overall", t("analysis.overall"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
       </div>
+      {data.matches.length > 0 && (
+        <div style={{ fontSize: 11, color: T.dim, marginBottom: 14, lineHeight: 1.45 }}>{t("analysis.rankedOnlyNote")}</div>
+      )}
 
       {/* ═══════════════ MODE: MY CHAR ═══════════════ */}
       {aMode === "myChar" && !charDetail && (
@@ -805,14 +922,16 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           {mCS.length === 0 ? (
             <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noCharData")}</div>
           ) : (() => {
-            const usedSet = new Set(mCS.map((s) => s.c));
             const allMyChars = FIGHTERS.map((c) => {
               const found = mCS.find((s) => s.c === c);
               return found || { c, w: 0, l: 0, t: 0 };
             });
+            const sortedMy = sortCharStatsRows(allMyChars, analysisPrefs.topMySort, analysisPrefs.topMyHide);
             return (
-              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
-                {allMyChars.map((s) => {
+              <div>
+                {charSortToolbar("topMySort", "topMyHide")}
+                <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                {sortedMy.map((s) => {
                   const r = s.t ? s.w / s.t : 0;
                   const used = s.t > 0;
                   const iconSize = isPC ? 36 : 28;
@@ -839,6 +958,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     </div>
                   );
                 })}
+                </div>
               </div>
             );
           })()}
@@ -897,17 +1017,53 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             </div>
 
             {/* Matchup sub-tab */}
-            {charSubTab === "matchup" && (
-              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
-                {charMatchups.map((s) => matchupCell(s, charDetail))}
-              </div>
-            )}
+            {charSubTab === "matchup" && (() => {
+              const sortedMu = sortCharStatsRows(charMatchups, analysisPrefs.myMuSort, analysisPrefs.myMuHide);
+              return (
+                <div>
+                  {charSortToolbar("myMuSort", "myMuHide")}
+                  <button
+                    type="button"
+                    onClick={() => setMatchLogModal({
+                      title: `${fighterName(charDetail, lang)} — ${t("analysis.openMatchLog")}`,
+                      matches: matchesWithIdx.filter((m) => m.myChar === charDetail),
+                    })}
+                    style={{
+                      width: "100%", marginBottom: 12, padding: "10px 14px", borderRadius: 12, border: `1px solid ${T.accentBorder}`,
+                      background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                    }}
+                  >
+                    {t("analysis.openMatchLog")}
+                  </button>
+                  <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                    {sortedMu.map((s) => matchupCell(s, charDetail))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Trend sub-tab */}
             {charSubTab === "trend" && trendSection()}
 
             {/* Daily sub-tab */}
-            {charSubTab === "daily" && dailyList((m) => m.myChar === charDetail)}
+            {charSubTab === "daily" && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setMatchLogModal({
+                    title: `${fighterName(charDetail, lang)} — ${t("analysis.openMatchLog")}`,
+                    matches: matchesWithIdx.filter((m) => m.myChar === charDetail),
+                  })}
+                  style={{
+                    width: "100%", marginBottom: 12, padding: "10px 14px", borderRadius: 12, border: `1px solid ${T.accentBorder}`,
+                    background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  {t("analysis.openMatchLog")}
+                </button>
+                {dailyList((m) => m.myChar === charDetail)}
+              </div>
+            )}
           </div>
         );
       })()}
@@ -918,14 +1074,17 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           {oCS.length === 0 ? (
             <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noCharData")}</div>
           ) : (() => {
-            const foughtSet = new Set(oCS.map((s) => s.c));
             const allOpps = FIGHTERS.map((c) => {
               const found = oCS.find((s) => s.c === c);
               return found || { c, w: 0, l: 0, t: 0 };
             });
+            const sortedOpps = sortCharStatsRows(allOpps, analysisPrefs.topOppSort, analysisPrefs.topOppHide);
             return (
-              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
-                {allOpps.map((s) => matchupCell(s, null, { myChar: null, oppChar: s.c, isOppMode: true }))}
+              <div>
+                {charSortToolbar("topOppSort", "topOppHide")}
+                <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                  {sortedOpps.map((s) => matchupCell(s, null, { myChar: null, oppChar: s.c, isOppMode: true }))}
+                </div>
               </div>
             );
           })()}
@@ -978,16 +1137,37 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 </div>
 
                 {/* My chars used against this opponent */}
-                {oppSubTab === "myChars" && (
-                  <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
-                    {oppMyChars.map((s) =>
-                      matchupCell(s, null, { myChar: s.c, oppChar: oppDetail })
-                    )}
-                  </div>
-                )}
+                {oppSubTab === "myChars" && (() => {
+                  const sortedOmc = sortCharStatsRows(oppMyChars, analysisPrefs.oppMySort, analysisPrefs.oppMyHide);
+                  return (
+                    <div>
+                      {charSortToolbar("oppMySort", "oppMyHide")}
+                      <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                        {sortedOmc.map((s) => matchupCell(s, null, { myChar: s.c, oppChar: oppDetail }))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Match history */}
-                {oppSubTab === "history" && dailyList((m) => m.oppChar === oppDetail)}
+                {oppSubTab === "history" && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setMatchLogModal({
+                        title: `${fighterName(oppDetail, lang)} — ${t("analysis.openMatchLog")}`,
+                        matches: matchesWithIdx.filter((m) => m.oppChar === oppDetail),
+                      })}
+                      style={{
+                        width: "100%", marginBottom: 12, padding: "10px 14px", borderRadius: 12, border: `1px solid ${T.accentBorder}`,
+                        background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      {t("analysis.openMatchLog")}
+                    </button>
+                    {dailyList((m) => m.oppChar === oppDetail)}
+                  </div>
+                )}
 
                 {/* Stage win rate */}
                 {oppSubTab === "stages" && (() => {
@@ -997,7 +1177,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                       {stageMatches.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "24px 0", color: T.dim, fontSize: 13 }}>{t("stages.noData")}</div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 8 }}>
                           {STAGES.map((stage) => {
                             const ms = stageMatches.filter((m) => m.stage === stage.id);
                             const w = ms.filter((m) => m.result === "win").length;
@@ -1032,6 +1212,16 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       {/* ═══════════════ MODE: OVERALL ═══════════════ */}
       {aMode === "overall" && (
         <div>
+          <button
+            type="button"
+            onClick={() => setMatchLogModal({ title: t("analysis.matchLogTitleOverall"), matches: matchesWithIdx })}
+            style={{
+              width: "100%", marginBottom: 12, padding: "10px 14px", borderRadius: 12, border: `1px solid ${T.accentBorder}`,
+              background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            {t("analysis.openMatchLog")}
+          </button>
           {/* Summary + Share */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: T.sub }}>{t("share.overallStats")}</span>
@@ -1229,7 +1419,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             <>
               <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("stages.winRateByStage")}</div>
               <div style={{ ...cd, padding: "12px 14px", marginBottom: isPC ? 20 : 14 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 8 }}>
                   {STAGES.map((stage) => {
                     const ms = data.matches.filter((m) => m.stage === stage.id);
                     if (ms.length === 0) return null;
@@ -1257,6 +1447,18 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       )}
 
       {/* Shared overlays */}
+      {matchLogModal && (
+        <MatchLogModal
+          open
+          onClose={() => setMatchLogModal(null)}
+          title={matchLogModal.title}
+          matches={matchLogModal.matches}
+          T={T}
+          t={t}
+          lang={lang}
+          isPC={isPC}
+        />
+      )}
       {sharePopup && <SharePopup text={sharePopup.text} imageBlob={sharePopup.imageBlob} onClose={() => setSharePopup(null)} T={T} />}
       {confirmAction && (
         <ConfirmDialog
@@ -1364,7 +1566,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     {Object.keys(stageData).length > 0 && (
                       <div style={{ marginBottom: 16 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("stages.winRateByStage")}</div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 8 }}>
                           {STAGES.filter((st) => stageData[st.id]).map((st) => {
                             const sd = stageData[st.id];
                             const sr = sd.w / (sd.w + sd.l);

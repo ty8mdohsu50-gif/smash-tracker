@@ -465,7 +465,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     const oppW = oppMatches.filter((m) => m.result === "win").length;
     const oppL = oppMatches.length - oppW;
     const oppWinRate = oppMatches.length > 0 ? oppW / oppMatches.length : 0;
-    const pastMemos = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar && m.memo).slice().reverse();
+    const pastMemos = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar && String(m.memo || "").trim()).slice().reverse();
     return (
       <div style={{ ...cd, padding: "14px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
@@ -479,22 +479,27 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             </span>
           )}
         </div>
+        <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.prepReference")}</div>
         {data.matchupNotes?.[`${myChar}|${oppChar}`]
           ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} onSave={onSave} />
           : <BattleNotes noteKey={oppChar} data={data} T={T} onSave={onSave} />
         }
-        {pastMemos.length > 0 && (
-          <div style={{ borderTop: `1px solid ${T.inp}`, paddingTop: 8, marginTop: 4 }}>
-            <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memo")}</div>
-            <div style={{ maxHeight: 100, overflowY: "auto" }}>
-              {pastMemos.slice(0, 5).map((m, i) => (
-                <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "2px 0" }}>
-                  <span style={{ color: T.dim, fontSize: 10 }}>{formatDateShort(m.date)}</span> {m.memo}
+        <div style={{ borderTop: `1px solid ${T.inp}`, paddingTop: 8, marginTop: 4 }}>
+          <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
+          {pastMemos.length > 0 ? (
+            <div style={{ maxHeight: 200, overflowY: "auto" }}>
+              {pastMemos.slice(0, 20).map((m, i, arr) => (
+                <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
+                  <span style={{ color: m.result === "win" ? T.win : T.lose, fontWeight: 800, fontSize: 10, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
+                  <span style={{ color: T.dim, fontSize: 10 }}>{formatDateShort(m.date)}</span>
+                  <div style={{ marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{ fontSize: 12, color: T.dim }}>{t("battle.noMemoMatches")}</div>
+          )}
+        </div>
       </div>
     );
   })();
@@ -879,29 +884,36 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               : <BattleNotes noteKey={oppChar} data={data} T={T} onSave={onSave} />
             }
             {(() => {
-              const pastMatches = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar).slice().reverse();
-              if (!pastMatches.length) return null;
-              const w = pastMatches.filter((m) => m.result === "win").length;
-              const l = pastMatches.length - w;
-              const rate = pastMatches.length ? w / pastMatches.length : 0;
+              const allOpp = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+              if (!allOpp.length) return null;
+              const w = allOpp.filter((m) => m.result === "win").length;
+              const l = allOpp.length - w;
+              const rate = w / allOpp.length;
+              const memoOnly = allOpp.filter((m) => String(m.memo || "").trim()).slice().reverse();
               return (
                 <div>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.prepReference")}</div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{pastMatches.length}{t("common.matches")} {w}W {l}L</span>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: barColor(rate), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, pastMatches.length)}</span>
+                    <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{allOpp.length}{t("common.matches")} {w}W {l}L</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: barColor(rate), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, allOpp.length)}</span>
                   </div>
-                  <div style={{ maxHeight: 180, overflowY: "auto" }}>
-                    {pastMatches.slice(0, 8).map((m, i) => (
-                      <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                          <span style={{ fontSize: 11, color: T.dim }}>{formatDateShort(m.date)}</span>
-                          <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
+                  {memoOnly.length > 0 ? (
+                    <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                      {memoOnly.slice(0, 25).map((m, i) => (
+                        <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+                            <span style={{ fontSize: 11, color: T.dim }}>{formatDateShort(m.date)}</span>
+                            <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: T.sub, marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
                         </div>
-                        {m.memo && <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: T.dim }}>{t("battle.noMemoMatches")}</div>
+                  )}
                 </div>
               );
             })()}

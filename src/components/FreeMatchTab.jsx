@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Share2, ChevronLeft, ChevronRight } from "lucide-react";
-import MatchupNotesEditor, { BattleNotes } from "./MatchupNotesEditor";
+import { BattleNotes } from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
@@ -38,6 +38,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [showAddInput, setShowAddInput] = useState(false);
   const [lastResult, setLastResult] = useState(null);
   const [postRecord, setPostRecord] = useState(false);
+  const [freeMemo, setFreeMemo] = useState("");
   const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [expandedMatchup, setExpandedMatchup] = useState(null);
@@ -134,11 +135,23 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     });
   };
 
+  const saveFreeMemo = () => {
+    const cur = dataRef.current;
+    const fm = cur.freeMatches || [];
+    if (fm.length === 0) return;
+    const text = freeMemo.trim();
+    const nf = [...fm];
+    const last = nf[nf.length - 1];
+    nf[nf.length - 1] = { ...last, memo: text || undefined };
+    onSave({ ...cur, freeMatches: nf });
+  };
+
   const recordMatch = (result) => {
     if (!myChar || !oppChar || !selectedOpponent) return;
-    const entry = { date: today(), time: new Date().toISOString(), opponent: selectedOpponent, myChar, oppChar, result };
+    const entry = { date: today(), time: new Date().toISOString(), opponent: selectedOpponent, myChar, oppChar, result, memo: "" };
     if (selectedStage) entry.stage = selectedStage;
     onSave({ ...data, freeMatches: [...freeMatches, entry] });
+    setFreeMemo("");
     setLastResult(result); setPostRecord(true); setToast(t("battle.toastRecorded"));
   };
 
@@ -356,19 +369,45 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     );
   })();
 
-  // Notes area – use character matchup key (shared with ranked)
   const noteKey = myChar && oppChar ? `${myChar}|${oppChar}` : null;
-  const tendencyArea = noteKey && (
-    <div style={{ marginBottom: 10 }}>
-      <MatchupNotesEditor noteKey={noteKey} data={data} onSave={onSave} T={T} compact />
-    </div>
-  );
 
   // Battle area (char selection + win/lose)
   const battleArea = (
     <div>
       {!postRecord ? (
         <>
+          {noteKey && (() => {
+            const muPair = oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+            const pw = muPair.filter((m) => m.result === "win").length;
+            const pl = muPair.length - pw;
+            const memoHist = muPair.filter((m) => String(m.memo || "").trim()).slice().reverse();
+            return (
+              <div style={{ ...cd, padding: "12px 16px", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.prepReference")}</div>
+                {muPair.length > 0 ? (
+                  <div style={{ fontSize: 14, fontWeight: 800, color: barColor(pw / muPair.length), fontFamily: "'Chakra Petch', sans-serif", marginBottom: 8 }}>
+                    {pw}W {pl}L · {percentStr(pw, muPair.length)} <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>({muPair.length}{t("common.matches")})</span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>{t("battle.firstMatch")}</div>
+                )}
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
+                {memoHist.length > 0 ? (
+                  <div style={{ maxHeight: 160, overflowY: "auto", marginBottom: 8 }}>
+                    {memoHist.slice(0, 15).map((m, i, arr) => (
+                      <div key={i} style={{ padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
+                        <span style={{ color: m.result === "win" ? T.win : T.lose, fontWeight: 800, fontSize: 10, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
+                        <span style={{ fontSize: 10, color: T.dim }}>{formatDate(m.date)}</span>
+                        <div style={{ fontSize: 12, color: T.sub, marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>{t("battle.noMemoMatches")}</div>
+                )}
+              </div>
+            );
+          })()}
           <div style={cd}>
             {showMyPicker ? <CharPicker value={myChar} onChange={(c) => { setMyChar(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} /> : (
               <div>
@@ -421,11 +460,21 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
           </div>
         </>
       ) : (
-        <div style={{ ...cd, textAlign: "center", padding: "16px 18px" }}>
-          <div style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif", color: lastResult === "win" ? T.win : T.lose, marginBottom: 12 }}>{lastResult === "win" ? "WIN" : "LOSE"}</div>
+        <div style={{ ...cd, padding: "16px 18px" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif", color: lastResult === "win" ? T.win : T.lose, marginBottom: 12 }}>{lastResult === "win" ? "WIN" : "LOSE"}</div>
+          </div>
+          <textarea
+            value={freeMemo}
+            onChange={(e) => { setFreeMemo(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = `${Math.max(44, el.scrollHeight)}px`; }}
+            onBlur={saveFreeMemo}
+            placeholder={t("battle.memo")}
+            rows={1}
+            style={{ width: "100%", marginBottom: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }}
+          />
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => setPostRecord(false)} style={{ ...btnBase, flex: 2, padding: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("free.rematch")}</button>
-            <button onClick={() => { setOppChar(""); setShowOppPicker(true); setPostRecord(false); }} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>{t("free.changeChar")}</button>
+            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...btnBase, flex: 2, padding: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("free.rematch")}</button>
+            <button onClick={() => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); }} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>{t("free.changeChar")}</button>
           </div>
         </div>
       )}
@@ -565,7 +614,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
         </div>
 
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <div style={{ flex: 1, minWidth: 0 }}>{tendencyArea}{battleArea}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>{battleArea}</div>
           <div style={{ flex: 1, minWidth: 0 }}>{analysisArea}</div>
         </div>
         {overlays}
@@ -589,7 +638,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
         {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ border: "none", background: "rgba(255,255,255,.15)", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}><Share2 size={10} />{t("free.share")}</button>}
       </div>
 
-      {tendencyArea}
       {battleArea}
       {/* "View Analysis" link removed per user request */}
       <div ref={analysisRef}>{analysisArea}</div>
