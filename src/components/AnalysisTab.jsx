@@ -61,6 +61,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const [expandedRolling, setExpandedRolling] = useState(null);
   const [expandedHour, setExpandedHour] = useState(null);
 
+  // PC matchup popup
+  const [matchupPopup, setMatchupPopup] = useState(null);
+
   // Editing state
   const [counterMemoText, setCounterMemoText] = useState("");
   const [noteMode, setNoteMode] = useState("general");
@@ -340,13 +343,20 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     );
   };
 
-  const matchupRow = (s, matchesGetter) => {
+  const matchupRow = (s, matchesGetter, parentChar) => {
     const r = s.t ? s.w / s.t : 0;
     const isExp = expandedItem === s.c;
     const matches = isExp ? matchesGetter() : [];
+    const handleClick = () => {
+      if (isPC && parentChar) {
+        setMatchupPopup({ myChar: parentChar, oppChar: s.c });
+      } else {
+        setExpandedItem(isExp ? null : s.c);
+      }
+    };
     return (
       <div key={s.c} style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "12px 16px" }}>
-        <div onClick={() => setExpandedItem(isExp ? null : s.c)} style={{ cursor: "pointer" }}>
+        <div onClick={handleClick} style={{ cursor: "pointer" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <FighterIcon name={s.c} size={32} />
@@ -365,7 +375,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           </div>
           {renderBar(r)}
         </div>
-        {isExp && (
+        {!isPC && isExp && (
           <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10, maxHeight: 300, overflowY: "auto" }}>
             {matches.slice(0, 20).map((m, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -374,6 +384,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                   {m.result === "win" ? "WIN" : "LOSE"}
                 </span>
                 {m.time && <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>}
+                {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
                 {m.memo && <span style={{ fontSize: 11, color: T.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.memo}</span>}
               </div>
             ))}
@@ -757,7 +768,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             {charSubTab === "matchup" && (
               <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
                 {charMatchups.map((s) =>
-                  matchupRow(s, () => data.matches.filter((m) => m.myChar === charDetail && m.oppChar === s.c).slice().reverse())
+                  matchupRow(s, () => data.matches.filter((m) => m.myChar === charDetail && m.oppChar === s.c).slice().reverse(), charDetail)
                 )}
               </div>
             )}
@@ -856,7 +867,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 {oppSubTab === "myChars" && (
                   <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
                     {oppMyChars.map((s) =>
-                      matchupRow(s, () => data.matches.filter((m) => m.oppChar === oppDetail && m.myChar === s.c).slice().reverse())
+                      matchupRow(s, () => data.matches.filter((m) => m.oppChar === oppDetail && m.myChar === s.c).slice().reverse(), s.c)
                     )}
                   </div>
                 )}
@@ -1048,6 +1059,133 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           T={T}
         />
       )}
+
+      {/* PC Matchup Detail Popup */}
+      {matchupPopup && (() => {
+        const { myChar, oppChar } = matchupPopup;
+        const ms = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+        const w = ms.filter((m) => m.result === "win").length;
+        const l = ms.length - w;
+        const r = ms.length > 0 ? w / ms.length : 0;
+
+        const stageMs = ms.filter((m) => m.stage);
+        const stageData = {};
+        stageMs.forEach((m) => {
+          if (!stageData[m.stage]) stageData[m.stage] = { w: 0, l: 0 };
+          m.result === "win" ? stageData[m.stage].w++ : stageData[m.stage].l++;
+        });
+
+        const recent10 = ms.slice().reverse().slice(0, 10);
+        const recentR = recent10.length > 0 ? recent10.filter((m) => m.result === "win").length / recent10.length : 0;
+
+        return (
+          <div onClick={() => setMatchupPopup(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", animation: "fadeUp .15s ease" }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.card, borderRadius: 20, border: `1px solid ${T.brd}`, boxShadow: T.sh, width: 560, maxHeight: "80vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              {/* Header */}
+              <div style={{ padding: "20px 24px", borderBottom: `1px solid ${T.inp}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <FighterIcon name={myChar} size={36} />
+                  <span style={{ fontSize: 14, color: T.dim, fontWeight: 700 }}>vs</span>
+                  <FighterIcon name={oppChar} size={36} />
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{fighterName(myChar, lang)} vs {fighterName(oppChar, lang)}</div>
+                    <div style={{ fontSize: 12, color: T.dim }}>{ms.length}{t("analysis.battles")}</div>
+                  </div>
+                </div>
+                <button onClick={() => setMatchupPopup(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18 }}>×</button>
+              </div>
+
+              {/* Content */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+                {ms.length === 0 ? (
+                  <div style={{ textAlign: "center", color: T.dim, padding: "40px 0", fontSize: 14 }}>{t("stages.noData")}</div>
+                ) : (
+                  <>
+                    {/* Overall stats */}
+                    <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                        <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winRate")}</div>
+                        <div style={{ fontSize: 28, fontWeight: 900, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, ms.length)}</div>
+                      </div>
+                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                        <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winLoss")}</div>
+                        <div style={{ fontSize: 24, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
+                          <span style={{ color: T.win }}>{w}</span>
+                          <span style={{ color: T.dimmer, fontSize: 14, margin: "0 4px" }}>:</span>
+                          <span style={{ color: T.lose }}>{l}</span>
+                        </div>
+                      </div>
+                      {recent10.length >= 3 && (
+                        <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                          <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.recentLabel")} {recent10.length}</div>
+                          <div style={{ fontSize: 28, fontWeight: 900, color: barColor(recentR), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(recent10.filter((m) => m.result === "win").length, recent10.length)}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Win rate bar */}
+                    <div style={{ height: 8, borderRadius: 4, background: T.inp, overflow: "hidden", marginBottom: 20 }}>
+                      <div style={{ height: "100%", width: `${r * 100}%`, background: barColor(r), borderRadius: 4 }} />
+                    </div>
+
+                    {/* Stage win rates */}
+                    {Object.keys(stageData).length > 0 && (
+                      <div style={{ marginBottom: 20 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("stages.winRateByStage")}</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {STAGES.filter((st) => stageData[st.id]).map((st) => {
+                            const sd = stageData[st.id];
+                            const total = sd.w + sd.l;
+                            const sr = sd.w / total;
+                            return (
+                              <div key={st.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <img src={stageImg(st.id)} alt="" style={{ width: 56, height: 32, objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                                    <span style={{ fontWeight: 600, color: T.text }}>{stageName(st.id, lang)}</span>
+                                    <span style={{ color: T.dim }}>{sd.w}W {sd.l}L</span>
+                                  </div>
+                                  <div style={{ height: 4, borderRadius: 2, background: T.inp, overflow: "hidden" }}>
+                                    <div style={{ height: "100%", width: `${sr * 100}%`, background: barColor(sr), borderRadius: 2 }} />
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: 13, fontWeight: 800, color: barColor(sr), fontFamily: "'Chakra Petch', sans-serif", minWidth: 36, textAlign: "right" }}>{Math.round(sr * 100)}%</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Match history */}
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
+                      <div style={{ maxHeight: 240, overflowY: "auto" }}>
+                        {ms.slice().reverse().slice(0, 30).map((m, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
+                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 68 }}>{formatDate(m.date)}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>
+                              {m.result === "win" ? "WIN" : "LOSE"}
+                            </span>
+                            {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
+                            {m.time && <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Matchup Notes */}
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("matchupNotes.title")}</div>
+                      <MatchupNotesEditor noteKey={oppChar} data={data} onSave={onSave} T={T} compact />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

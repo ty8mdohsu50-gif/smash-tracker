@@ -978,17 +978,22 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>{t("battle.recent")}</div>
                 <div style={{ maxHeight: 300, overflowY: "auto" }}>
-                  {tM.slice().reverse().map((m, i) => (
+                  {tM.slice().reverse().map((m, i) => {
+                    const matchIdx = data.matches.indexOf(m);
+                    return (
                     <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
                         <FighterIcon name={m.oppChar} size={18} />
                         <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{fighterName(m.oppChar, lang)}</span>
+                        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3 }}>{stageName(m.stage, lang)}</span>}
                         <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
+                        <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
                       </div>
                       {m.memo && <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

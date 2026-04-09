@@ -179,6 +179,7 @@ export default function App() {
     }
   }, []);
 
+  const ANALYSIS_MODES_PC = ["myChar", "oppChar", "overall"];
   const onWheel = useCallback((e) => {
     if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
     e.preventDefault();
@@ -186,12 +187,26 @@ export default function App() {
     wheelRef.current.acc += e.deltaX;
     if (Math.abs(wheelRef.current.acc) > 120) {
       const dir = wheelRef.current.acc > 0 ? 1 : -1;
-      setTabIdx((prev) => Math.max(0, Math.min(1, prev + dir)));
       wheelRef.current.acc = 0;
       wheelRef.current.cooldown = true;
       setTimeout(() => { wheelRef.current.cooldown = false; }, 500);
+
+      const tab = navRef.current.tabIdx;
+      const bm = navRef.current.battleMode;
+      const am = navRef.current.analysisMode;
+
+      if (tab === 0) {
+        if (bm === "ranked" && dir > 0) { setBattleMode("free"); }
+        else if (bm === "free" && dir > 0) { setTabIdx(1); setAnalysisMode("myChar"); }
+        else if (bm === "free" && dir < 0) { setBattleMode("ranked"); }
+      } else if (tab === 1) {
+        const idx = ANALYSIS_MODES_PC.indexOf(am);
+        if (dir > 0 && idx < ANALYSIS_MODES_PC.length - 1) { setAnalysisMode(ANALYSIS_MODES_PC[idx + 1]); }
+        else if (dir < 0 && idx > 0) { setAnalysisMode(ANALYSIS_MODES_PC[idx - 1]); }
+        else if (dir < 0 && idx === 0) { setTabIdx(0); setBattleMode("free"); }
+      }
     }
-  }, []);
+  }, [setBattleMode, setTabIdx, setAnalysisMode]);
 
   useEffect(() => {
     if (!isPC) return;
