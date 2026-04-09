@@ -497,6 +497,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         <span style={{ fontSize: 11, color: T.dim }}>vs</span>
         <FighterIcon name={m.oppChar} size={20} />
         <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
+        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
         {m.time && <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>}
         <button onClick={(e) => { e.stopPropagation(); setConfirmAction({ idx: m.idx }); }}
           style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}>×</button>
@@ -638,6 +639,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>vs</span>
         <FighterIcon name={m.oppChar} size={24} />
         <span style={{ fontSize: 12, color: T.sub, flexShrink: 0 }}>{shortName(m.oppChar, lang)}</span>
+        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
         <span style={{ fontSize: 12, fontWeight: 800, width: 40, textAlign: "center", flexShrink: 0, marginLeft: "auto", padding: "2px 0", borderRadius: 6, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>
           {m.result === "win" ? "WIN" : "LOSE"}
         </span>

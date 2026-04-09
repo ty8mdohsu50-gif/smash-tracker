@@ -198,7 +198,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       date: today(), time: new Date().toISOString(), myChar, oppChar: opp, result: r, memo: "",
       power: pEnd ? Number(pEnd) : (pStart ? Number(pStart) : null),
       startPower: pStart ? Number(pStart) : null,
-      stage: null,
+      stage: selectedStage || null,
     };
     const newMatches = [...data.matches, m];
     onSave({ ...data, matches: newMatches });
@@ -313,6 +313,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
         <FighterIcon name={m.oppChar} size={22} />
         <span style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>{fighterName(m.oppChar, lang)}</span>
+        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
         <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
       </div>
     ));
@@ -637,6 +638,31 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
             {/* Context info */}
             {oppContextInfo}
+
+            {/* Stage selection (mobile battle phase) */}
+            <div style={{ ...cd, padding: "10px 14px", marginTop: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 13 }}>🗺️</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 5 }}>
+                {STAGES.map((s) => {
+                  const active = selectedStage === s.id;
+                  return (
+                    <button key={s.id} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
+                      border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 6, padding: 0, background: "none",
+                      overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.65, transition: "all .15s ease",
+                      boxShadow: active ? T.accentGlow : "none",
+                    }}>
+                      <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
+                      <div style={{ fontSize: 8, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "2px 3px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
+                        {lang === "ja" ? s.jp : s.en}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Win/Lose buttons */}
             {!result && (
@@ -1074,6 +1100,31 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                     <button onClick={() => setShowOppPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.other")}</button>
                   </div>
                 )}
+              </div>
+
+              {/* Stage selection (PC battle phase) */}
+              <div style={{ ...cd, padding: "12px 18px", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <span style={{ fontSize: 13 }}>🗺️</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+                  {STAGES.map((s) => {
+                    const active = selectedStage === s.id;
+                    return (
+                      <button key={s.id} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
+                        border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 6, padding: 0, background: "none",
+                        overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.65, transition: "all .15s ease",
+                        boxShadow: active ? T.accentGlow : "none",
+                      }}>
+                        <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
+                        <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "2px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
+                          {lang === "ja" ? s.jp : s.en}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {!result && (
