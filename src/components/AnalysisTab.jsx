@@ -907,7 +907,21 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       {/* ═══════════════ MODE: OVERALL ═══════════════ */}
       {aMode === "overall" && (
         <div>
-          {/* Summary */}
+          {/* Summary + Share */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: T.sub }}>{t("share.overallStats")}</span>
+            <button onClick={() => {
+              const tw = data.matches.filter((m) => m.result === "win").length;
+              const tl = data.matches.length - tw;
+              const topChars = {};
+              data.matches.forEach((m) => { topChars[m.myChar] = (topChars[m.myChar] || 0) + 1; });
+              const charRank = Object.entries(topChars).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([c, n]) => `${fighterName(c, lang)} ×${n}`).join(", ");
+              const sLines = [`【SMASH TRACKER】${t("share.overallStats")}`, `${data.matches.length}${t("analysis.battles")} ${tw}W ${tl}L（${t("analysis.winRate")} ${percentStr(tw, data.matches.length)}）`];
+              if (charRank) sLines.push(charRank);
+              sLines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
+              doShare(sLines.join("\n"));
+            }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}><Share2 size={12} /> {t("analysis.share")}</button>
+          </div>
           <div style={{ ...cd, display: "flex", padding: isPC ? "24px 20px" : "18px 12px", textAlign: "center" }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div>
@@ -1082,7 +1096,14 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     <div style={{ fontSize: 11, color: T.dim }}>{ms.length}{t("analysis.battles")}</div>
                   </div>
                 </div>
-                <button onClick={() => setMatchupPopup(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18, flexShrink: 0 }}>×</button>
+                <button onClick={() => {
+                  const sLines = [`【SMASH TRACKER】${t("share.matchupShare")}`, `${fighterName(myChar, lang)} vs ${fighterName(oppChar, lang)}`, `${w}W ${l}L（${t("analysis.winRate")} ${percentStr(w, ms.length)}）`];
+                  const stageEntries = STAGES.filter((st) => stageData[st.id]).map((st) => { const sd = stageData[st.id]; return `${stageName(st.id, lang)} ${sd.w}W${sd.l}L`; });
+                  if (stageEntries.length > 0) sLines.push(stageEntries.join(" / "));
+                  sLines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
+                  doShare(sLines.join("\n"));
+                }} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, flexShrink: 0 }}><Share2 size={14} /></button>
+                <button onClick={() => setMatchupPopup(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18, flexShrink: 0, marginLeft: 6 }}>×</button>
               </div>
 
               {/* Content */}

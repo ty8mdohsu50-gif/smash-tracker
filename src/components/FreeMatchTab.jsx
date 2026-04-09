@@ -150,9 +150,19 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     const w = matchList.filter((m) => m.result === "win").length;
     const l = matchList.length - w;
     const rate = matchList.length > 0 ? Math.round((w / matchList.length) * 100) : 0;
-    return [`【SMASH TRACKER】${t("free.freeMatch")} vs ${opp}`, "", `${w}W ${l}L（${t("battle.winRate")} ${rate}%）`,
-      ...matchList.map((m) => `${m.result === "win" ? "WIN" : "LOSE"} ${fighterName(m.myChar, lang)} vs ${fighterName(m.oppChar, lang)}`),
-      "", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/"].join("\n");
+    const lines = [`【SMASH TRACKER】${t("free.freeMatch")} vs ${opp}`, `${w}W ${l}L（${t("battle.winRate")} ${rate}%）`];
+    const muMap = {};
+    matchList.forEach((m) => {
+      const k = `${m.myChar}|${m.oppChar}`;
+      if (!muMap[k]) muMap[k] = { my: m.myChar, opp: m.oppChar, w: 0, l: 0 };
+      m.result === "win" ? muMap[k].w++ : muMap[k].l++;
+    });
+    const muEntries = Object.values(muMap).sort((a, b) => (b.w + b.l) - (a.w + a.l));
+    if (muEntries.length > 0) {
+      lines.push(muEntries.map((mu) => `${fighterName(mu.my, lang)} vs ${fighterName(mu.opp, lang)} ${mu.w}W${mu.l}L`).join("\n"));
+    }
+    lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+    return lines.join("\n");
   };
 
   const doShare = async (text) => {

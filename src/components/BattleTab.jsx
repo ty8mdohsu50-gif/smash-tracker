@@ -262,7 +262,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     const dayStart = todayDaily.chars?.[myChar]?.start || Number(pStart);
     const dayEnd = pEnd ? Number(pEnd) : (todayDaily.chars?.[myChar]?.end || null);
     const shareDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
-    const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+    const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, showStages: true, ...(data.shareSettings || {}) };
     const lines = [`【SMASH TRACKER】${formatDateLong(today())}`];
     if (ss.showChar && myChar) {
       lines.push(fighterName(myChar, lang));
@@ -278,6 +278,18 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         .map(([c, n]) => `vs ${fighterName(c, lang)} ×${n}`)
         .join(" / ");
       if (oppSummary) lines.push(oppSummary);
+    }
+    if (ss.showStages) {
+      const stageMap = {};
+      tM.filter((m) => m.stage).forEach((m) => {
+        if (!stageMap[m.stage]) stageMap[m.stage] = { w: 0, l: 0 };
+        m.result === "win" ? stageMap[m.stage].w++ : stageMap[m.stage].l++;
+      });
+      const stageEntries = STAGES.filter((s) => stageMap[s.id]).map((s) => {
+        const d = stageMap[s.id];
+        return `${stageName(s.id, lang)} ${d.w}W${d.l}L`;
+      });
+      if (stageEntries.length > 0) lines.push(stageEntries.join(" / "));
     }
     if (ss.showPower && dayStart) {
       lines.push(`${t("battle.power")}: ${numFormat(dayStart)} → ${numFormat(dayEnd || dayStart)}${shareDelta !== null ? ` (${shareDelta >= 0 ? "+" : ""}${numFormat(shareDelta)})` : ""}`);

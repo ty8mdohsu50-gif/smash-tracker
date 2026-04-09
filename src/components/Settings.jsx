@@ -125,8 +125,9 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
                   { key: "showMatchups", label: t("settings.showMatchups") },
                   { key: "showRecord", label: t("settings.showRecord") },
                   { key: "showPower", label: t("settings.showPower") },
+                  { key: "showStages", label: t("settings.showStages") },
                 ].map(({ key, label }) => {
-                  const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}) };
+                  const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, showStages: true, ...(data.shareSettings || {}) };
                   const enabled = ss[key];
                   return (
                     <div
@@ -141,7 +142,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
                         onClick={() =>
                           onSave({
                             ...data,
-                            shareSettings: { showChar: true, showMatchups: true, showPower: true, showRecord: true, ...(data.shareSettings || {}), [key]: !enabled },
+                            shareSettings: { showChar: true, showMatchups: true, showPower: true, showRecord: true, showStages: true, ...(data.shareSettings || {}), [key]: !enabled },
                           })
                         }
                         style={{
