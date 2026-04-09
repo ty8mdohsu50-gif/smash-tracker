@@ -114,9 +114,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       if (!s[m.oppChar]) s[m.oppChar] = { w: 0, l: 0 };
       m.result === "win" ? s[m.oppChar].w++ : s[m.oppChar].l++;
     });
-    return Object.entries(s)
-      .map(([c, v]) => ({ c, w: v.w, l: v.l, t: v.w + v.l }))
-      .sort((a, b) => FIGHTERS.indexOf(a.c) - FIGHTERS.indexOf(b.c));
+    return FIGHTERS.map((c) => ({
+      c, w: s[c]?.w || 0, l: s[c]?.l || 0, t: (s[c]?.w || 0) + (s[c]?.l || 0),
+    }));
   }, [data, charDetail]);
 
   // Opp detail: my chars used against this opponent
@@ -343,34 +343,34 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     );
   };
 
-  const matchupRow = (s, matchesGetter, parentChar) => {
+  const matchupCell = (s, parentChar, popupOverride) => {
     const r = s.t ? s.w / s.t : 0;
+    const fought = s.t > 0;
+    const iconSize = isPC ? 36 : 28;
+    const bgColor = !fought ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
     const handleClick = () => {
-      if (parentChar) {
-        setMatchupPopup({ myChar: parentChar, oppChar: s.c });
-      }
+      if (popupOverride) { setMatchupPopup(popupOverride); return; }
+      if (parentChar) setMatchupPopup({ myChar: parentChar, oppChar: s.c });
     };
     return (
-      <div key={s.c} style={{ ...cd, marginBottom: isPC ? 0 : 8, padding: "12px 16px" }}>
-        <div onClick={handleClick} style={{ cursor: "pointer" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <FighterIcon name={s.c} size={32} />
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(s.c, lang)}</div>
-                <div style={{ fontSize: 11, color: T.dim }}>{s.w}W {s.l}L ({s.t}{t("analysis.battles")})</div>
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, justifyContent: "flex-end" }}>
-                <span style={{ fontSize: 10, color: T.dim }}>{t("analysis.winRate")}</span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(s.w, s.t)}</span>
-              </div>
-              {renderLabel(r)}
-            </div>
-          </div>
-          {renderBar(r)}
+      <div key={s.c} onClick={handleClick}
+        style={{
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+          padding: isPC ? "8px 4px" : "6px 2px", borderRadius: 10,
+          background: bgColor, border: `1px solid ${fought ? T.brd : "transparent"}`,
+          cursor: "pointer", opacity: fought ? 1 : 0.45,
+          transition: "opacity .15s",
+        }}>
+        <FighterIcon name={s.c} size={iconSize} />
+        <div style={{ fontSize: isPC ? 9 : 8, fontWeight: 600, color: T.sub, textAlign: "center", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
+          {shortName(s.c, lang)}
         </div>
+        <div style={{ fontSize: isPC ? 12 : 10, fontWeight: 800, color: fought ? barColor(r) : T.dim, fontFamily: "'Chakra Petch', sans-serif" }}>
+          {fought ? percentStr(s.w, s.t) : "---"}
+        </div>
+        {fought && (
+          <div style={{ fontSize: isPC ? 9 : 8, color: T.dim, fontWeight: 500 }}>{s.w}W {s.l}L</div>
+        )}
       </div>
     );
   };
@@ -746,10 +746,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
             {/* Matchup sub-tab */}
             {charSubTab === "matchup" && (
-              <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
-                {charMatchups.map((s) =>
-                  matchupRow(s, () => data.matches.filter((m) => m.myChar === charDetail && m.oppChar === s.c).slice().reverse(), charDetail)
-                )}
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                {charMatchups.map((s) => matchupCell(s, charDetail))}
               </div>
             )}
 
@@ -845,9 +843,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
                 {/* My chars used against this opponent */}
                 {oppSubTab === "myChars" && (
-                  <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
+                  <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
                     {oppMyChars.map((s) =>
-                      matchupRow(s, () => data.matches.filter((m) => m.oppChar === oppDetail && m.myChar === s.c).slice().reverse(), s.c)
+                      matchupCell(s, null, { myChar: s.c, oppChar: oppDetail })
                     )}
                   </div>
                 )}

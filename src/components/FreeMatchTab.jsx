@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Share2, ChevronLeft, ChevronRight, Zap, ChevronDown } from "lucide-react";
-import MatchupNotesEditor, { FlashDashboard } from "./MatchupNotesEditor";
+import MatchupNotesEditor from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
@@ -40,8 +40,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [expandedMatchup, setExpandedMatchup] = useState(null);
-  const [showNotes, setShowNotes] = useState(false);
-  const [tendencyText, setTendencyText] = useState("");
   const [calMonth, setCalMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -213,7 +211,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               const rate = total > 0 ? Math.round((w / total) * 100) : null;
               return (
                 <div key={opp} style={{ ...cd, display: "flex", alignItems: "center", gap: 12, marginBottom: isPC ? 0 : 10 }}>
-                  <button onClick={() => { setSelectedOpponent(opp); setPostRecord(false); setExpandedMatchup(null); setCalDate(null); setShowNotes(false); setTendencyText(data.matchupNotes?.[`free:${opp}`]?.flash || ""); }}
+                  <button onClick={() => { setSelectedOpponent(opp); setPostRecord(false); setExpandedMatchup(null); setCalDate(null); }}
                     style={{ flex: 1, display: "flex", alignItems: "center", gap: 14, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", fontFamily: "inherit" }}>
                     <div style={{ width: 40, height: 40, borderRadius: "50%", background: T.accentSoft, border: `2px solid ${T.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: T.accent, flexShrink: 0 }}>{opp[0]}</div>
                     <div style={{ flex: 1 }}>
@@ -331,46 +329,11 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     );
   })();
 
-  // Tendency / notes area
+  // Notes area (3 sections: flash, gameplan, stage)
   const freeNoteKey = `free:${selectedOpponent}`;
   const tendencyArea = (
     <div>
-      <FlashDashboard noteKey={freeNoteKey} data={data} T={T} onEdit={() => setShowNotes(true)} />
-      <div style={{ ...cd, padding: "10px 14px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 13 }}>👤</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t("matchupNotes.tendencyMemo")}</span>
-          </div>
-        </div>
-        <textarea
-          defaultValue={data.matchupNotes?.[freeNoteKey]?.neutral || ""}
-          onBlur={(e) => {
-            const cur = data.matchupNotes?.[freeNoteKey] || { flash: "", neutral: "", advantage: "", disadvantage: "", edgeguard: "", stage: "" };
-            if (e.target.value !== (cur.neutral || "")) {
-              onSave({ ...data, matchupNotes: { ...(data.matchupNotes || {}), [freeNoteKey]: { ...cur, neutral: e.target.value } } });
-            }
-          }}
-          placeholder={t("matchupNotes.tendencyPlaceholder")}
-          rows={2}
-          style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.6, minHeight: 36 }}
-        />
-      </div>
-      {showNotes ? (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t("matchupNotes.title")}</span>
-            <button onClick={() => setShowNotes(false)} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", color: T.sub, fontSize: 11 }}>
-              {t("common.close")}
-            </button>
-          </div>
-          <MatchupNotesEditor noteKey={freeNoteKey} data={data} onSave={onSave} T={T} compact />
-        </div>
-      ) : (
-        <button onClick={() => setShowNotes(true)} style={{ width: "100%", padding: "8px 0", marginBottom: 8, border: `1px dashed ${T.brd}`, borderRadius: 10, background: "transparent", color: T.dim, fontSize: 12, cursor: "pointer" }}>
-          {t("matchupNotes.title")} ▸
-        </button>
-      )}
+      <MatchupNotesEditor noteKey={freeNoteKey} data={data} onSave={onSave} T={T} compact />
     </div>
   );
 

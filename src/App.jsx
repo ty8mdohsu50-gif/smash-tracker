@@ -364,7 +364,7 @@ export default function App() {
             }}
           >
             <button
-              onClick={() => setTabIdx(0)}
+              onClick={() => { setTabIdx(0); setBattleMode("ranked"); }}
               style={{ display: "flex", alignItems: "center", gap: 10, background: "transparent", border: "none", padding: 0, cursor: "pointer" }}
             >
               <div
@@ -480,7 +480,7 @@ export default function App() {
         }}
       >
         <button
-          onClick={() => setTabIdx(0)}
+          onClick={() => { setTabIdx(0); setBattleMode("ranked"); }}
           style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 24px", marginBottom: 40, background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
         >
           <div

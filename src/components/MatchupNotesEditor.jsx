@@ -3,8 +3,8 @@ import { ChevronDown, ChevronRight, Zap } from "lucide-react";
 import { useI18n } from "../i18n/index.jsx";
 import { STAGES, stageName, stageImg } from "../constants/stages";
 
-const SECTIONS = ["flash", "neutral", "advantage", "disadvantage", "edgeguard", "stage"];
-const EMPTY_NOTE = { flash: "", neutral: "", advantage: "", disadvantage: "", edgeguard: "", stage: "" };
+const SECTIONS = ["flash", "gameplan", "stage"];
+const EMPTY_NOTE = { flash: "", gameplan: "", stage: "" };
 
 export function needsReview(note, matches, charKey) {
   if (!note) return false;
@@ -59,18 +59,13 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
 
   const sectionIcon = (s) => {
     if (s === "flash") return "⚡";
-    if (s === "neutral") return "⚔️";
-    if (s === "advantage") return "🔼";
-    if (s === "disadvantage") return "🔽";
-    if (s === "edgeguard") return "💨";
+    if (s === "gameplan") return "📋";
     if (s === "stage") return "🗺️";
     return "";
   };
 
   const sectionColor = (s) => {
     if (s === "flash") return T.accent;
-    if (s === "advantage") return T.win;
-    if (s === "disadvantage") return T.lose;
     return T.sub;
   };
 
@@ -134,11 +129,11 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
                   defaultValue={notes[s] || ""}
                   onBlur={(e) => { if (e.target.value !== (notes[s] || "")) updateSection(s, e.target.value); }}
                   placeholder={t(`matchupNotes.${s}Placeholder`)}
-                  rows={isFlash ? 3 : 2}
+                  rows={Math.max(isFlash ? 3 : s === "gameplan" ? 4 : 2, ((notes[s] || "").split("\n").length))}
                   style={{
                     width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8,
                     color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical",
-                    fontFamily: "inherit", lineHeight: 1.6, minHeight: isFlash ? 60 : 40,
+                    fontFamily: "inherit", lineHeight: 1.6,
                   }}
                 />
               </div>
@@ -173,6 +168,99 @@ export function FlashDashboard({ noteKey, data, T, onEdit }) {
         )}
       </div>
       <div style={{ fontSize: 12, color: T.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{flash}</div>
+    </div>
+  );
+}
+
+export function BattleNotes({ noteKey, data, T }) {
+  const { t, lang } = useI18n();
+  const [openSections, setOpenSections] = useState({});
+  const notes = data.matchupNotes?.[noteKey];
+  if (!notes) return null;
+
+  const hasAny = ["flash", "gameplan", "stage"].some((s) => (notes[s] || "").trim());
+  if (!hasAny) return null;
+
+  const oppCharKey = noteKey.includes("|") ? noteKey.split("|")[1] : noteKey;
+  const stageStats = useMemo(() => {
+    if (!data.matches) return {};
+    const ms = data.matches.filter((m) => m.oppChar === oppCharKey && m.stage);
+    const stats = {};
+    for (const m of ms) {
+      if (!stats[m.stage]) stats[m.stage] = { w: 0, l: 0 };
+      m.result === "win" ? stats[m.stage].w++ : stats[m.stage].l++;
+    }
+    return stats;
+  }, [data.matches, oppCharKey]);
+
+  const toggle = (s) => setOpenSections((p) => ({ ...p, [s]: !p[s] }));
+
+  const sections = [
+    { key: "flash", icon: "⚡", color: T.accent, alwaysOpen: true },
+    { key: "gameplan", icon: "📋", color: T.sub, alwaysOpen: false },
+    { key: "stage", icon: "🗺️", color: T.sub, alwaysOpen: false },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+      {sections.map(({ key, icon, color, alwaysOpen }) => {
+        const content = (notes[key] || "").trim();
+        const isStage = key === "stage";
+        const hasStageData = isStage && Object.keys(stageStats).length > 0;
+        if (!content && !hasStageData) return null;
+
+        const isOpen = alwaysOpen || openSections[key];
+        const preview = !alwaysOpen && !isOpen && content ? content.split("\n")[0].slice(0, 40) + (content.length > 40 ? "..." : "") : null;
+
+        return (
+          <div key={key} style={{
+            background: alwaysOpen ? T.accentSoft : T.card,
+            borderRadius: 10,
+            border: `1px solid ${alwaysOpen ? T.accentBorder : T.brd}`,
+            overflow: "hidden",
+          }}>
+            <div
+              onClick={() => !alwaysOpen && toggle(key)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 12px",
+                cursor: alwaysOpen ? "default" : "pointer",
+                userSelect: "none",
+              }}
+            >
+              <span style={{ fontSize: 12 }}>{icon}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color }}>{t(`matchupNotes.${key}`)}</span>
+              {preview && <span style={{ flex: 1, fontSize: 10, color: T.dim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{preview}</span>}
+              {!alwaysOpen && (
+                isOpen
+                  ? <ChevronDown size={12} style={{ color: T.dim, marginLeft: "auto", flexShrink: 0 }} />
+                  : <ChevronRight size={12} style={{ color: T.dim, marginLeft: preview ? 0 : "auto", flexShrink: 0 }} />
+              )}
+            </div>
+            {isOpen && (
+              <div style={{ padding: "0 12px 8px" }}>
+                {content && <div style={{ fontSize: 11, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{content}</div>}
+                {isStage && hasStageData && (
+                  <div style={{ marginTop: content ? 6 : 0, display: "flex", flexWrap: "wrap", gap: "3px 8px" }}>
+                    {STAGES.filter((st) => stageStats[st.id]).map((st) => {
+                      const { w, l } = stageStats[st.id];
+                      const r = w / (w + l);
+                      const clr = r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A";
+                      return (
+                        <span key={st.id} style={{ fontSize: 10 }}>
+                          <span style={{ color: T.text, fontWeight: 600 }}>{stageName(st.id, lang)}</span>
+                          {" "}<span style={{ color: clr, fontWeight: 700 }}>{Math.round(r * 100)}%</span>
+                          <span style={{ color: T.dim }}> ({w}W{l}L)</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

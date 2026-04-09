@@ -269,6 +269,8 @@ export default {
     disadvantagePlaceholder: "DI方向、暴れ、崖上がり...",
     edgeguard: "復帰阻止",
     edgeguardPlaceholder: "復帰ルートの制限、安全な復帰...",
+    gameplan: "ゲームプラン",
+    gameplanPlaceholder: "立ち回り、有利/不利展開、復帰阻止、注意点...",
     stage: "ステージ選択",
     stagePlaceholder: "BAN/ピック戦略、ステージ相性...",
     generalNotes: "全般ノート",

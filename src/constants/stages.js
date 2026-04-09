@@ -3,6 +3,7 @@ export const STAGES = [
   { id: "sbf",   jp: "小戦場",             en: "Small Battlefield" },
   { id: "fd",    jp: "終点",               en: "Final Destination" },
   { id: "ps2",   jp: "ポケモンスタジアム2", en: "Pokémon Stadium 2" },
+  { id: "sv",    jp: "すま村",             en: "Smashville" },
   { id: "tc",    jp: "村と街",             en: "Town & City" },
   { id: "hb",    jp: "ホロウバスティオン",   en: "Hollow Bastion" },
   { id: "kalos", jp: "カロスポケモンリーグ", en: "Kalos Pokémon League" },

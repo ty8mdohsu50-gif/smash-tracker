@@ -269,6 +269,8 @@ export default {
     disadvantagePlaceholder: "DI directions, mashing, ledge options...",
     edgeguard: "Edgeguarding",
     edgeguardPlaceholder: "Recovery route limits, safe recovery...",
+    gameplan: "Game Plan",
+    gameplanPlaceholder: "Neutral, advantage/disadvantage, edgeguarding, key points...",
     stage: "Stage Selection",
     stagePlaceholder: "Ban/pick strategy, stage matchups...",
     generalNotes: "General Notes",

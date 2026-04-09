@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, Zap, Share2 } from "lucide-react";
-import { FlashDashboard } from "./MatchupNotesEditor";
+import { FlashDashboard, BattleNotes } from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
 import SharePopup from "./SharePopup";
@@ -477,9 +477,9 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             </span>
           )}
         </div>
-        {data.matchupNotes?.[`${myChar}|${oppChar}`]?.flash?.trim()
-          ? <FlashDashboard noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
-          : <FlashDashboard noteKey={oppChar} data={data} T={T} />
+        {data.matchupNotes?.[`${myChar}|${oppChar}`]
+          ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
+          : <BattleNotes noteKey={oppChar} data={data} T={T} />
         }
         {pastMemos.length > 0 && (
           <div style={{ borderTop: `1px solid ${T.inp}`, paddingTop: 8, marginTop: 4 }}>
@@ -611,6 +611,14 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               </div>
             </div>
 
+            {/* Char memo */}
+            {myChar && (data.charMemos?.[myChar] || "").trim() && (
+              <div style={{ ...cd, padding: "10px 14px", marginBottom: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 4 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
+                <div style={{ fontSize: 12, color: T.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{data.charMemos[myChar]}</div>
+              </div>
+            )}
+
             {/* Pending result + opp selection */}
             {result && pendingResultBanner}
 
@@ -691,15 +699,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             )}
 
             <button onClick={() => setPhase("end")} style={{ width: "100%", padding: 14, marginTop: 12, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>{t("battle.endSession")}</button>
-
-            {/* Char memo (collapsible) */}
-            {myChar && (
-              <div style={{ ...cd, padding: "14px 18px", marginTop: 8 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 6 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
-                <textarea value={charMemoText} onChange={(e) => setCharMemoText(e.target.value)} onBlur={() => { onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } }); }} placeholder={t("battle.charMemoPlaceholder")} rows={2}
-                  style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
-              </div>
-            )}
           </div>
         )}
 
@@ -911,18 +910,17 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   // PC sidebar content
   const pcSidebar = (
     <div style={{ flex: 2, minWidth: 300, background: T.card, borderRadius: 20, padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh, position: "sticky", top: 90, display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: "calc(100vh - 120px)" }}>
-      {phase === "battle" && oppChar ? (
-        <>
-          <div style={{ padding: "20px 24px 12px", flexShrink: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        {/* Opponent matchup info (battle phase with opp selected) */}
+        {phase === "battle" && oppChar && (
+          <div style={{ padding: "16px 24px", borderBottom: `1px solid ${T.inp}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <FighterIcon name={oppChar} size={32} />
               <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{fighterName(oppChar, lang)}</div>
             </div>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "0 24px 24px" }}>
-            {data.matchupNotes?.[`${myChar}|${oppChar}`]?.flash?.trim()
-              ? <FlashDashboard noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
-              : <FlashDashboard noteKey={oppChar} data={data} T={T} />
+            {data.matchupNotes?.[`${myChar}|${oppChar}`]
+              ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
+              : <BattleNotes noteKey={oppChar} data={data} T={T} />
             }
             {(() => {
               const pastMatches = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar).slice().reverse();
@@ -936,15 +934,15 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                     <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{pastMatches.length}{t("common.matches")} {w}W {l}L</span>
                     <span style={{ fontSize: 14, fontWeight: 800, color: barColor(rate), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, pastMatches.length)}</span>
                   </div>
-                  <div style={{ maxHeight: 240, overflowY: "auto" }}>
-                    {pastMatches.map((m, i) => (
-                      <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
+                  <div style={{ maxHeight: 180, overflowY: "auto" }}>
+                    {pastMatches.slice(0, 8).map((m, i) => (
+                      <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
                           <span style={{ fontSize: 11, color: T.dim }}>{formatDateShort(m.date)}</span>
                           <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>
                         </div>
-                        {m.memo && <div style={{ fontSize: 12, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
+                        {m.memo && <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
                       </div>
                     ))}
                   </div>
@@ -952,70 +950,79 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               );
             })()}
           </div>
-        </>
-      ) : (
-        <>
-          <div style={{ padding: "16px 24px", borderBottom: `1px solid ${T.inp}`, flexShrink: 0 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t("settings.todayGoal")}</span>
-              {(goals.games || goals.winRate) && tM.length > 0 && (
-                <button onClick={() => {
-                  const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
-                  if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
-                  if (goals.winRate) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
-                  lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
-                  doShare(lines.join("\n"));
-                }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Share2 size={12} /> {t("battle.share")}
-                </button>
-              )}
-            </div>
-            <div style={{ display: "flex", gap: 12, marginBottom: 8 }}>
-              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.games")}</span>
-                <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13 }} />
-                <span style={{ fontSize: 12, color: T.sub }}>{t("settings.gamesUnit")}</span>
-              </div>
-              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.winRate")}</span>
-                <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13 }} />
-                <span style={{ fontSize: 12, color: T.sub }}>{t("settings.winRateUnit")}</span>
-              </div>
-            </div>
-            {(goals.games || (goals.winRate && tM.length > 0)) && (
-              <div style={{ display: "flex", gap: 12 }}>
-                {goals.games ? (<div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.sub, marginBottom: 3 }}><span>{tM.length}/{goals.games}{t("settings.gamesUnit")}</span><span style={{ color: tM.length >= goals.games ? T.win : T.text, fontWeight: 700 }}>{tM.length >= goals.games ? `✓ ${t("share.achieved")}` : `${Math.round((tM.length / goals.games) * 100)}%`}</span></div><div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3 }} /></div></div>) : null}
-                {goals.winRate && tM.length > 0 ? (<div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.sub, marginBottom: 3 }}><span>{t("settings.winRate")} {goals.winRate}%</span><span style={{ color: winRate >= goals.winRate ? T.win : T.lose, fontWeight: 700 }}>{winRate}%</span></div><div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : T.lose, borderRadius: 3 }} /></div></div>) : null}
-              </div>
+        )}
+
+        {/* Char memo (above today's goals) */}
+        {myChar && phase === "battle" && (
+          <div style={{ padding: "12px 24px", borderBottom: `1px solid ${T.inp}` }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 6 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
+            <textarea value={charMemoText} onChange={(e) => setCharMemoText(e.target.value)} onBlur={() => { onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } }); }} placeholder={t("battle.charMemoPlaceholder")}
+              rows={Math.max(2, (charMemoText || "").split("\n").length)}
+              style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
+          </div>
+        )}
+
+        {/* Today's goals */}
+        <div style={{ padding: "16px 24px", borderBottom: `1px solid ${T.inp}`, flexShrink: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t("settings.todayGoal")}</span>
+            {(goals.games || goals.winRate) && tM.length > 0 && (
+              <button onClick={() => {
+                const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
+                if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
+                if (goals.winRate) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
+                lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+                doShare(lines.join("\n"));
+              }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}>
+                <Share2 size={12} /> {t("battle.share")}
+              </button>
             )}
           </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: "12px 24px 24px" }}>
-            {tM.length > 0 && (
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>{t("battle.recent")}</div>
-                <div style={{ maxHeight: 300, overflowY: "auto" }}>
-                  {tM.slice().reverse().map((m, i) => {
-                    const matchIdx = data.matches.indexOf(m);
-                    return (
-                    <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                        <FighterIcon name={m.oppChar} size={18} />
-                        <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{fighterName(m.oppChar, lang)}</span>
-                        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3 }}>{stageName(m.stage, lang)}</span>}
-                        <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
-                        <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
-                      </div>
-                      {m.memo && <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
-                    </div>
-                    );
-                  })}
+          <div style={{ display: "flex", gap: 12, marginBottom: 8 }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.games")}</span>
+              <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13 }} />
+              <span style={{ fontSize: 12, color: T.sub }}>{t("settings.gamesUnit")}</span>
+            </div>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("settings.winRate")}</span>
+              <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13 }} />
+              <span style={{ fontSize: 12, color: T.sub }}>{t("settings.winRateUnit")}</span>
+            </div>
+          </div>
+          {(goals.games || (goals.winRate && tM.length > 0)) && (
+            <div style={{ display: "flex", gap: 12 }}>
+              {goals.games ? (<div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.sub, marginBottom: 3 }}><span>{tM.length}/{goals.games}{t("settings.gamesUnit")}</span><span style={{ color: tM.length >= goals.games ? T.win : T.text, fontWeight: 700 }}>{tM.length >= goals.games ? `✓ ${t("share.achieved")}` : `${Math.round((tM.length / goals.games) * 100)}%`}</span></div><div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (tM.length / goals.games) * 100)}%`, height: "100%", background: T.win, borderRadius: 3 }} /></div></div>) : null}
+              {goals.winRate && tM.length > 0 ? (<div style={{ flex: 1 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.sub, marginBottom: 3 }}><span>{t("settings.winRate")} {goals.winRate}%</span><span style={{ color: winRate >= goals.winRate ? T.win : T.lose, fontWeight: 700 }}>{winRate}%</span></div><div style={{ height: 5, background: T.inp, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (tW / tM.length) * 100)}%`, height: "100%", background: winRate >= goals.winRate ? T.win : T.lose, borderRadius: 3 }} /></div></div>) : null}
+            </div>
+          )}
+        </div>
+
+        {/* Recent matches (when opp NOT selected or not in battle phase) */}
+        {!(phase === "battle" && oppChar) && tM.length > 0 && (
+          <div style={{ padding: "12px 24px 24px" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>{t("battle.recent")}</div>
+            <div style={{ maxHeight: 300, overflowY: "auto" }}>
+              {tM.slice().reverse().map((m, i) => {
+                const matchIdx = data.matches.indexOf(m);
+                return (
+                <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+                    <FighterIcon name={m.oppChar} size={18} />
+                    <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{fighterName(m.oppChar, lang)}</span>
+                    {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3 }}>{stageName(m.stage, lang)}</span>}
+                    <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
+                    <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
+                  </div>
+                  {m.memo && <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
                 </div>
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 
@@ -1129,7 +1136,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                   <span style={{ fontSize: 13 }}>🗺️</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                   {STAGES.map((s) => {
                     const active = selectedStage === s.id;
                     return (
@@ -1159,14 +1166,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 <button onClick={() => setPhase("end")} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
                 <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 12, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 13, fontWeight: 600 }}>{t("battle.changeChar")}</button>
               </div>
-
-              {myChar && (
-                <div style={{ ...cd, padding: "16px 20px", marginTop: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 6 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
-                  <textarea value={charMemoText} onChange={(e) => setCharMemoText(e.target.value)} onBlur={() => { onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } }); }} placeholder={t("battle.charMemoPlaceholder")} rows={2}
-                    style={{ width: "100%", padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
-                </div>
-              )}
             </div>
           )}
 
@@ -1217,7 +1216,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                   <span style={{ fontSize: 13 }}>🗺️</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                   {STAGES.map((s) => {
                     const active = selectedStage === s.id;
                     return (
