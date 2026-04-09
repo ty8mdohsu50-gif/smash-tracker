@@ -8,6 +8,7 @@ import Toast from "./Toast";
 import ConfirmDialog from "./ConfirmDialog";
 import Chart from "./Chart";
 import { fighterName, shortName, FIGHTERS } from "../constants/fighters";
+import { STAGES, stageName, stageImg } from "../constants/stages";
 import { useI18n } from "../i18n/index.jsx";
 import { today, formatDate, formatTime, percentStr, barColor, recentChars } from "../utils/format";
 
@@ -40,6 +41,8 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [expandedMatchup, setExpandedMatchup] = useState(null);
+  const [editingStageMatch, setEditingStageMatch] = useState(null);
+  const [selectedStage, setSelectedStage] = useState(null);
   const [calMonth, setCalMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -55,14 +58,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const recMy = useMemo(() => recentChars(freeMatches, "myChar"), [freeMatches]);
   const recOpp = useMemo(() => recentChars(freeMatches, "oppChar"), [freeMatches]);
 
-  useEffect(() => {
-    if (postRecord && analysisRef.current && !isPC) {
-      const timer = setTimeout(() => {
-        analysisRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [postRecord, isPC]);
+  // Removed auto-scroll to analysis after recording
 
   // Analysis data (top-level for hooks rules)
   const oppMs = useMemo(() => selectedOpponent ? freeMatches.filter((m) => m.opponent === selectedOpponent) : [], [freeMatches, selectedOpponent]);
@@ -140,8 +136,21 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
 
   const recordMatch = (result) => {
     if (!myChar || !oppChar || !selectedOpponent) return;
-    onSave({ ...data, freeMatches: [...freeMatches, { date: today(), time: new Date().toISOString(), opponent: selectedOpponent, myChar, oppChar, result }] });
+    const entry = { date: today(), time: new Date().toISOString(), opponent: selectedOpponent, myChar, oppChar, result };
+    if (selectedStage) entry.stage = selectedStage;
+    onSave({ ...data, freeMatches: [...freeMatches, entry] });
     setLastResult(result); setPostRecord(true); setToast(t("battle.toastRecorded"));
+  };
+
+  const updateFreeMatchStage = (match, newStage) => {
+    const cur = dataRef.current;
+    const fm = cur.freeMatches || [];
+    const idx = fm.findIndex((m) => m.date === match.date && m.time === match.time && m.myChar === match.myChar && m.oppChar === match.oppChar && m.result === match.result);
+    if (idx === -1) return;
+    const nf = [...fm];
+    nf[idx] = { ...nf[idx], stage: newStage || undefined };
+    onSave({ ...cur, freeMatches: nf });
+    setEditingStageMatch(null);
   };
 
   const buildShareText = (opp, matchList) => {
@@ -312,16 +321,34 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               <span style={{ fontSize: 13, fontWeight: 800 }}><span style={{ color: T.win }}>{selData.w}W</span> <span style={{ color: T.lose }}>{selData.l}L</span> <span style={{ color: barColor(selData.w / (selData.w + selData.l)) }}>{percentStr(selData.w, selData.w + selData.l)}</span></span>
             </div>
             <div style={{ maxHeight: 200, overflowY: "auto" }}>
-              {selData.matches.slice().reverse().map((m, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 4 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 32 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                  <FighterIcon name={m.myChar} size={18} /><span style={{ fontSize: 11, color: T.sub }}>{shortName(m.myChar, lang)}</span>
-                  <span style={{ fontSize: 10, color: T.dim }}>vs</span>
-                  <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
-                  <span style={{ fontSize: 10, color: T.dim }}>{formatTime(m.time)}</span>
-                  <button onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
-                </div>
-              ))}
+              {selData.matches.slice().reverse().map((m, i) => {
+                const isEditing = editingStageMatch && editingStageMatch.time === m.time && editingStageMatch.date === m.date;
+                return (
+                  <div key={i} style={{ paddingBottom: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 32 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+                      <FighterIcon name={m.myChar} size={18} /><span style={{ fontSize: 11, color: T.sub }}>{shortName(m.myChar, lang)}</span>
+                      <span style={{ fontSize: 10, color: T.dim }}>vs</span>
+                      <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
+                      {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 4px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
+                      <span style={{ fontSize: 10, color: T.dim }}>{formatTime(m.time)}</span>
+                      <button onClick={() => setEditingStageMatch(isEditing ? null : m)} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "1px 4px", borderRadius: 3, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
+                      <button onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
+                    </div>
+                    {isEditing && (
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 3, marginBottom: 2 }}>
+                        {STAGES.map((st) => (
+                          <div key={st.id} onClick={() => updateFreeMatchStage(m, m.stage === st.id ? null : st.id)}
+                            style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
+                            <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 22, objectFit: "cover", borderRadius: 4 }} />
+                            <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -375,6 +402,19 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
           {noteKey && (
             <BattleNotes noteKey={noteKey} data={data} T={T} onSave={onSave} />
           )}
+          {/* Stage selection */}
+          <div style={{ ...cd, padding: "12px 16px" }}>
+            <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 8 }}>{t("stages.selectStage")}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+              {STAGES.map((st) => (
+                <div key={st.id} onClick={() => setSelectedStage(selectedStage === st.id ? null : st.id)}
+                  style={{ textAlign: "center", cursor: "pointer", borderRadius: 8, border: selectedStage === st.id ? `2px solid ${T.accent}` : `1.5px solid ${T.brd}`, padding: 3, opacity: selectedStage === st.id ? 1 : 0.55, transition: "all .15s" }}>
+                  <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 32, objectFit: "cover", borderRadius: 5 }} />
+                  <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 2 }}>{stageName(st.id, lang)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
           <div style={{ display: "flex", gap: 12, marginBottom: 10 }}>
             <button onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #16A34A, #22C55E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(34,197,94,.3)" : "none" }}>{t("battle.win")}</button>
             <button onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #E11D48, #F43F5E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(244,63,94,.3)" : "none" }}>{t("battle.lose")}</button>
@@ -403,6 +443,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               <FighterIcon name={m.myChar} size={18} /><span style={{ fontSize: 11, color: T.sub }}>{shortName(m.myChar, lang)}</span>
               <span style={{ fontSize: 10, color: T.dim }}>vs</span>
               <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
+              {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 4px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
               <span style={{ fontSize: 10, color: T.dim }}>{formatTime(m.time)}</span>
               <button onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
             </div>
@@ -433,44 +474,68 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
         </div>
       )}
 
-      {/* Matchups */}
+      {/* Matchups – 4 per row grid */}
       {matchups.length > 0 && (
         <div style={{ ...cd, padding: "14px 16px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("free.matchupStats")}</div>
-          {matchups.map((mu) => {
-            const r = mu.w / (mu.w + mu.l);
-            const k = `${mu.myChar}|${mu.oppChar}`;
-            const isExp = expandedMatchup === k;
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("free.matchupStats")}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+            {matchups.map((mu) => {
+              const r = mu.w / (mu.w + mu.l);
+              const k = `${mu.myChar}|${mu.oppChar}`;
+              return (
+                <div key={k} onClick={() => setExpandedMatchup(expandedMatchup === k ? null : k)}
+                  style={{ textAlign: "center", cursor: "pointer", padding: "6px 2px", borderRadius: 10, background: expandedMatchup === k ? T.accentSoft : "transparent", border: expandedMatchup === k ? `1.5px solid ${T.accentBorder}` : "1.5px solid transparent", transition: "all .15s" }}>
+                  <div style={{ display: "flex", justifyContent: "center", gap: 2, marginBottom: 2 }}>
+                    <FighterIcon name={mu.myChar} size={20} />
+                    <FighterIcon name={mu.oppChar} size={20} />
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(mu.w, mu.w + mu.l)}</div>
+                  <div style={{ fontSize: 9, color: T.dim }}>{mu.w}W {mu.l}L</div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Expanded matchup detail */}
+          {expandedMatchup && (() => {
+            const mu = matchups.find((m) => `${m.myChar}|${m.oppChar}` === expandedMatchup);
+            if (!mu) return null;
             return (
-              <div key={k} style={{ marginBottom: 8 }}>
-                <div onClick={() => setExpandedMatchup(isExp ? null : k)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", paddingBottom: 4 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <FighterIcon name={mu.myChar} size={22} /><span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(mu.myChar, lang)}</span>
-                    <span style={{ fontSize: 10, color: T.dim }}>vs</span>
-                    <FighterIcon name={mu.oppChar} size={22} /><span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(mu.oppChar, lang)}</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 11, color: T.dim }}>{mu.w}W {mu.l}L</span>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(mu.w, mu.w + mu.l)}</span>
-                  </div>
+              <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <FighterIcon name={mu.myChar} size={22} /><span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(mu.myChar, lang)}</span>
+                  <span style={{ fontSize: 10, color: T.dim }}>vs</span>
+                  <FighterIcon name={mu.oppChar} size={22} /><span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(mu.oppChar, lang)}</span>
+                  <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 800, color: barColor(mu.w / (mu.w + mu.l)), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(mu.w, mu.w + mu.l)}</span>
                 </div>
-                <div style={{ height: 4, background: T.inp, borderRadius: 2, overflow: "hidden" }}>
-                  <div style={{ width: `${r * 100}%`, height: "100%", borderRadius: 2, background: barColor(r) }} />
-                </div>
-                {isExp && (
-                  <div style={{ marginTop: 6, paddingTop: 6, borderTop: `1px solid ${T.inp}`, maxHeight: 160, overflowY: "auto" }}>
-                    {mu.matches.slice().reverse().map((m, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 3 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 32 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                        <span style={{ fontSize: 11, color: T.dim }}>{formatDate(m.date)}</span>
-                        <span style={{ fontSize: 11, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
+                <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                  {mu.matches.slice().reverse().map((m, i) => {
+                    const isEditing = editingStageMatch && editingStageMatch.time === m.time && editingStageMatch.date === m.date;
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 0", borderBottom: `1px solid ${T.inp}`, flexWrap: isEditing ? "wrap" : "nowrap" }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 30 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+                        <span style={{ fontSize: 10, color: T.dim }}>{formatDate(m.date)}</span>
+                        {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
+                        <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
+                        <button onClick={(e) => { e.stopPropagation(); setEditingStageMatch(isEditing ? null : m); }} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
+                        <button onClick={(e) => { e.stopPropagation(); deleteFreeMatch(m); }} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 13, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
+                        {isEditing && (
+                          <div style={{ width: "100%", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 4, marginBottom: 4 }}>
+                            {STAGES.map((st) => (
+                              <div key={st.id} onClick={(e) => { e.stopPropagation(); updateFreeMatchStage(m, m.stage === st.id ? null : st.id); }}
+                                style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
+                                <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 24, objectFit: "cover", borderRadius: 4 }} />
+                                <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
             );
-          })}
+          })()}
         </div>
       )}
 
@@ -526,15 +591,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
 
       {tendencyArea}
       {battleArea}
-      {oppMs.length > 0 && !postRecord && (
-        <button onClick={() => analysisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          style={{ width: "100%", border: `1.5px dashed ${T.accentBorder}`, borderRadius: 12, padding: "10px 0", background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 10, fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          {t("free.viewAnalysis")}
-          <span style={{ fontSize: 11, color: T.sub, fontWeight: 600 }}>
-            {totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})
-          </span>
-        </button>
-      )}
+      {/* "View Analysis" link removed per user request */}
       <div ref={analysisRef}>{analysisArea}</div>
       {overlays}
     </div>

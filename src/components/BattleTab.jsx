@@ -45,6 +45,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const [sharePopupText, setSharePopupText] = useState(null);
   const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [editingStageIdx, setEditingStageIdx] = useState(null);
 
   // Goals
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
@@ -96,7 +97,11 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     prevPhase.current = phase;
   }
 
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [phase]);
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (!isPC) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [phase]);
 
   const prevOppRef = useRef(oppChar);
   if (prevOppRef.current !== oppChar) {
@@ -208,6 +213,13 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     });
   };
 
+  const updateMatchStage = (idx, newStage) => {
+    const nm = [...data.matches];
+    nm[idx] = { ...nm[idx], stage: newStage || undefined };
+    onSave({ ...data, matches: nm });
+    setEditingStageIdx(null);
+  };
+
   const saveStage = (stageId) => {
     const nm = [...data.matches];
     const last = nm[nm.length - 1];
@@ -297,14 +309,29 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     ? <div style={{ textAlign: "center", padding: "32px 0", color: T.dim, fontSize: 13 }}>{t("battle.startMatching")}</div>
     : tM.slice().reverse().slice(0, 10).map((m, i) => {
       const matchIdx = data.matches.indexOf(m);
+      const isEditing = editingStageIdx === matchIdx;
       return (
-      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
-        <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-        <FighterIcon name={m.oppChar} size={22} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>{fighterName(m.oppChar, lang)}</span>
-        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-        <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
-        <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
+      <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+          <FighterIcon name={m.oppChar} size={22} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>{fighterName(m.oppChar, lang)}</span>
+          {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
+          <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
+          <button onClick={() => setEditingStageIdx(isEditing ? null : matchIdx)} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
+          <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
+        </div>
+        {isEditing && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 6, marginBottom: 2 }}>
+            {STAGES.map((st) => (
+              <div key={st.id} onClick={() => updateMatchStage(matchIdx, m.stage === st.id ? null : st.id)}
+                style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
+                <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 24, objectFit: "cover", borderRadius: 4 }} />
+                <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       );
     });
@@ -936,16 +963,29 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             <div style={{ maxHeight: 300, overflowY: "auto" }}>
               {tM.slice().reverse().map((m, i) => {
                 const matchIdx = data.matches.indexOf(m);
+                const isEditing = editingStageIdx === matchIdx;
                 return (
                 <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
                     <FighterIcon name={m.oppChar} size={18} />
                     <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{fighterName(m.oppChar, lang)}</span>
-                    {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3 }}>{stageName(m.stage, lang)}</span>}
+                    {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3 }}>{stageName(m.stage, lang)}</span>}
                     <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
+                    <button onClick={() => setEditingStageIdx(isEditing ? null : matchIdx)} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
                     <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
                   </div>
+                  {isEditing && (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 4, marginBottom: 2 }}>
+                      {STAGES.map((st) => (
+                        <div key={st.id} onClick={() => updateMatchStage(matchIdx, m.stage === st.id ? null : st.id)}
+                          style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
+                          <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 22, objectFit: "cover", borderRadius: 4 }} />
+                          <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {m.memo && <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
                 </div>
                 );

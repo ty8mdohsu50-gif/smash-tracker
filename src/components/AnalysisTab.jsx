@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import { BarChart3, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { BarChart3, Share2, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import MatchupNotesEditor, { needsReview } from "./MatchupNotesEditor";
 import Chart from "./Chart";
 import FighterIcon from "./FighterIcon";
@@ -62,10 +62,12 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
   // PC matchup popup
   const [matchupPopup, setMatchupPopup] = useState(null);
+  const [charMemoOpen, setCharMemoOpen] = useState(true);
 
   // Editing state
   const [sharePopup, setSharePopup] = useState(null); // { text, imageBlob? }
   const [confirmAction, setConfirmAction] = useState(null);
+  const [editingStageIdx, setEditingStageIdx] = useState(null);
 
   // Month navigation for daily list
   const [dailyMonth, setDailyMonth] = useState(() => {
@@ -224,6 +226,13 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const nm = [...data.matches];
     nm.splice(idx, 1);
     onSave({ ...data, matches: nm });
+  };
+
+  const updateMatchStage = (idx, newStage) => {
+    const nm = [...data.matches];
+    nm[idx] = { ...nm[idx], stage: newStage || undefined };
+    onSave({ ...data, matches: nm });
+    setEditingStageIdx(null);
   };
 
   const periodLabels = { day: t("analysis.today"), week: t("analysis.week"), month: t("analysis.month"), all: t("analysis.all") };
@@ -474,22 +483,40 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       </div>
     );
 
-    const matchDetail = (matches) => matches.slice().reverse().map((m, i) => (
-      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 36 }}>
-          {m.result === "win" ? "WIN" : "LOSE"}
-        </span>
-        <FighterIcon name={m.myChar} size={20} />
-        <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(m.myChar, lang)}</span>
-        <span style={{ fontSize: 11, color: T.dim }}>vs</span>
-        <FighterIcon name={m.oppChar} size={20} />
-        <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
-        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-        {m.time && <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>}
-        <button onClick={(e) => { e.stopPropagation(); setConfirmAction({ idx: m.idx }); }}
-          style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}>×</button>
-      </div>
-    ));
+    const matchDetail = (matches) => matches.slice().reverse().map((m, i) => {
+      const isEditing = editingStageIdx === m.idx;
+      return (
+        <div key={i} style={{ paddingBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 36 }}>
+              {m.result === "win" ? "WIN" : "LOSE"}
+            </span>
+            <FighterIcon name={m.myChar} size={20} />
+            <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(m.myChar, lang)}</span>
+            <span style={{ fontSize: 11, color: T.dim }}>vs</span>
+            <FighterIcon name={m.oppChar} size={20} />
+            <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
+            {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
+            {m.time && <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>}
+            <button onClick={(e) => { e.stopPropagation(); setEditingStageIdx(isEditing ? null : m.idx); }}
+              style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
+            <button onClick={(e) => { e.stopPropagation(); setConfirmAction({ idx: m.idx }); }}
+              style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}>×</button>
+          </div>
+          {isEditing && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 4, marginBottom: 2, marginLeft: 36 }}>
+              {STAGES.map((st) => (
+                <div key={st.id} onClick={(e) => { e.stopPropagation(); updateMatchStage(m.idx, m.stage === st.id ? null : st.id); }}
+                  style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
+                  <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 24, objectFit: "cover", borderRadius: 4 }} />
+                  <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    });
 
     const selectedDayData = expandedDate ? dailyMap[expandedDate] : null;
 
@@ -620,16 +647,16 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           {Object.keys(stageDist).length > 0 && (
             <div style={{ marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 6 }}>{t("stages.winRateByStage")}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 10px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                 {STAGES.filter((st) => stageDist[st.id]).map((st) => {
                   const sd = stageDist[st.id];
                   const sr = sd.w / (sd.w + sd.l);
                   return (
-                    <span key={st.id} style={{ fontSize: 10, color: T.sub }}>
-                      <span style={{ fontWeight: 600, color: T.text }}>{stageName(st.id, lang)}</span>
-                      {" "}<span style={{ fontWeight: 700, color: barColor(sr) }}>{Math.round(sr * 100)}%</span>
-                      <span style={{ color: T.dim }}> ({sd.w}W{sd.l}L)</span>
-                    </span>
+                    <div key={st.id} style={{ textAlign: "center" }}>
+                      <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 28, objectFit: "cover", borderRadius: 4 }} />
+                      <div style={{ fontSize: 12, fontWeight: 800, color: barColor(sr), fontFamily: "'Chakra Petch', sans-serif", marginTop: 2 }}>{Math.round(sr * 100)}%</div>
+                      <div style={{ fontSize: 8, color: T.dim }}>{sd.w}W{sd.l}L</div>
+                    </div>
                   );
                 })}
               </div>
@@ -836,21 +863,26 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               </div>
             </div>
 
-            {/* Char memo */}
+            {/* Char memo (collapsible) */}
             <div key={`memo-${charDetail}`} style={{ ...cd, padding: "12px 16px" }}>
-              <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{fighterName(charDetail, lang)} {t("battle.charMemo")}</div>
-              <textarea
-                defaultValue={data.charMemos?.[charDetail] || ""}
-                onBlur={(e) => {
-                  if (e.target.value !== (data.charMemos?.[charDetail] || "")) {
-                    onSave({ ...data, charMemos: { ...(data.charMemos || {}), [charDetail]: e.target.value } });
-                  }
-                }}
-                ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(40, el.scrollHeight) + "px"; } }}
-                onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(40, e.target.scrollHeight) + "px"; }}
-                placeholder={t("battle.charMemoPlaceholder")}
-                style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 40 }}
-              />
+              <div onClick={() => setCharMemoOpen(!charMemoOpen)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{fighterName(charDetail, lang)} {t("battle.charMemo")}</span>
+                <ChevronDown size={16} style={{ color: T.dim, transition: "transform .2s", transform: charMemoOpen ? "rotate(180deg)" : "rotate(0)" }} />
+              </div>
+              {charMemoOpen && (
+                <textarea
+                  defaultValue={data.charMemos?.[charDetail] || ""}
+                  onBlur={(e) => {
+                    if (e.target.value !== (data.charMemos?.[charDetail] || "")) {
+                      onSave({ ...data, charMemos: { ...(data.charMemos || {}), [charDetail]: e.target.value } });
+                    }
+                  }}
+                  ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(40, el.scrollHeight) + "px"; } }}
+                  onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(40, e.target.scrollHeight) + "px"; }}
+                  placeholder={t("battle.charMemoPlaceholder")}
+                  style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 40, marginTop: 8 }}
+                />
+              )}
             </div>
 
             {/* Sub-tabs: matchup / trend / daily */}
@@ -965,32 +997,23 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                       {stageMatches.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "24px 0", color: T.dim, fontSize: 13 }}>{t("stages.noData")}</div>
                       ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
                           {STAGES.map((stage) => {
                             const ms = stageMatches.filter((m) => m.stage === stage.id);
                             const w = ms.filter((m) => m.result === "win").length;
                             const l = ms.length - w;
                             const r = ms.length > 0 ? w / ms.length : 0;
                             return (
-                              <div key={stage.id} style={{ ...cd, padding: "10px 14px", display: "flex", alignItems: "center", gap: 12, opacity: ms.length === 0 ? 0.4 : 1 }}>
-                                <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: 72, height: 40, objectFit: "cover", borderRadius: 6, flexShrink: 0 }} />
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 4 }}>{stageName(stage.id, lang)}</div>
-                                  {ms.length > 0 ? (
-                                    <>
-                                      <div style={{ height: 6, borderRadius: 3, background: T.inp, overflow: "hidden", marginBottom: 4 }}>
-                                        <div style={{ height: "100%", width: `${r * 100}%`, background: barColor(r), borderRadius: 3, transition: "width .3s ease" }} />
-                                      </div>
-                                      <div style={{ fontSize: 11, color: T.dim }}>{w}W {l}L</div>
-                                    </>
-                                  ) : (
-                                    <div style={{ fontSize: 11, color: T.dim }}>{t("stages.noData")}</div>
-                                  )}
-                                </div>
-                                {ms.length > 0 && (
-                                  <div style={{ fontSize: 16, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif", flexShrink: 0 }}>
-                                    {Math.round(r * 100)}%
-                                  </div>
+                              <div key={stage.id} style={{ textAlign: "center", opacity: ms.length === 0 ? 0.35 : 1 }}>
+                                <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: "100%", height: 40, objectFit: "cover", borderRadius: 6 }} />
+                                <div style={{ fontSize: 10, fontWeight: 600, color: T.text, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stageName(stage.id, lang)}</div>
+                                {ms.length > 0 ? (
+                                  <>
+                                    <div style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{Math.round(r * 100)}%</div>
+                                    <div style={{ fontSize: 9, color: T.dim }}>{w}W {l}L</div>
+                                  </>
+                                ) : (
+                                  <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>—</div>
                                 )}
                               </div>
                             );
@@ -1206,7 +1229,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             <>
               <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("stages.winRateByStage")}</div>
               <div style={{ ...cd, padding: "12px 14px", marginBottom: isPC ? 20 : 14 }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
                   {STAGES.map((stage) => {
                     const ms = data.matches.filter((m) => m.stage === stage.id);
                     if (ms.length === 0) return null;
@@ -1214,20 +1237,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     const l = ms.length - w;
                     const r = w / ms.length;
                     return (
-                      <div key={stage.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: 60, height: 34, objectFit: "cover", borderRadius: 6, flexShrink: 0 }} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{stageName(stage.id, lang)}</span>
-                            <span style={{ fontSize: 11, color: T.dim }}>{w}W {l}L</span>
-                          </div>
-                          <div style={{ height: 6, borderRadius: 3, background: T.inp, overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${r * 100}%`, background: barColor(r), borderRadius: 3 }} />
-                          </div>
-                        </div>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif", flexShrink: 0, minWidth: 42, textAlign: "right" }}>
-                          {Math.round(r * 100)}%
-                        </div>
+                      <div key={stage.id} style={{ textAlign: "center" }}>
+                        <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: "100%", height: 40, objectFit: "cover", borderRadius: 6 }} />
+                        <div style={{ fontSize: 10, fontWeight: 600, color: T.text, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stageName(stage.id, lang)}</div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{Math.round(r * 100)}%</div>
+                        <div style={{ fontSize: 9, color: T.dim }}>{w}W {l}L</div>
                       </div>
                     );
                   })}
@@ -1258,7 +1272,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       {/* PC Matchup Detail Popup */}
       {matchupPopup && (() => {
         const { myChar, oppChar } = matchupPopup;
-        const ms = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+        const ms = data.matches.map((m, idx) => ({ ...m, idx })).filter((m) => m.myChar === myChar && m.oppChar === oppChar);
         const w = ms.filter((m) => m.result === "win").length;
         const l = ms.length - w;
         const r = ms.length > 0 ? w / ms.length : 0;
@@ -1350,24 +1364,16 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     {Object.keys(stageData).length > 0 && (
                       <div style={{ marginBottom: 16 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("stages.winRateByStage")}</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
                           {STAGES.filter((st) => stageData[st.id]).map((st) => {
                             const sd = stageData[st.id];
-                            const total = sd.w + sd.l;
-                            const sr = sd.w / total;
+                            const sr = sd.w / (sd.w + sd.l);
                             return (
-                              <div key={st.id} style={{ display: "flex", alignItems: "center", gap: isPC ? 10 : 8 }}>
-                                <img src={stageImg(st.id)} alt="" style={{ width: isPC ? 56 : 48, height: isPC ? 32 : 27, objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
-                                    <span style={{ fontWeight: 600, color: T.text }}>{stageName(st.id, lang)}</span>
-                                    <span style={{ color: T.dim }}>{sd.w}W {sd.l}L</span>
-                                  </div>
-                                  <div style={{ height: 4, borderRadius: 2, background: T.inp, overflow: "hidden" }}>
-                                    <div style={{ height: "100%", width: `${sr * 100}%`, background: barColor(sr), borderRadius: 2 }} />
-                                  </div>
-                                </div>
-                                <span style={{ fontSize: 13, fontWeight: 800, color: barColor(sr), fontFamily: "'Chakra Petch', sans-serif", minWidth: 36, textAlign: "right" }}>{Math.round(sr * 100)}%</span>
+                              <div key={st.id} style={{ textAlign: "center" }}>
+                                <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 36, objectFit: "cover", borderRadius: 4 }} />
+                                <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stageName(st.id, lang)}</div>
+                                <div style={{ fontSize: 13, fontWeight: 800, color: barColor(sr), fontFamily: "'Chakra Petch', sans-serif" }}>{Math.round(sr * 100)}%</div>
+                                <div style={{ fontSize: 9, color: T.dim }}>{sd.w}W {sd.l}L</div>
                               </div>
                             );
                           })}
@@ -1379,16 +1385,34 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
                       <div style={{ maxHeight: isPC ? 240 : 200, overflowY: "auto" }}>
-                        {ms.slice().reverse().slice(0, 30).map((m, i) => (
-                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
-                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: isPC ? 68 : 56 }}>{formatDate(m.date)}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>
-                              {m.result === "win" ? "WIN" : "LOSE"}
-                            </span>
-                            {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-                            {m.time && <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>}
-                          </div>
-                        ))}
+                        {ms.slice().reverse().slice(0, 30).map((m, i) => {
+                          const isEditing = editingStageIdx === m.idx;
+                          return (
+                            <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: isPC ? 68 : 56 }}>{formatDate(m.date)}</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>
+                                  {m.result === "win" ? "WIN" : "LOSE"}
+                                </span>
+                                {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
+                                {m.time && <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>}
+                                <button onClick={(e) => { e.stopPropagation(); setEditingStageIdx(isEditing ? null : m.idx); }}
+                                  style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
+                              </div>
+                              {isEditing && (
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 4, marginBottom: 2 }}>
+                                  {STAGES.map((st) => (
+                                    <div key={st.id} onClick={(e) => { e.stopPropagation(); updateMatchStage(m.idx, m.stage === st.id ? null : st.id); }}
+                                      style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
+                                      <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 24, objectFit: "cover", borderRadius: 4 }} />
+                                      <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </>
