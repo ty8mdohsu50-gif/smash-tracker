@@ -64,7 +64,6 @@ export default {
     saveCounterMemo: "対策メモを保存",
     counterMemoPlaceholder: "この相手キャラへの対策を記入...",
     review: "今日の振り返り",
-    reviewPlaceholder: "今日のプレイを振り返って...",
     charMemo: "メモ",
     charMemoPlaceholder: "このキャラで意識すること...",
     phaseSetup: "対戦準備",
@@ -267,10 +266,6 @@ export default {
     stagePlaceholder: "BAN/ピック戦略、ステージ相性...",
     autoSaved: "保存済み",
     vsLabel: "対",
-    whatWorked: "うまくいったこと",
-    whatWorkedPlaceholder: "効果的だった行動...",
-    whatFailed: "うまくいかなかったこと",
-    whatFailedPlaceholder: "改善が必要な点...",
     reviewNeeded: "要復習",
   },
   stages: {

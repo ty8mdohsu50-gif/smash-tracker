@@ -64,7 +64,6 @@ export default {
     saveCounterMemo: "Save Counter Notes",
     counterMemoPlaceholder: "Write counter strategies for this opponent...",
     review: "Daily Review",
-    reviewPlaceholder: "Reflect on today's play...",
     charMemo: "Notes",
     charMemoPlaceholder: "Things to keep in mind with this fighter...",
     phaseSetup: "Preparation",
@@ -267,10 +266,6 @@ export default {
     stagePlaceholder: "Ban/pick strategy, stage matchups...",
     autoSaved: "Saved",
     vsLabel: "vs",
-    whatWorked: "What worked",
-    whatWorkedPlaceholder: "Effective actions...",
-    whatFailed: "What didn't work",
-    whatFailedPlaceholder: "Areas to improve...",
     reviewNeeded: "Review needed",
   },
   stages: {

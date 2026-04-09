@@ -53,7 +53,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   // Memos
   const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
   const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
-  const [reviewInsights, setReviewInsights] = useState(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "" });
   const [selectedStage, setSelectedStage] = useState(null);
 
   // ── Derived data ──
@@ -93,7 +92,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       if (newStart !== pStart) setPStart(newStart);
       setPEnd("");
       setReviewText(data.daily?.[today()]?.review || "");
-      setReviewInsights(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "" });
     }
     prevPhase.current = phase;
   }
@@ -224,7 +222,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     if (!day.start) day.start = pStart ? Number(pStart) : null;
     if (pEnd) day.end = Number(pEnd);
     day.review = reviewText;
-    day.reviewInsights = reviewInsights;
     onSave(d);
     if (andShare) buildAndShare();
     else { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }
@@ -798,20 +795,10 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 </button>
               </div>
 
-              {/* Structured Review */}
+              {/* Review */}
               <div style={cd}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 10 }}>{t("battle.review")}</div>
-                {[
-                  ["whatWorked", t("matchupNotes.whatWorked"), t("matchupNotes.whatWorkedPlaceholder"), T.win],
-                  ["whatFailed", t("matchupNotes.whatFailed"), t("matchupNotes.whatFailedPlaceholder"), T.lose],
-                ].map(([key, label, ph, color]) => (
-                  <div key={key} style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{label}</div>
-                    <textarea value={reviewInsights[key] || ""} onChange={(e) => setReviewInsights((p) => ({ ...p, [key]: e.target.value }))} placeholder={ph} rows={2}
-                      style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
-                  </div>
-                ))}
-                <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder={t("battle.reviewPlaceholder")} rows={2}
+                <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} rows={3}
                   style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
 
@@ -1225,17 +1212,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 </div>
                 <div style={{ ...cd, padding: "16px 24px" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 10 }}>{t("battle.review")}</div>
-                  {[
-                    ["whatWorked", t("matchupNotes.whatWorked"), t("matchupNotes.whatWorkedPlaceholder"), T.win],
-                    ["whatFailed", t("matchupNotes.whatFailed"), t("matchupNotes.whatFailedPlaceholder"), T.lose],
-                  ].map(([key, label, ph, color]) => (
-                    <div key={key} style={{ marginBottom: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{label}</div>
-                      <textarea value={reviewInsights[key] || ""} onChange={(e) => setReviewInsights((p) => ({ ...p, [key]: e.target.value }))} placeholder={ph} rows={2}
-                        style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
-                    </div>
-                  ))}
-                  <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} placeholder={t("battle.reviewPlaceholder")} rows={2}
+                  <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} rows={3}
                     style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
