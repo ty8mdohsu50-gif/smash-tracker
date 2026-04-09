@@ -172,14 +172,10 @@ export function FlashDashboard({ noteKey, data, T, onEdit }) {
   );
 }
 
-export function BattleNotes({ noteKey, data, T }) {
+export function BattleNotes({ noteKey, data, T, onSave }) {
   const { t, lang } = useI18n();
   const [openSections, setOpenSections] = useState({});
-  const notes = data.matchupNotes?.[noteKey];
-  if (!notes) return null;
-
-  const hasAny = ["flash", "gameplan", "stage"].some((s) => (notes[s] || "").trim());
-  if (!hasAny) return null;
+  const notes = data.matchupNotes?.[noteKey] || EMPTY_NOTE;
 
   const oppCharKey = noteKey.includes("|") ? noteKey.split("|")[1] : noteKey;
   const stageStats = useMemo(() => {
@@ -193,6 +189,12 @@ export function BattleNotes({ noteKey, data, T }) {
     return stats;
   }, [data.matches, oppCharKey]);
 
+  const saveSection = useCallback((section, value) => {
+    if (!onSave) return;
+    const current = data.matchupNotes?.[noteKey] || { ...EMPTY_NOTE };
+    onSave({ ...data, matchupNotes: { ...(data.matchupNotes || {}), [noteKey]: { ...current, [section]: value, _lastReviewed: Date.now() } } });
+  }, [noteKey, data, onSave]);
+
   const toggle = (s) => setOpenSections((p) => ({ ...p, [s]: !p[s] }));
 
   const sections = [
@@ -201,13 +203,15 @@ export function BattleNotes({ noteKey, data, T }) {
     { key: "stage", icon: "🗺️", color: T.sub, alwaysOpen: false },
   ];
 
+  const hasAny = sections.some(({ key }) => (notes[key] || "").trim());
+  const hasStageData = Object.keys(stageStats).length > 0;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
       {sections.map(({ key, icon, color, alwaysOpen }) => {
         const content = (notes[key] || "").trim();
         const isStage = key === "stage";
-        const hasStageData = isStage && Object.keys(stageStats).length > 0;
-        if (!content && !hasStageData) return null;
+        const sectionHasStageData = isStage && hasStageData;
 
         const isOpen = alwaysOpen || openSections[key];
         const preview = !alwaysOpen && !isOpen && content ? content.split("\n")[0].slice(0, 40) + (content.length > 40 ? "..." : "") : null;
@@ -239,9 +243,20 @@ export function BattleNotes({ noteKey, data, T }) {
             </div>
             {isOpen && (
               <div style={{ padding: "0 12px 8px" }}>
-                {content && <div style={{ fontSize: 11, color: T.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{content}</div>}
-                {isStage && hasStageData && (
-                  <div style={{ marginTop: content ? 6 : 0, display: "flex", flexWrap: "wrap", gap: "3px 8px" }}>
+                <textarea
+                  defaultValue={notes[key] || ""}
+                  onBlur={(e) => { if (e.target.value !== (notes[key] || "")) saveSection(key, e.target.value); }}
+                  placeholder={t(`matchupNotes.${key}Placeholder`)}
+                  ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
+                  onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(36, e.target.scrollHeight) + "px"; }}
+                  style={{
+                    width: "100%", padding: "6px 8px", background: alwaysOpen ? "rgba(255,255,255,.08)" : T.inp, border: "none", borderRadius: 6,
+                    color: T.text, fontSize: 11, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden",
+                    fontFamily: "inherit", lineHeight: 1.6, minHeight: 36,
+                  }}
+                />
+                {isStage && sectionHasStageData && (
+                  <div style={{ marginTop: 4, display: "flex", flexWrap: "wrap", gap: "3px 8px" }}>
                     {STAGES.filter((st) => stageStats[st.id]).map((st) => {
                       const { w, l } = stageStats[st.id];
                       const r = w / (w + l);

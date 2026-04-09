@@ -54,8 +54,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const [counterEditText, setCounterEditText] = useState("");
   const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
   const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
-  const [hypothesisText, setHypothesisText] = useState("");
-  const [reviewInsights, setReviewInsights] = useState(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "", nextHypothesis: "" });
+  const [reviewInsights, setReviewInsights] = useState(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "" });
   const [selectedStage, setSelectedStage] = useState(null);
 
   // ── Derived data ──
@@ -69,15 +68,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
   const recMy = useMemo(() => recentChars(data.matches, "myChar"), [data]);
   const recOpp = useMemo(() => recentChars(data.matches, "oppChar"), [data]);
-
-  const prevSessionHypothesis = useMemo(() => {
-    const dailyDates = Object.keys(data.daily || {}).sort().reverse();
-    for (const d of dailyDates) {
-      const h = data.daily[d]?.reviewInsights?.nextHypothesis;
-      if (h && h.trim()) return h;
-    }
-    return null;
-  }, [data]);
 
   const tM = useMemo(() => data.matches.filter((m) => m.date === today()), [data]);
   const tW = tM.filter((m) => m.result === "win").length;
@@ -104,9 +94,8 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       if (newStart !== pStart) setPStart(newStart);
       setPEnd("");
       setReviewText(data.daily?.[today()]?.review || "");
-      setReviewInsights(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "", nextHypothesis: "" });
+      setReviewInsights(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "" });
     }
-    if (phase === "postMatch") setHypothesisText("");
     prevPhase.current = phase;
   }
 
@@ -158,13 +147,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppChar]: counterEditText } });
   };
 
-  const saveHypothesis = (text, result) => {
-    const nm = [...data.matches];
-    const last = nm[nm.length - 1];
-    if (!last) return;
-    nm[nm.length - 1] = { ...last, hypothesis: text || last.hypothesis, hypothesisResult: result !== undefined ? result : last.hypothesisResult };
-    onSave({ ...data, matches: nm });
-  };
 
   const saveGoals = () => onSave({ ...data, goals: { games: parseInt(gGames) || 0, winRate: parseInt(gWR) || 0 } });
 
@@ -478,8 +460,8 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           )}
         </div>
         {data.matchupNotes?.[`${myChar}|${oppChar}`]
-          ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
-          : <BattleNotes noteKey={oppChar} data={data} T={T} />
+          ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} onSave={onSave} />
+          : <BattleNotes noteKey={oppChar} data={data} T={T} onSave={onSave} />
         }
         {pastMemos.length > 0 && (
           <div style={{ borderTop: `1px solid ${T.inp}`, paddingTop: 8, marginTop: 4 }}>
@@ -652,14 +634,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               )}
             </div>
 
-            {/* Previous hypothesis reminder */}
-            {prevSessionHypothesis && !oppChar && (
-              <div style={{ background: `${T.accent}10`, borderRadius: 12, border: `1px solid ${T.accent}30`, padding: "10px 14px", marginBottom: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: T.accent, marginBottom: 3 }}>🔬 {t("matchupNotes.prevHypothesis")}</div>
-                <div style={{ fontSize: 12, color: T.text, lineHeight: 1.5 }}>{prevSessionHypothesis}</div>
-              </div>
-            )}
-
             {/* Context info */}
             {oppContextInfo}
 
@@ -718,30 +692,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               </div>
               <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
                 style={{ width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
-            </div>
-
-            {/* Hypothesis */}
-            <div style={{ ...cd, padding: "12px 16px", animation: "slideUp .2s ease .1s both" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span style={{ fontSize: 13 }}>🔬</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: T.accent }}>{t("matchupNotes.hypothesis")}</span>
-              </div>
-              <textarea value={hypothesisText} onChange={(e) => setHypothesisText(e.target.value)} onBlur={() => saveHypothesis(hypothesisText)} placeholder={t("matchupNotes.hypothesisPlaceholder")} rows={1}
-                style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
-              {hypothesisText.trim() && (
-                <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                  {[["confirmed", t("matchupNotes.confirmed"), T.win], ["denied", t("matchupNotes.denied"), T.lose]].map(([v, l, c]) => {
-                    const last = data.matches[data.matches.length - 1];
-                    const active = last?.hypothesisResult === v;
-                    return (
-                      <button key={v} onClick={() => saveHypothesis(hypothesisText, active ? null : v)} style={{
-                        flex: 1, padding: "6px 0", borderRadius: 8, border: active ? `2px solid ${c}` : `1px solid ${T.brd}`,
-                        background: active ? `${c}18` : T.card, color: active ? c : T.sub, fontSize: 11, fontWeight: 700,
-                      }}>{active ? "✓ " : ""}{l}</button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
 
             {/* Stage selection (mobile) */}
@@ -864,7 +814,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 {[
                   ["whatWorked", t("matchupNotes.whatWorked"), t("matchupNotes.whatWorkedPlaceholder"), T.win],
                   ["whatFailed", t("matchupNotes.whatFailed"), t("matchupNotes.whatFailedPlaceholder"), T.lose],
-                  ["nextHypothesis", t("matchupNotes.nextHypothesis"), t("matchupNotes.nextHypothesisPlaceholder"), T.accent],
                 ].map(([key, label, ph, color]) => (
                   <div key={key} style={{ marginBottom: 10 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{label}</div>
@@ -919,8 +868,8 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{fighterName(oppChar, lang)}</div>
             </div>
             {data.matchupNotes?.[`${myChar}|${oppChar}`]
-              ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} />
-              : <BattleNotes noteKey={oppChar} data={data} T={T} />
+              ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} onSave={onSave} />
+              : <BattleNotes noteKey={oppChar} data={data} T={T} onSave={onSave} />
             }
             {(() => {
               const pastMatches = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar).slice().reverse();
@@ -1104,14 +1053,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           {/* PC Battle */}
           {phase === "battle" && (
             <div>
-              {/* Previous hypothesis reminder (PC) */}
-              {prevSessionHypothesis && !oppChar && (
-                <div style={{ background: `${T.accent}10`, borderRadius: 12, border: `1px solid ${T.accent}30`, padding: "12px 16px", marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: T.accent, marginBottom: 3 }}>🔬 {t("matchupNotes.prevHypothesis")}</div>
-                  <div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{prevSessionHypothesis}</div>
-                </div>
-              )}
-
               {result && pendingResultBanner}
 
               <div style={{ ...cd, padding: "14px 18px", marginBottom: 10 }}>
@@ -1188,29 +1129,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 </div>
                 <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
                   style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
-              </div>
-              {/* Hypothesis (PC) */}
-              <div style={{ ...cd, padding: "14px 20px", marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontSize: 13 }}>🔬</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: T.accent }}>{t("matchupNotes.hypothesis")}</span>
-                </div>
-                <textarea value={hypothesisText} onChange={(e) => setHypothesisText(e.target.value)} onBlur={() => saveHypothesis(hypothesisText)} placeholder={t("matchupNotes.hypothesisPlaceholder")} rows={1}
-                  style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
-                {hypothesisText.trim() && (
-                  <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                    {[["confirmed", t("matchupNotes.confirmed"), T.win], ["denied", t("matchupNotes.denied"), T.lose]].map(([v, l, c]) => {
-                      const last = data.matches[data.matches.length - 1];
-                      const active = last?.hypothesisResult === v;
-                      return (
-                        <button key={v} onClick={() => saveHypothesis(hypothesisText, active ? null : v)} style={{
-                          flex: 1, padding: "6px 0", borderRadius: 8, border: active ? `2px solid ${c}` : `1px solid ${T.brd}`,
-                          background: active ? `${c}18` : T.card, color: active ? c : T.sub, fontSize: 12, fontWeight: 700,
-                        }}>{active ? "✓ " : ""}{l}</button>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
               {/* Stage selection (PC) */}
               <div style={{ ...cd, padding: "14px 20px", marginBottom: 12 }}>
@@ -1320,7 +1238,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                   {[
                     ["whatWorked", t("matchupNotes.whatWorked"), t("matchupNotes.whatWorkedPlaceholder"), T.win],
                     ["whatFailed", t("matchupNotes.whatFailed"), t("matchupNotes.whatFailedPlaceholder"), T.lose],
-                    ["nextHypothesis", t("matchupNotes.nextHypothesis"), t("matchupNotes.nextHypothesisPlaceholder"), T.accent],
                   ].map(([key, label, ph, color]) => (
                     <div key={key} style={{ marginBottom: 10 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color, marginBottom: 4 }}>{label}</div>
