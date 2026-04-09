@@ -404,14 +404,14 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         )}
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("settings.games")}</span>
-          <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13, minWidth: 0 }} />
+          <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ width: "100%", flex: 1, padding: "6px 8px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, outline: "none", boxSizing: "border-box", fontFamily: "'Chakra Petch', sans-serif", minWidth: 0 }} />
           <span style={{ fontSize: 11, color: T.sub, flexShrink: 0 }}>{t("settings.gamesUnit")}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("settings.winRate")}</span>
-          <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13, minWidth: 0 }} />
+          <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ width: "100%", flex: 1, padding: "6px 8px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 13, fontWeight: 700, outline: "none", boxSizing: "border-box", fontFamily: "'Chakra Petch', sans-serif", minWidth: 0 }} />
           <span style={{ fontSize: 11, color: T.sub, flexShrink: 0 }}>{t("settings.winRateUnit")}</span>
         </div>
       </div>

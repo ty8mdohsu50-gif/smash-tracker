@@ -49,6 +49,8 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [calDate, setCalDate] = useState(null);
 
   const analysisRef = useRef(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   const freeMatches = useMemo(() => data.freeMatches || [], [data.freeMatches]);
   const freeOpponents = useMemo(() => data.freeOpponents || [], [data.freeOpponents]);
@@ -123,9 +125,19 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   };
 
   const deleteFreeMatch = (match) => {
-    const idx = freeMatches.findIndex((m) => m.date === match.date && m.time === match.time && m.myChar === match.myChar && m.oppChar === match.oppChar && m.result === match.result);
-    if (idx === -1) return;
-    setConfirmAction({ message: t("common.deleteConfirm"), onConfirm: () => { const nf = [...freeMatches]; nf.splice(idx, 1); onSave({ ...data, freeMatches: nf }); setConfirmAction(null); } });
+    setConfirmAction({
+      message: t("common.deleteConfirm"),
+      onConfirm: () => {
+        const cur = dataRef.current;
+        const fm = cur.freeMatches || [];
+        const idx = fm.findIndex((m) => m.date === match.date && m.time === match.time && m.myChar === match.myChar && m.oppChar === match.oppChar && m.result === match.result);
+        if (idx === -1) { setConfirmAction(null); return; }
+        const nf = [...fm];
+        nf.splice(idx, 1);
+        onSave({ ...cur, freeMatches: nf });
+        setConfirmAction(null);
+      },
+    });
   };
 
   const recordMatch = (result) => {

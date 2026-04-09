@@ -345,13 +345,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
   const matchupRow = (s, matchesGetter, parentChar) => {
     const r = s.t ? s.w / s.t : 0;
-    const isExp = expandedItem === s.c;
-    const matches = isExp ? matchesGetter() : [];
     const handleClick = () => {
-      if (isPC && parentChar) {
+      if (parentChar) {
         setMatchupPopup({ myChar: parentChar, oppChar: s.c });
-      } else {
-        setExpandedItem(isExp ? null : s.c);
       }
     };
     return (
@@ -375,22 +371,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           </div>
           {renderBar(r)}
         </div>
-        {!isPC && isExp && (
-          <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10, maxHeight: 300, overflowY: "auto" }}>
-            {matches.slice(0, 20).map((m, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatDate(m.date)}</span>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, flexShrink: 0, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>
-                  {m.result === "win" ? "WIN" : "LOSE"}
-                </span>
-                {m.time && <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>}
-                {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-                {m.memo && <span style={{ fontSize: 11, color: T.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.memo}</span>}
-              </div>
-            ))}
-            {matches.length > 20 && <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>{t("analysis.others").replace("{n}", matches.length - 20)}</div>}
-          </div>
-        )}
       </div>
     );
   };
@@ -1078,47 +1058,57 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         const recent10 = ms.slice().reverse().slice(0, 10);
         const recentR = recent10.length > 0 ? recent10.filter((m) => m.result === "win").length / recent10.length : 0;
 
+        const popupStyle = isPC
+          ? { background: T.card, borderRadius: 20, border: `1px solid ${T.brd}`, boxShadow: T.sh, width: 560, maxHeight: "80vh", overflow: "hidden", display: "flex", flexDirection: "column" }
+          : { background: T.bg, width: "100%", height: "100%", overflow: "hidden", display: "flex", flexDirection: "column" };
+        const headerPad = isPC ? "20px 24px" : "16px 18px";
+        const contentPad = isPC ? "20px 24px" : "16px 18px";
+        const iconSz = isPC ? 36 : 28;
+        const titleSz = isPC ? 16 : 14;
+        const statFontSz = isPC ? 28 : 22;
+        const statPad = isPC ? "14px 16px" : "10px 12px";
+
         return (
-          <div onClick={() => setMatchupPopup(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", animation: "fadeUp .15s ease" }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.card, borderRadius: 20, border: `1px solid ${T.brd}`, boxShadow: T.sh, width: 560, maxHeight: "80vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div onClick={() => setMatchupPopup(null)} style={{ position: "fixed", inset: 0, background: isPC ? "rgba(0,0,0,.55)" : "rgba(0,0,0,.3)", zIndex: 1000, display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center", animation: "fadeUp .15s ease" }}>
+            <div onClick={(e) => e.stopPropagation()} style={popupStyle}>
               {/* Header */}
-              <div style={{ padding: "20px 24px", borderBottom: `1px solid ${T.inp}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <FighterIcon name={myChar} size={36} />
-                  <span style={{ fontSize: 14, color: T.dim, fontWeight: 700 }}>vs</span>
-                  <FighterIcon name={oppChar} size={36} />
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{fighterName(myChar, lang)} vs {fighterName(oppChar, lang)}</div>
-                    <div style={{ fontSize: 12, color: T.dim }}>{ms.length}{t("analysis.battles")}</div>
+              <div style={{ padding: headerPad, borderBottom: `1px solid ${T.inp}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: isPC ? "transparent" : T.card }}>
+                <div style={{ display: "flex", alignItems: "center", gap: isPC ? 12 : 8, flex: 1, minWidth: 0 }}>
+                  <FighterIcon name={myChar} size={iconSz} />
+                  <span style={{ fontSize: 12, color: T.dim, fontWeight: 700 }}>vs</span>
+                  <FighterIcon name={oppChar} size={iconSz} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: titleSz, fontWeight: 800, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fighterName(myChar, lang)} vs {fighterName(oppChar, lang)}</div>
+                    <div style={{ fontSize: 11, color: T.dim }}>{ms.length}{t("analysis.battles")}</div>
                   </div>
                 </div>
-                <button onClick={() => setMatchupPopup(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18 }}>×</button>
+                <button onClick={() => setMatchupPopup(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18, flexShrink: 0 }}>×</button>
               </div>
 
               {/* Content */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+              <div style={{ flex: 1, overflowY: "auto", padding: contentPad, WebkitOverflowScrolling: "touch" }}>
                 {ms.length === 0 ? (
                   <div style={{ textAlign: "center", color: T.dim, padding: "40px 0", fontSize: 14 }}>{t("stages.noData")}</div>
                 ) : (
                   <>
                     {/* Overall stats */}
-                    <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: isPC ? 12 : 8, marginBottom: 16 }}>
+                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: statPad, textAlign: "center" }}>
                         <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winRate")}</div>
-                        <div style={{ fontSize: 28, fontWeight: 900, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, ms.length)}</div>
+                        <div style={{ fontSize: statFontSz, fontWeight: 900, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, ms.length)}</div>
                       </div>
-                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: statPad, textAlign: "center" }}>
                         <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winLoss")}</div>
-                        <div style={{ fontSize: 24, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
+                        <div style={{ fontSize: statFontSz - 4, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
                           <span style={{ color: T.win }}>{w}</span>
                           <span style={{ color: T.dimmer, fontSize: 14, margin: "0 4px" }}>:</span>
                           <span style={{ color: T.lose }}>{l}</span>
                         </div>
                       </div>
                       {recent10.length >= 3 && (
-                        <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+                        <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: statPad, textAlign: "center" }}>
                           <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.recentLabel")} {recent10.length}</div>
-                          <div style={{ fontSize: 28, fontWeight: 900, color: barColor(recentR), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(recent10.filter((m) => m.result === "win").length, recent10.length)}</div>
+                          <div style={{ fontSize: statFontSz, fontWeight: 900, color: barColor(recentR), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(recent10.filter((m) => m.result === "win").length, recent10.length)}</div>
                         </div>
                       )}
                     </div>
@@ -1138,9 +1128,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                             const total = sd.w + sd.l;
                             const sr = sd.w / total;
                             return (
-                              <div key={st.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <img src={stageImg(st.id)} alt="" style={{ width: 56, height: 32, objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />
-                                <div style={{ flex: 1 }}>
+                              <div key={st.id} style={{ display: "flex", alignItems: "center", gap: isPC ? 10 : 8 }}>
+                                <img src={stageImg(st.id)} alt="" style={{ width: isPC ? 56 : 48, height: isPC ? 32 : 27, objectFit: "cover", borderRadius: 4, flexShrink: 0 }} />
+                                <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
                                     <span style={{ fontWeight: 600, color: T.text }}>{stageName(st.id, lang)}</span>
                                     <span style={{ color: T.dim }}>{sd.w}W {sd.l}L</span>
@@ -1160,11 +1150,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     {/* Match history */}
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
-                      <div style={{ maxHeight: 240, overflowY: "auto" }}>
+                      <div style={{ maxHeight: isPC ? 240 : 200, overflowY: "auto" }}>
                         {ms.slice().reverse().slice(0, 30).map((m, i) => (
-                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
-                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: 68 }}>{formatDate(m.date)}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
+                            <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: isPC ? 68 : 56 }}>{formatDate(m.date)}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>
                               {m.result === "win" ? "WIN" : "LOSE"}
                             </span>
                             {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
