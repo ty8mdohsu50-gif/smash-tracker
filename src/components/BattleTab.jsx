@@ -308,15 +308,19 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
   const recentMatchList = tM.length === 0
     ? <div style={{ textAlign: "center", padding: "32px 0", color: T.dim, fontSize: 13 }}>{t("battle.startMatching")}</div>
-    : tM.slice().reverse().slice(0, 10).map((m, i) => (
+    : tM.slice().reverse().slice(0, 10).map((m, i) => {
+      const matchIdx = data.matches.indexOf(m);
+      return (
       <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
         <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
         <FighterIcon name={m.oppChar} size={22} />
         <span style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>{fighterName(m.oppChar, lang)}</span>
         {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
         <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
+        <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
       </div>
-    ));
+      );
+    });
 
   // ── Mode toggle ──
 
@@ -1276,11 +1280,27 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                       </div>
                     </div>
                   )}
+                  {streak.count >= 2 && (
+                    <div style={{ marginTop: 12, background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+                      <Zap size={16} color={streak.type === "win" ? "#4ade80" : "#f87171"} fill={streak.type === "win" ? "#4ade80" : "#f87171"} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{streak.count}{streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose")}</span>
+                    </div>
+                  )}
                 </div>
                 <div style={{ ...cd, padding: "20px 24px" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("battle.endPower")}</div>
                   <div style={{ fontSize: 12, color: T.dim, marginBottom: 10 }}>{t("battle.endPowerDesc")}</div>
                   {pwrInput(pEnd, setPEnd, t("battle.endPower"), true)}
+                </div>
+                <div style={{ ...cd, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 24px" }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{t("battle.vipReached")}</div>
+                    <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>{t("battle.vipShareDesc")}</div>
+                  </div>
+                  <button onClick={() => { const d = { ...data }; if (!d.daily) d.daily = {}; if (!d.daily[today()]) d.daily[today()] = {}; d.daily[today()] = { ...d.daily[today()], vip: !d.daily[today()]?.vip }; onSave(d); }}
+                    style={{ width: 54, height: 30, borderRadius: 15, border: "none", background: todayDaily.vip ? T.accent : "#555", position: "relative", flexShrink: 0, cursor: "pointer" }}>
+                    <div style={{ width: 26, height: 26, borderRadius: 13, background: "#fff", position: "absolute", top: 2, left: todayDaily.vip ? 26 : 2, transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)" }} />
+                  </button>
                 </div>
                 <div style={{ ...cd, padding: "16px 24px" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 10 }}>{t("battle.review")}</div>
