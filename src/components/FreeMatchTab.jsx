@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Share2, ChevronLeft, ChevronRight, Zap, ChevronDown } from "lucide-react";
-import MatchupNotesEditor from "./MatchupNotesEditor";
+import MatchupNotesEditor, { BattleNotes } from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FighterIcon from "./FighterIcon";
 import SharePopup from "./SharePopup";
@@ -329,11 +329,11 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     );
   })();
 
-  // Notes area (3 sections: flash, gameplan, stage)
-  const freeNoteKey = `free:${selectedOpponent}`;
-  const tendencyArea = (
-    <div>
-      <MatchupNotesEditor noteKey={freeNoteKey} data={data} onSave={onSave} T={T} compact />
+  // Notes area – use character matchup key (shared with ranked)
+  const noteKey = myChar && oppChar ? `${myChar}|${oppChar}` : null;
+  const tendencyArea = noteKey && (
+    <div style={{ marginBottom: 10 }}>
+      <MatchupNotesEditor noteKey={noteKey} data={data} onSave={onSave} T={T} compact />
     </div>
   );
 
@@ -372,6 +372,9 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               </div>
             )}
           </div>
+          {noteKey && (
+            <BattleNotes noteKey={noteKey} data={data} T={T} onSave={onSave} />
+          )}
           <div style={{ display: "flex", gap: 12, marginBottom: 10 }}>
             <button onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #16A34A, #22C55E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(34,197,94,.3)" : "none" }}>{t("battle.win")}</button>
             <button onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #E11D48, #F43F5E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(244,63,94,.3)" : "none" }}>{t("battle.lose")}</button>
