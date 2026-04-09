@@ -5,6 +5,7 @@ import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
 import SharePopup from "./SharePopup";
 import Toast from "./Toast";
+import ConfirmDialog from "./ConfirmDialog";
 import FighterIcon from "./FighterIcon";
 import { fighterName } from "../constants/fighters";
 import { STAGES, stageName, stageImg } from "../constants/stages";
@@ -39,12 +40,11 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const [result, setResult] = useState(null);
   const [lastRes, setLastRes] = useState(null);
   const [memo, setMemo] = useState("");
-  const [showPowerEdit, setShowPowerEdit] = useState(false);
   const [showMyPicker, setShowMyPicker] = useState(false);
   const [showOppPicker, setShowOppPicker] = useState(false);
   const [sharePopupText, setSharePopupText] = useState(null);
-  const [shareStatus, setShareStatus] = useState(null);
   const [toast, setToast] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   // Goals
   const [gGames, setGG] = useState(String(data.goals?.games || ""));
@@ -197,9 +197,15 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   };
 
   const deleteMatch = (idx) => {
-    const nm = [...data.matches];
-    nm.splice(idx, 1);
-    onSave({ ...data, matches: nm });
+    setConfirmAction({
+      message: t("common.deleteConfirm"),
+      onConfirm: () => {
+        const nm = [...data.matches];
+        nm.splice(idx, 1);
+        onSave({ ...data, matches: nm });
+        setConfirmAction(null);
+      },
+    });
   };
 
   const saveStage = (stageId) => {
@@ -224,7 +230,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     day.review = reviewText;
     onSave(d);
     if (andShare) buildAndShare();
-    else { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); }
+    else { setPhase("setup"); setShowOppPicker(false); }
   };
 
   const buildShareText = () => {
@@ -379,7 +385,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
               if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
               if (goals.winRate) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
-              lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+              lines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
               doShare(lines.join("\n"));
             }}
             style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}
@@ -490,20 +496,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           <div style={{ animation: "fadeUp .2s ease" }}>
             {todaySummaryCard}
 
-            {data.matches.length === 0 && (
-              <div style={{ background: T.accentSoft, borderRadius: 16, padding: "18px 20px", marginBottom: 12, border: `1px solid ${T.accent}33` }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: T.accent, marginBottom: 10 }}>{t("battle.welcome")}</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {[t("battle.step1"), t("battle.step2"), t("battle.step3")].map((step, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: T.accent, color: "#fff", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: T.accent }}>{step}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Char selection */}
             <div style={{ ...cd, paddingBottom: 18 }}>
               {showMyPicker ? (
@@ -581,10 +573,16 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             </div>
 
             {/* Char memo */}
-            {myChar && (data.charMemos?.[myChar] || "").trim() && (
+            {myChar && (
               <div style={{ ...cd, padding: "10px 14px", marginBottom: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 4 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
-                <div style={{ fontSize: 12, color: T.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{data.charMemos[myChar]}</div>
+                <textarea
+                  ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
+                  value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; }}
+                  onBlur={() => { onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } }); }}
+                  placeholder={t("battle.charMemoPlaceholder")}
+                  style={{ width: "100%", padding: "6px 8px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 36 }}
+                />
               </div>
             )}
 
@@ -630,17 +628,17 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 <span style={{ fontSize: 13 }}>🗺️</span>
                 <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 5 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                 {STAGES.map((s) => {
                   const active = selectedStage === s.id;
                   return (
                     <button key={s.id} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
-                      border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 6, padding: 0, background: "none",
-                      overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.65, transition: "all .15s ease",
+                      border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
+                      overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
                       boxShadow: active ? T.accentGlow : "none",
                     }}>
                       <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
-                      <div style={{ fontSize: 8, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "2px 3px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
+                      <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
                         {lang === "ja" ? s.jp : s.en}
                       </div>
                     </button>
@@ -659,7 +657,10 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               </div>
             )}
 
-            <button onClick={() => setPhase("end")} style={{ width: "100%", padding: 14, marginTop: 12, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600 }}>{t("battle.endSession")}</button>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button onClick={() => setPhase("end")} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
+              <button onClick={() => { setPhase("setup"); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.dim, fontSize: 13, fontWeight: 600 }}>{t("battle.changeChar")}</button>
+            </div>
           </div>
         )}
 
@@ -667,6 +668,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         {phase === "postMatch" && (
           <div style={{ animation: "fadeUp .2s ease" }}>
             <div style={{ ...cd, textAlign: "center", padding: "20px 18px" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, letterSpacing: 1.5, fontFamily: "'Chakra Petch', sans-serif", marginBottom: 8 }}>{t("battle.recorded")}</div>
               <div style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 18, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose, animation: "popIn .3s ease" }}>
                 {lastRes === "win" ? "WIN" : "LOSE"}
               </div>
@@ -790,7 +792,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                   <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>{t("battle.vipShareDesc")}</div>
                 </div>
                 <button onClick={() => { const d = { ...data }; if (!d.daily) d.daily = {}; if (!d.daily[today()]) d.daily[today()] = {}; d.daily[today()] = { ...d.daily[today()], vip: !d.daily[today()]?.vip }; onSave(d); }}
-                  style={{ width: 54, height: 30, borderRadius: 15, border: "none", background: todayDaily.vip ? T.accent : "#555", position: "relative", flexShrink: 0 }}>
+                  style={{ width: 54, height: 30, borderRadius: 15, border: "none", background: todayDaily.vip ? T.accent : "#555", position: "relative", flexShrink: 0, cursor: "pointer" }}>
                   <div style={{ width: 26, height: 26, borderRadius: 13, background: "#fff", position: "absolute", top: 2, left: todayDaily.vip ? 26 : 2, transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.2)" }} />
                 </button>
               </div>
@@ -814,6 +816,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
         {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
         {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+        {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
       </div>
     );
   }
@@ -899,7 +902,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 const lines = [`【SMASH TRACKER】${t("share.todayGoal")}`];
                 if (goals.games) lines.push(`${tM.length}/${goals.games}${t("settings.gamesUnit")} ${tM.length >= goals.games ? t("share.achieved") : ""}`);
                 if (goals.winRate) lines.push(`${t("settings.winRate")} ${winRate}% / ${goals.winRate}% ${winRate >= goals.winRate ? t("share.achieved") : ""}`);
-                lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+                lines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
                 doShare(lines.join("\n"));
               }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4 }}>
                 <Share2 size={12} /> {t("battle.share")}
@@ -968,19 +971,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         </div>
         <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-            {data.matches.length === 0 && (
-              <div style={{ background: T.accentSoft, borderRadius: 16, padding: "20px 24px", border: `1px solid ${T.accent}33` }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: T.accent, marginBottom: 12 }}>{t("battle.welcome")}</div>
-                <div style={{ display: "flex", gap: 24 }}>
-                  {[t("battle.step1"), t("battle.step2"), t("battle.step3")].map((step, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: "50%", background: T.accent, color: "#fff", fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: T.accent }}>{step}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             <div style={{ display: "flex", gap: 16 }}>
               <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
                 {showMyPicker ? (
@@ -1009,6 +999,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           {pcSidebar}
         </div>
         {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+        {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
       </div>
     );
   }
@@ -1035,7 +1026,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               <div style={{ ...cd, padding: "14px 18px", marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <div style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("battle.oppChar")}</div>
-                  {oppChar && <button onClick={() => { setOppChar(""); setResult(null); }} style={{ border: "none", background: "transparent", color: T.lose, fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 2 }}><X size={12} /> {t("battle.clear")}</button>}
+                  {oppChar && <button onClick={() => { setOppChar(""); setResult(null); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: 8, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}><X size={12} /> {t("battle.clear")}</button>}
                 </div>
                 {oppChar && !showOppPicker && <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 6 }}>{fighterName(oppChar, lang)}</div>}
                 {showOppPicker || (result && !oppChar) ? (
@@ -1052,8 +1043,8 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
               {/* Stage selection (PC battle phase) */}
               <div style={{ ...cd, padding: "10px 14px", marginBottom: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
-                  <span style={{ fontSize: 12 }}>🗺️</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 13 }}>🗺️</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
@@ -1061,12 +1052,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                     const active = selectedStage === s.id;
                     return (
                       <button key={s.id} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
-                        border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 6, padding: 0, background: "none",
-                        overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.65, transition: "all .15s ease",
+                        border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
+                        overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
                         boxShadow: active ? T.accentGlow : "none",
                       }}>
                         <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
-                        <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "2px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
+                        <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
                           {lang === "ja" ? s.jp : s.en}
                         </div>
                       </button>
@@ -1084,7 +1075,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
               <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                 <button onClick={() => setPhase("end")} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 12, fontWeight: 600 }}>{t("battle.endSession")}</button>
-                <button onClick={() => { setPhase("setup"); setShowPowerEdit(false); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 12, fontWeight: 600 }}>{t("battle.changeChar")}</button>
+                <button onClick={() => { setPhase("setup"); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 12, fontWeight: 600 }}>{t("battle.changeChar")}</button>
               </div>
             </div>
           )}
@@ -1228,6 +1219,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       </div>
       {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+      {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
     </div>
   );
 }

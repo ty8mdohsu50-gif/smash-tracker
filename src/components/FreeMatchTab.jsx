@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Share2, ChevronLeft, ChevronRight, Zap, ChevronDown } from "lucide-react";
+import { Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import MatchupNotesEditor, { BattleNotes } from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FighterIcon from "./FighterIcon";
@@ -159,7 +159,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     if (muEntries.length > 0) {
       lines.push(muEntries.map((mu) => `${fighterName(mu.my, lang)} vs ${fighterName(mu.opp, lang)} ${mu.w}W${mu.l}L`).join("\n"));
     }
-    lines.push("", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/");
+    lines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
     return lines.join("\n");
   };
 
@@ -169,7 +169,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   };
 
   // UI helpers
-  const cd = { background: T.card, borderRadius: 16, border: `1px solid ${T.brd}`, boxShadow: T.sh, padding: "16px 18px", marginBottom: 10 };
+  const cd = { background: T.card, borderRadius: 16, border: `1px solid ${T.brd}`, boxShadow: T.sh, padding: "16px 18px", marginBottom: 12, transition: "box-shadow .2s ease" };
   const btnBase = { border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .15s ease", fontFamily: "inherit" };
 
   const overlays = (
@@ -518,10 +518,10 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "2px solid rgba(255,255,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "#fff" }}>{selectedOpponent[0]}</div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{selectedOpponent}</div>
-            {oppMs.length > 0 && <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)" }}>{totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
+            {oppMs.length > 0 && <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)" }}>{oppMs.length}{t("analysis.battles")} {totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
           </div>
         </div>
-        {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ border: "none", background: "rgba(255,255,255,.15)", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}><Share2 size={10} /></button>}
+        {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ border: "none", background: "rgba(255,255,255,.15)", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}><Share2 size={10} />{t("free.share")}</button>}
       </div>
 
       {tendencyArea}

@@ -11,7 +11,6 @@ import { useI18n } from "../i18n/index.jsx";
 import {
   today,
   formatDate,
-  formatDateLong,
   formatDateWithDay,
   formatTime,
   formatPower,
@@ -65,10 +64,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const [matchupPopup, setMatchupPopup] = useState(null);
 
   // Editing state
-  const [sharePopupText, setSharePopupText] = useState(null);
-  const [editingPower, setEditingPower] = useState(false);
-  const [editStart, setEditStart] = useState("");
-  const [editEnd, setEditEnd] = useState("");
+  const [sharePopup, setSharePopup] = useState(null); // { text, imageBlob? }
   const [confirmAction, setConfirmAction] = useState(null);
 
   // Month navigation for daily list
@@ -220,29 +216,14 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
   // ── Helpers ──
 
-  const doShare = async (text) => {
-    if (navigator.share) {
-      try { await navigator.share({ text }); return; } catch (_) { /* cancelled */ }
-    }
-    setSharePopupText(text);
+  const doShare = (text, imageBlob) => {
+    setSharePopup({ text, imageBlob: imageBlob || null });
   };
 
   const deleteMatch = (idx) => {
     const nm = [...data.matches];
     nm.splice(idx, 1);
     onSave({ ...data, matches: nm });
-  };
-
-  const saveDayPower = (date, start, end) => {
-    const d = JSON.parse(JSON.stringify(data));
-    if (!d.daily) d.daily = {};
-    if (!d.daily[date]) d.daily[date] = {};
-    const day = d.daily[date];
-    if (!day.chars) day.chars = {};
-    if (start !== "") { day.start = Number(start); }
-    if (end !== "") { day.end = Number(end); }
-    onSave(d);
-    setEditingPower(false);
   };
 
   const periodLabels = { day: t("analysis.today"), week: t("analysis.week"), month: t("analysis.month"), all: t("analysis.all") };
@@ -255,11 +236,12 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const charLabel = charDetail ? fighterName(charDetail, lang) : "";
     const label = `${charLabel} ${periodLabels[period] || t("analysis.all")}`;
     const dateRange = trendData.dateFrom && trendData.dateTo ? `${formatDate(trendData.dateFrom)} - ${formatDate(trendData.dateTo)}` : "";
+    const shareText = `【SMASH TRACKER】${t("analysis.trend")}（${label}）${dateRange ? "\n" + dateRange : ""}\n\n#スマブラ #SmashTracker\nhttps://smash-tracker.pages.dev/`;
     const svgData = new XMLSerializer().serializeToString(svg);
     const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
     const svgUrl = URL.createObjectURL(svgBlob);
     const img = new Image();
-    img.onload = async () => {
+    img.onload = () => {
       const scale = 2; const headerH = 80; const footerH = 40;
       const canvas = document.createElement("canvas");
       canvas.width = img.width * scale; canvas.height = img.height * scale + headerH + footerH;
@@ -270,18 +252,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       ctx.fillStyle = "#9ca3af"; ctx.font = "16px sans-serif"; ctx.fillText(dateRange, 20, 60);
       ctx.drawImage(img, 0, headerH, img.width * scale, img.height * scale);
       ctx.fillStyle = "#4b5563"; ctx.font = "14px sans-serif";
-      ctx.fillText("smash-tracker.pages.dev  #SmashTracker #スマブラ", 20, canvas.height - 14);
-      canvas.toBlob(async (blob) => {
+      ctx.fillText("smash-tracker.pages.dev  #スマブラ #SmashTracker", 20, canvas.height - 14);
+      canvas.toBlob((blob) => {
         URL.revokeObjectURL(svgUrl);
         if (!blob) return;
-        const file = new File([blob], "smash-tracker-trend.png", { type: "image/png" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], text: `【SMASH TRACKER】${t("analysis.trend")}（${label}）${dateRange ? "\n" + dateRange : ""}\n\n#SmashTracker #スマブラ\nhttps://smash-tracker.pages.dev/` });
-            return;
-          } catch (_) { /* cancelled */ }
-        }
-        setSharePopupText(`【SMASH TRACKER】${t("analysis.trend")}（${label}）${dateRange ? "\n" + dateRange : ""}\n\n#SmashTracker #スマブラ\nhttps://smash-tracker.pages.dev/`);
+        doShare(shareText, blob);
       }, "image/png");
     };
     img.src = svgUrl;
@@ -347,6 +322,10 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const iconSize = isPC ? 36 : 28;
     const bgColor = !fought ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
     const handleClick = () => {
+      if (popupOverride?.isOppMode) {
+        setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null);
+        return;
+      }
       if (popupOverride) { setMatchupPopup(popupOverride); return; }
       if (parentChar) setMatchupPopup({ myChar: parentChar, oppChar: s.c });
     };
@@ -515,25 +494,66 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const selectedDayData = expandedDate ? dailyMap[expandedDate] : null;
 
     const detailPanel = selectedDayData ? (() => {
+      const ms = selectedDayData.matches;
       const total = selectedDayData.w + selectedDayData.l;
       const r = total ? selectedDayData.w / total : 0;
+
+      // Streak calculation
+      let maxWin = 0, maxLose = 0, curWin = 0, curLose = 0;
+      ms.forEach((m) => {
+        if (m.result === "win") { curWin++; curLose = 0; maxWin = Math.max(maxWin, curWin); }
+        else { curLose++; curWin = 0; maxLose = Math.max(maxLose, curLose); }
+      });
+
+      // GSP change
+      const dayPowers = ms.filter((m) => m.power).map((m) => m.power);
+      const dailyEntry = data.daily?.[expandedDate];
+      const charPowers = dailyEntry?.chars || {};
+      let gspStart = null, gspEnd = null;
+      for (const cp of Object.values(charPowers)) {
+        if (cp.start && (!gspStart || cp.start < gspStart)) gspStart = cp.start;
+        if (cp.end && (!gspEnd || cp.end > gspEnd)) gspEnd = cp.end;
+      }
+      if (!gspStart && dayPowers.length) gspStart = dayPowers[0];
+      if (!gspEnd && dayPowers.length) gspEnd = dayPowers[dayPowers.length - 1];
+      const gspDiff = gspStart && gspEnd ? gspEnd - gspStart : null;
+
+      // Opponent character distribution
+      const oppDist = {};
+      ms.forEach((m) => {
+        if (!oppDist[m.oppChar]) oppDist[m.oppChar] = { w: 0, l: 0 };
+        m.result === "win" ? oppDist[m.oppChar].w++ : oppDist[m.oppChar].l++;
+      });
+      const oppRanked = Object.entries(oppDist).sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l));
+
+      // Stage win rate
+      const stageDist = {};
+      ms.filter((m) => m.stage).forEach((m) => {
+        if (!stageDist[m.stage]) stageDist[m.stage] = { w: 0, l: 0 };
+        m.result === "win" ? stageDist[m.stage].w++ : stageDist[m.stage].l++;
+      });
+
+      // Session time range
+      const times = ms.filter((m) => m.time).map((m) => m.time).sort();
+      const sessionStart = times.length > 0 ? formatTime(times[0]) : null;
+      const sessionEnd = times.length > 1 ? formatTime(times[times.length - 1]) : null;
+
       return (
         <div style={{ ...cd, padding: "16px 18px" }}>
-          {/* Day header with prominent stats */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <span style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{formatDate(expandedDate)}</span>
               <button onClick={() => {
-                const ms = selectedDayData.matches;
                 const lines = [`【SMASH TRACKER】${formatDate(expandedDate)}`, `${selectedDayData.w}W ${selectedDayData.l}L（${t("analysis.winRate")} ${percentStr(selectedDayData.w, total)}）`, "",
                   ...ms.map((m) => `${m.result === "win" ? "WIN" : "LOSE"} ${fighterName(m.myChar, lang)} vs ${fighterName(m.oppChar, lang)}`),
-                  "", "#SmashTracker #スマブラ", "https://smash-tracker.pages.dev/"];
+                  "", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/"];
                 doShare(lines.join("\n"));
               }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
                 <Share2 size={12} /> {t("analysis.share")}
               </button>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            {/* Main stats */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
               <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
                 <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 3 }}>{t("analysis.winLoss")}</div>
                 <div style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>
@@ -551,10 +571,74 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 <div style={{ fontSize: 22, fontWeight: 900, color: T.text, fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1 }}>{total}</div>
               </div>
             </div>
+            {/* Secondary stats row */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+              <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+                <div style={{ fontSize: 9, color: T.dim, fontWeight: 600, marginBottom: 2 }}>{t("analysis.maxWinStreak")}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.win, fontFamily: "'Chakra Petch', sans-serif" }}>{maxWin}</div>
+              </div>
+              <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+                <div style={{ fontSize: 9, color: T.dim, fontWeight: 600, marginBottom: 2 }}>{t("analysis.maxLoseStreak")}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: T.lose, fontFamily: "'Chakra Petch', sans-serif" }}>{maxLose}</div>
+              </div>
+              {gspDiff !== null && (
+                <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+                  <div style={{ fontSize: 9, color: T.dim, fontWeight: 600, marginBottom: 2 }}>{t("analysis.gspChange")}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: gspDiff > 0 ? T.win : gspDiff < 0 ? T.lose : T.dim, fontFamily: "'Chakra Petch', sans-serif" }}>
+                    {gspDiff > 0 ? "+" : ""}{numFormat(gspDiff)}
+                  </div>
+                </div>
+              )}
+              {sessionStart && (
+                <div style={{ flex: 1, background: T.inp, borderRadius: 10, padding: "8px 10px", textAlign: "center" }}>
+                  <div style={{ fontSize: 9, color: T.dim, fontWeight: 600, marginBottom: 2 }}>{t("analysis.sessionTime")}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{sessionStart}{sessionEnd ? ` - ${sessionEnd}` : ""}</div>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Opponent distribution */}
+          {oppRanked.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 6 }}>{t("analysis.oppDistribution")}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {oppRanked.slice(0, 8).map(([opp, d]) => {
+                  const or = (d.w + d.l) > 0 ? d.w / (d.w + d.l) : 0;
+                  return (
+                    <div key={opp} style={{ display: "flex", alignItems: "center", gap: 4, background: T.inp, borderRadius: 8, padding: "4px 8px" }}>
+                      <FighterIcon name={opp} size={18} />
+                      <span style={{ fontSize: 10, fontWeight: 700, color: barColor(or) }}>{d.w}W{d.l}L</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Stage win rate */}
+          {Object.keys(stageDist).length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 6 }}>{t("stages.winRateByStage")}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 10px" }}>
+                {STAGES.filter((st) => stageDist[st.id]).map((st) => {
+                  const sd = stageDist[st.id];
+                  const sr = sd.w / (sd.w + sd.l);
+                  return (
+                    <span key={st.id} style={{ fontSize: 10, color: T.sub }}>
+                      <span style={{ fontWeight: 600, color: T.text }}>{stageName(st.id, lang)}</span>
+                      {" "}<span style={{ fontWeight: 700, color: barColor(sr) }}>{Math.round(sr * 100)}%</span>
+                      <span style={{ color: T.dim }}> ({sd.w}W{sd.l}L)</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Match list */}
           <div style={{ maxHeight: isPC ? 380 : 280, overflowY: "auto" }}>
-            {matchDetail(selectedDayData.matches)}
+            {matchDetail(ms)}
           </div>
         </div>
       );
@@ -693,11 +777,44 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         <div>
           {mCS.length === 0 ? (
             <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noCharData")}</div>
-          ) : (
-            <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
-              {mCS.map((s) => charRow(s, () => { setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setExpandedDate(null); setPeriod("all"); }))}
-            </div>
-          )}
+          ) : (() => {
+            const usedSet = new Set(mCS.map((s) => s.c));
+            const allMyChars = FIGHTERS.map((c) => {
+              const found = mCS.find((s) => s.c === c);
+              return found || { c, w: 0, l: 0, t: 0 };
+            });
+            return (
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                {allMyChars.map((s) => {
+                  const r = s.t ? s.w / s.t : 0;
+                  const used = s.t > 0;
+                  const iconSize = isPC ? 36 : 28;
+                  const bgColor = !used ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
+                  return (
+                    <div key={s.c} onClick={() => { if (used) { setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setExpandedDate(null); setPeriod("all"); } }}
+                      style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                        padding: isPC ? "8px 4px" : "6px 2px", borderRadius: 10,
+                        background: bgColor, border: `1px solid ${used ? T.brd : "transparent"}`,
+                        cursor: used ? "pointer" : "default", opacity: used ? 1 : 0.45,
+                        transition: "opacity .15s",
+                      }}>
+                      <FighterIcon name={s.c} size={iconSize} />
+                      <div style={{ fontSize: isPC ? 9 : 8, fontWeight: 600, color: T.sub, textAlign: "center", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
+                        {shortName(s.c, lang)}
+                      </div>
+                      <div style={{ fontSize: isPC ? 12 : 10, fontWeight: 800, color: used ? barColor(r) : T.dim, fontFamily: "'Chakra Petch', sans-serif" }}>
+                        {used ? percentStr(s.w, s.t) : "---"}
+                      </div>
+                      {used && (
+                        <div style={{ fontSize: isPC ? 9 : 8, color: T.dim, fontWeight: 500 }}>{s.w}W {s.l}L</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -720,14 +837,19 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             </div>
 
             {/* Char memo */}
-            <div style={{ ...cd, padding: "12px 16px" }}>
+            <div key={`memo-${charDetail}`} style={{ ...cd, padding: "12px 16px" }}>
               <div style={{ fontSize: 12, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{fighterName(charDetail, lang)} {t("battle.charMemo")}</div>
               <textarea
-                value={data.charMemos?.[charDetail] || ""}
-                onChange={(e) => onSave({ ...data, charMemos: { ...(data.charMemos || {}), [charDetail]: e.target.value } })}
+                defaultValue={data.charMemos?.[charDetail] || ""}
+                onBlur={(e) => {
+                  if (e.target.value !== (data.charMemos?.[charDetail] || "")) {
+                    onSave({ ...data, charMemos: { ...(data.charMemos || {}), [charDetail]: e.target.value } });
+                  }
+                }}
+                ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(40, el.scrollHeight) + "px"; } }}
+                onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(40, e.target.scrollHeight) + "px"; }}
                 placeholder={t("battle.charMemoPlaceholder")}
-                rows={2}
-                style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }}
+                style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 40 }}
               />
             </div>
 
@@ -763,34 +885,18 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         <div>
           {oCS.length === 0 ? (
             <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noCharData")}</div>
-          ) : (
-            <div>
-              <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
-                {oCS.map((s) => charRow(s, () => { setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null); }, true))}
+          ) : (() => {
+            const foughtSet = new Set(oCS.map((s) => s.c));
+            const allOpps = FIGHTERS.map((c) => {
+              const found = oCS.find((s) => s.c === c);
+              return found || { c, w: 0, l: 0, t: 0 };
+            });
+            return (
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                {allOpps.map((s) => matchupCell(s, null, { myChar: null, oppChar: s.c, isOppMode: true }))}
               </div>
-
-              {/* Not fought chars */}
-              {(() => {
-                const foughtSet = new Set(oCS.map((s) => s.c));
-                const notFought = FIGHTERS.filter((f) => !foughtSet.has(f));
-                if (!notFought.length) return null;
-                return (
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>{t("analysis.noMatchupData")}</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-                      {notFought.map((opp) => (
-                        <div key={opp} onClick={() => { setOppDetail(opp); setOppSubTab("myChars"); }}
-                          style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 6px", borderRadius: 10, background: T.inp, cursor: "pointer", opacity: 0.5 }}>
-                          <FighterIcon name={opp} size={28} />
-                          <div style={{ fontSize: 10, color: T.dim, marginTop: 4, textAlign: "center", lineHeight: 1.2 }}>{fighterName(opp, lang)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
@@ -943,11 +1049,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             {[20, 50].filter((n) => n !== 50 || data.matches.length > 20).map((n) => {
               const d = rolling[n];
               const r = d.t ? d.w / d.t : 0;
-              const isExp = expandedRolling === n;
               return (
-                <div key={n} onClick={() => setExpandedRolling(isExp ? null : n)} style={{
+                <div key={n} onClick={() => setExpandedRolling(n)} style={{
                   ...cd, flex: 1, marginBottom: 0, padding: "14px 16px", textAlign: "center", cursor: "pointer",
-                  outline: isExp ? `2px solid ${T.accent}` : "none",
                 }}>
                   <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 4 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
@@ -956,11 +1060,112 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               );
             })}
           </div>
-          {expandedRolling !== null && (
-            <div style={{ ...cd, marginBottom: isPC ? 20 : 14, padding: "10px 14px", maxHeight: 320, overflowY: "auto" }}>
-              {data.matches.slice(-expandedRolling).reverse().map((m, i, arr) => matchLogRow(m, i, arr.length))}
-            </div>
-          )}
+          {expandedRolling !== null && (() => {
+            const n = expandedRolling;
+            const recentMs = data.matches.slice(-n);
+            const rW = recentMs.filter((m) => m.result === "win").length;
+            const rR = recentMs.length > 0 ? rW / recentMs.length : 0;
+
+            // Rolling win rate graph: compute win rate at each chunk boundary
+            const chunkSize = n === 20 ? 20 : 20;
+            const graphPoints = [];
+            for (let i = chunkSize; i <= data.matches.length; i += chunkSize) {
+              const chunk = data.matches.slice(i - chunkSize, i);
+              const cW = chunk.filter((m) => m.result === "win").length;
+              graphPoints.push({ idx: i, rate: cW / chunk.length });
+            }
+            const remainder = data.matches.length % chunkSize;
+            if (remainder > 0 && data.matches.length > chunkSize) {
+              const chunk = data.matches.slice(-remainder);
+              const cW = chunk.filter((m) => m.result === "win").length;
+              graphPoints.push({ idx: data.matches.length, rate: cW / chunk.length });
+            }
+
+            const graphH = 120;
+            const graphW = 280;
+            const showGraph = graphPoints.length >= 2;
+            const padding = 20;
+            const plotW = graphW - padding * 2;
+            const plotH = graphH - 30;
+
+            return (
+              <div onClick={() => setExpandedRolling(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.55)", zIndex: 1000, display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center", animation: "fadeUp .15s ease" }}>
+                <div onClick={(e) => e.stopPropagation()} style={{
+                  background: T.card, borderRadius: isPC ? 20 : "20px 20px 0 0", width: isPC ? 520 : "100%",
+                  maxHeight: isPC ? "80vh" : "85vh", overflow: "hidden", display: "flex", flexDirection: "column",
+                  boxShadow: "0 20px 60px rgba(0,0,0,.3)", border: `1px solid ${T.brd}`,
+                }}>
+                  {/* Header */}
+                  <div style={{ padding: "18px 20px", borderBottom: `1px solid ${T.inp}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: T.text }}>{t("battle.recentLabel")} {n}{t("analysis.battles")}</div>
+                    <button onClick={() => setExpandedRolling(null)} style={{ border: "none", background: T.inp, borderRadius: 10, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18 }}>×</button>
+                  </div>
+
+                  <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", WebkitOverflowScrolling: "touch" }}>
+                    {/* Summary */}
+                    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "12px", textAlign: "center" }}>
+                        <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winRate")}</div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: barColor(rR), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(rW, recentMs.length)}</div>
+                      </div>
+                      <div style={{ flex: 1, background: T.inp, borderRadius: 12, padding: "12px", textAlign: "center" }}>
+                        <div style={{ fontSize: 10, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.winLoss")}</div>
+                        <div style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
+                          <span style={{ color: T.win }}>{rW}</span>
+                          <span style={{ color: T.dimmer, fontSize: 14, margin: "0 4px" }}>:</span>
+                          <span style={{ color: T.lose }}>{recentMs.length - rW}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Win rate transition graph */}
+                    {showGraph && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.winRateTransition")}</div>
+                        <div style={{ background: T.inp, borderRadius: 12, padding: "14px 10px 8px" }}>
+                          <svg viewBox={`0 0 ${graphW} ${graphH}`} style={{ width: "100%", height: "auto" }}>
+                            {/* 50% line */}
+                            <line x1={padding} y1={plotH / 2 + 10} x2={graphW - padding} y2={plotH / 2 + 10} stroke={T.dimmer || "#666"} strokeWidth="1" strokeDasharray="4 4" />
+                            <text x={padding - 2} y={plotH / 2 + 14} fill={T.dim} fontSize="8" textAnchor="end">50%</text>
+                            {/* Graph line */}
+                            <polyline
+                              fill="none"
+                              stroke={T.accent}
+                              strokeWidth="2.5"
+                              strokeLinejoin="round"
+                              points={graphPoints.map((p, i) => {
+                                const x = padding + (i / (graphPoints.length - 1)) * plotW;
+                                const y = 10 + plotH * (1 - p.rate);
+                                return `${x},${y}`;
+                              }).join(" ")}
+                            />
+                            {/* Data points */}
+                            {graphPoints.map((p, i) => {
+                              const x = padding + (i / (graphPoints.length - 1)) * plotW;
+                              const y = 10 + plotH * (1 - p.rate);
+                              return (
+                                <g key={i}>
+                                  <circle cx={x} cy={y} r="4" fill={barColor(p.rate)} />
+                                  <text x={x} y={y - 8} fill={T.text} fontSize="9" textAnchor="middle" fontWeight="700">{Math.round(p.rate * 100)}%</text>
+                                  <text x={x} y={graphH - 2} fill={T.dim} fontSize="7" textAnchor="middle">#{p.idx}</text>
+                                </g>
+                              );
+                            })}
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Match history */}
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
+                    <div style={{ maxHeight: isPC ? 300 : 240, overflowY: "auto" }}>
+                      {recentMs.slice().reverse().map((m, i, arr) => matchLogRow(m, i, arr.length))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Hourly stats */}
           <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("analysis.timeOfDay")}</div>
@@ -1038,7 +1243,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       )}
 
       {/* Shared overlays */}
-      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+      {sharePopup && <SharePopup text={sharePopup.text} imageBlob={sharePopup.imageBlob} onClose={() => setSharePopup(null)} T={T} />}
       {confirmAction && (
         <ConfirmDialog
           message={t("common.deleteConfirm")}
@@ -1135,9 +1340,15 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                       <div style={{ height: "100%", width: `${r * 100}%`, background: barColor(r), borderRadius: 4 }} />
                     </div>
 
+                    {/* Matchup Notes (flash + gameplan + stage ban) */}
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("matchupNotes.title")}</div>
+                      <MatchupNotesEditor noteKey={data.matchupNotes?.[`${myChar}|${oppChar}`] ? `${myChar}|${oppChar}` : oppChar} data={data} onSave={onSave} T={T} compact />
+                    </div>
+
                     {/* Stage win rates */}
                     {Object.keys(stageData).length > 0 && (
-                      <div style={{ marginBottom: 20 }}>
+                      <div style={{ marginBottom: 16 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("stages.winRateByStage")}</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {STAGES.filter((st) => stageData[st.id]).map((st) => {
@@ -1165,7 +1376,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     )}
 
                     {/* Match history */}
-                    <div style={{ marginBottom: 16 }}>
+                    <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
                       <div style={{ maxHeight: isPC ? 240 : 200, overflowY: "auto" }}>
                         {ms.slice().reverse().slice(0, 30).map((m, i) => (
@@ -1179,12 +1390,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                           </div>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Matchup Notes */}
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("matchupNotes.title")}</div>
-                      <MatchupNotesEditor noteKey={oppChar} data={data} onSave={onSave} T={T} compact />
                     </div>
                   </>
                 )}

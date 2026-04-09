@@ -63,16 +63,18 @@ export default function App() {
   );
   const [data, setData] = useState(() => load());
   const [loading, setLoading] = useState(true);
-  const prefersDark = typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-color-scheme: dark)").matches
-    : true;
-  const T = getTheme(data.dark !== undefined ? data.dark : prefersDark, data.themeColor || "black");
+  const T = getTheme(data.dark !== undefined ? data.dark : false, data.themeColor || "black");
   const [tabIdx, setTabIdxRaw] = useState(0);
   const [battleMode, setBattleModeRaw] = useState("ranked");
   const [analysisMode, setAnalysisModeRaw] = useState("myChar");
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const [aboutPage, setAboutPage] = useState(false);
+  const [showOnboard, setShowOnboard] = useState(() => {
+    if (localStorage.getItem("smash-onboard-done") === "1") return false;
+    const d = load();
+    return !d.matches || d.matches.length === 0;
+  });
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
   const wheelRef = useRef({ acc: 0, cooldown: false });
   const mainRef = useRef(null);
@@ -323,6 +325,27 @@ export default function App() {
     />
   );
 
+  const onboardModal = showOnboard && (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", padding: 20 }}>
+      <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 380, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+        <div style={{ background: T.accent, padding: "28px 24px 22px", textAlign: "center" }}>
+          <div style={{ fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: 2, fontFamily: "'Chakra Petch', sans-serif" }}>SMASH TRACKER</div>
+        </div>
+        <div style={{ padding: "24px 24px 28px", textAlign: "center" }}>
+          <div style={{ fontSize: 14, lineHeight: 1.8, color: "#333", whiteSpace: "pre-line", marginBottom: 24 }}>
+            {t("battle.onboardDesc")}
+          </div>
+          <button
+            onClick={() => { localStorage.setItem("smash-onboard-done", "1"); setShowOnboard(false); }}
+            style={{ width: "100%", padding: "14px 0", background: T.accent, color: "#fff", border: "none", borderRadius: 12, fontSize: 16, fontWeight: 800, cursor: "pointer", letterSpacing: 1 }}
+          >
+            {t("battle.onboardOk")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const fontFamily = "'Chakra Petch', 'Noto Sans JP', -apple-system, 'Hiragino Sans', sans-serif";
 
   if (!isPC) {
@@ -343,6 +366,7 @@ export default function App() {
         {settingsModal}
         {legalModal}
         {aboutModal}
+        {onboardModal}
         <div
           style={{
             background: T.hdr,
@@ -465,6 +489,7 @@ export default function App() {
       {settingsModal}
       {legalModal}
       {aboutModal}
+      {onboardModal}
 
       <nav
         style={{

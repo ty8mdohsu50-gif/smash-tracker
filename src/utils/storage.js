@@ -111,11 +111,11 @@ export async function cloudSave(userId, d) {
     dark: d.dark,
     themeColor: d.themeColor,
     shareSettings: d.shareSettings,
-    counterMemos: d.counterMemos,
     charMemos: d.charMemos,
     matchupNotes: d.matchupNotes,
     freeMatches: d.freeMatches,
     freeOpponents: d.freeOpponents,
+    _notesV2: d._notesV2,
   };
 
   const { error } = await supabase
