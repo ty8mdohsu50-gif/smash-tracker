@@ -65,8 +65,6 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const [matchupPopup, setMatchupPopup] = useState(null);
 
   // Editing state
-  const [counterMemoText, setCounterMemoText] = useState("");
-  const [noteMode, setNoteMode] = useState("general");
   const [sharePopupText, setSharePopupText] = useState(null);
   const [editingPower, setEditingPower] = useState(false);
   const [editStart, setEditStart] = useState("");
@@ -768,7 +766,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           ) : (
             <div>
               <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 } : undefined}>
-                {oCS.map((s) => charRow(s, () => { setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null); setCounterMemoText(data.counterMemos?.[s.c] || ""); setNoteMode("general"); }, true))}
+                {oCS.map((s) => charRow(s, () => { setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null); }, true))}
               </div>
 
               {/* Not fought chars */}
@@ -781,7 +779,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>{t("analysis.noMatchupData")}</div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                       {notFought.map((opp) => (
-                        <div key={opp} onClick={() => { setOppDetail(opp); setOppSubTab("myChars"); setCounterMemoText(data.counterMemos?.[opp] || ""); }}
+                        <div key={opp} onClick={() => { setOppDetail(opp); setOppSubTab("myChars"); }}
                           style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 6px", borderRadius: 10, background: T.inp, cursor: "pointer", opacity: 0.5 }}>
                           <FighterIcon name={opp} size={28} />
                           <div style={{ fontSize: 10, color: T.dim, marginTop: 4, textAlign: "center", lineHeight: 1.2 }}>{fighterName(opp, lang)}</div>

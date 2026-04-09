@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { X, Zap, Share2 } from "lucide-react";
-import { FlashDashboard, BattleNotes } from "./MatchupNotesEditor";
+import { BattleNotes } from "./MatchupNotesEditor";
 import CharPicker from "./CharPicker";
 import FreeMatchTab from "./FreeMatchTab";
 import SharePopup from "./SharePopup";
@@ -51,7 +51,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const [gWR, setGWR] = useState(String(data.goals?.winRate || ""));
 
   // Memos
-  const [counterEditText, setCounterEditText] = useState("");
   const [reviewText, setReviewText] = useState(data.daily?.[today()]?.review || "");
   const [charMemoText, setCharMemoText] = useState(data.charMemos?.[data.settings.myChar || ""] || "");
   const [reviewInsights, setReviewInsights] = useState(data.daily?.[today()]?.reviewInsights || { whatWorked: "", whatFailed: "" });
@@ -103,7 +102,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
   const prevOppRef = useRef(oppChar);
   if (prevOppRef.current !== oppChar) {
-    setCounterEditText(data.counterMemos?.[oppChar] || "");
     prevOppRef.current = oppChar;
   }
 
@@ -141,12 +139,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     nm[nm.length - 1] = { ...nm[nm.length - 1], memo };
     onSave({ ...data, matches: nm });
   };
-
-  const saveCounterMemo = () => {
-    if (!oppChar) return;
-    onSave({ ...data, counterMemos: { ...(data.counterMemos || {}), [oppChar]: counterEditText } });
-  };
-
 
   const saveGoals = () => onSave({ ...data, goals: { games: parseInt(gGames) || 0, winRate: parseInt(gWR) || 0 } });
 
@@ -187,7 +179,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
 
     setLastRes(r);
     setMemo("");
-    setCounterEditText(data.counterMemos?.[opp] || "");
     setToast(t("battle.toastRecorded"));
     setPhase("postMatch");
   };

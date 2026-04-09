@@ -17,10 +17,11 @@ function migrateCounterMemos(d) {
     const notes = {};
     for (const [key, text] of Object.entries(d.counterMemos)) {
       if (text && text.trim()) {
-        notes[key] = { flash: text, neutral: "", advantage: "", disadvantage: "", edgeguard: "", stage: "" };
+        notes[key] = { flash: text, gameplan: "", stage: "" };
       }
     }
     d.matchupNotes = notes;
+    d._notesV2 = true;
   }
   return migrateNotesV2(d);
 }
@@ -145,7 +146,7 @@ export async function migrateLocalToCloud(userId) {
 /* ── CSV ── */
 
 export function csvDownload(data) {
-  const hdr = "\uFEFF日付,時刻,使用キャラ,相手キャラ,結果,ステージ,メモ,戦闘力,仮説,仮説結果\n";
+  const hdr = "\uFEFF日付,時刻,使用キャラ,相手キャラ,結果,ステージ,メモ,戦闘力\n";
   const rows = data.matches
     .map(
       (m) =>
@@ -158,8 +159,6 @@ export function csvDownload(data) {
           `"${m.stage || ""}"`,
           `"${(m.memo || "").replace(/"/g, '""')}"`,
           m.power || "",
-          `"${(m.hypothesis || "").replace(/"/g, '""')}"`,
-          m.hypothesisResult || "",
         ].join(","),
     )
     .join("\n");

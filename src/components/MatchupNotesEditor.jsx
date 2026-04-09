@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronRight, Zap } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useI18n } from "../i18n/index.jsx";
 import { STAGES, stageName, stageImg } from "../constants/stages";
 
@@ -30,7 +30,7 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
   // Derive oppChar from noteKey for stage stats (supports "myChar|oppChar" and "oppChar")
   const oppCharKey = noteKey.includes("|") ? noteKey.split("|")[1] : noteKey;
   const stageStats = useMemo(() => {
-    if (!data.matches || oppCharKey.startsWith("free:")) return {};
+    if (!data.matches) return {};
     const ms = data.matches.filter((m) => m.oppChar === oppCharKey && m.stage);
     const stats = {};
     for (const m of ms) {
@@ -141,33 +141,6 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
           </div>
         );
       })}
-    </div>
-  );
-}
-
-export function FlashDashboard({ noteKey, data, T, onEdit }) {
-  const { t } = useI18n();
-  const notes = data.matchupNotes?.[noteKey];
-  const flash = notes?.flash;
-  if (!flash || !flash.trim()) return null;
-
-  return (
-    <div style={{
-      background: T.accentSoft, borderRadius: 12, border: `1px solid ${T.accentBorder}`,
-      padding: "10px 14px", marginBottom: 10,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <Zap size={13} style={{ color: T.accent }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: T.accent }}>{t("matchupNotes.flashPreMatch")}</span>
-        </div>
-        {onEdit && (
-          <button onClick={onEdit} style={{ border: "none", background: "none", color: T.accent, fontSize: 11, fontWeight: 600, cursor: "pointer", padding: 0 }}>
-            {t("matchupNotes.edit")}
-          </button>
-        )}
-      </div>
-      <div style={{ fontSize: 12, color: T.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{flash}</div>
     </div>
   );
 }
