@@ -403,16 +403,16 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
           </button>
         )}
       </div>
-      <div style={{ display: "flex", flexDirection: isPC ? "row" : "column", gap: 8, marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
-          <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, minWidth: 42 }}>{t("settings.games")}</span>
-          <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ ...goalInputStyle, padding: "8px 10px", fontSize: 14 }} />
-          <span style={{ fontSize: 12, color: T.sub }}>{t("settings.gamesUnit")}</span>
+      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+          <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("settings.games")}</span>
+          <input type="number" value={gGames} onChange={(e) => setGG(e.target.value)} onBlur={saveGoals} placeholder="10" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13, minWidth: 0 }} />
+          <span style={{ fontSize: 11, color: T.sub, flexShrink: 0 }}>{t("settings.gamesUnit")}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
-          <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, minWidth: 42 }}>{t("settings.winRate")}</span>
-          <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ ...goalInputStyle, padding: "8px 10px", fontSize: 14 }} />
-          <span style={{ fontSize: 12, color: T.sub }}>{t("settings.winRateUnit")}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+          <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("settings.winRate")}</span>
+          <input type="number" value={gWR} onChange={(e) => setGWR(e.target.value)} onBlur={saveGoals} placeholder="60" style={{ ...goalInputStyle, padding: "6px 8px", fontSize: 13, minWidth: 0 }} />
+          <span style={{ fontSize: 11, color: T.sub, flexShrink: 0 }}>{t("settings.winRateUnit")}</span>
         </div>
       </div>
       {goals.games ? (

@@ -122,7 +122,7 @@ export async function migrateLocalToCloud(userId) {
 /* ── CSV ── */
 
 export function csvDownload(data) {
-  const hdr = "\uFEFF日付,時刻,使用キャラ,相手キャラ,結果,メモ,戦闘力\n";
+  const hdr = "\uFEFF日付,時刻,使用キャラ,相手キャラ,結果,ステージ,メモ,戦闘力,仮説,仮説結果\n";
   const rows = data.matches
     .map(
       (m) =>
@@ -132,8 +132,11 @@ export function csvDownload(data) {
           `"${m.myChar}"`,
           `"${m.oppChar}"`,
           m.result === "win" ? "勝ち" : "負け",
+          `"${m.stage || ""}"`,
           `"${(m.memo || "").replace(/"/g, '""')}"`,
           m.power || "",
+          `"${(m.hypothesis || "").replace(/"/g, '""')}"`,
+          m.hypothesisResult || "",
         ].join(","),
     )
     .join("\n");

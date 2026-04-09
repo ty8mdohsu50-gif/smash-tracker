@@ -184,6 +184,8 @@ export default {
     language: "言語",
     dayBoundary: "1日の区切り",
     dayBoundaryDesc: "この時刻より前の対戦は前日扱いになります",
+    region: "地域 / タイムゾーン",
+    regionDesc: "日付の区切りに使用するタイムゾーンを選択します",
   },
   auth: {
     login: "ログイン",

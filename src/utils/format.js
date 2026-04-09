@@ -2,9 +2,14 @@ const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
 
 export const today = () => {
   const offset = parseInt(localStorage.getItem("smash-day-boundary") || "5", 10);
+  const tz = localStorage.getItem("smash-region-tz") || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const d = new Date();
-  d.setHours(d.getHours() - offset);
-  return d.toISOString().split("T")[0];
+  const local = new Date(d.toLocaleString("en-US", { timeZone: tz }));
+  local.setHours(local.getHours() - offset);
+  const y = local.getFullYear();
+  const m = String(local.getMonth() + 1).padStart(2, "0");
+  const day = String(local.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 };
 
 export const formatDate = (d) => {

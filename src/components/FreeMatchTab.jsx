@@ -14,7 +14,20 @@ import { today, formatDate, formatTime, percentStr, barColor, recentChars } from
 export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const { t, lang } = useI18n();
 
-  const [selectedOpponent, setSelectedOpponent] = useState(null);
+  const [selectedOpponent, setSelectedOpponentRaw] = useState(null);
+  const setSelectedOpponent = (v) => {
+    if (v && !isPC) window.history.pushState({ type: "freeOpp", v }, "");
+    setSelectedOpponentRaw(v);
+  };
+
+  useEffect(() => {
+    if (isPC) return;
+    const onPop = () => {
+      if (selectedOpponent) { setSelectedOpponentRaw(null); return; }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [isPC, selectedOpponent]);
   const [myChar, setMyChar] = useState(data.settings?.myChar || "");
   const [oppChar, setOppChar] = useState("");
   const [showMyPicker, setShowMyPicker] = useState(false);
@@ -110,7 +123,9 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   };
 
   const deleteFreeMatch = (match) => {
-    setConfirmAction({ message: t("common.deleteConfirm"), onConfirm: () => { onSave({ ...data, freeMatches: freeMatches.filter((m) => m !== match) }); setConfirmAction(null); } });
+    const idx = freeMatches.findIndex((m) => m.date === match.date && m.time === match.time && m.myChar === match.myChar && m.oppChar === match.oppChar && m.result === match.result);
+    if (idx === -1) return;
+    setConfirmAction({ message: t("common.deleteConfirm"), onConfirm: () => { const nf = [...freeMatches]; nf.splice(idx, 1); onSave({ ...data, freeMatches: nf }); setConfirmAction(null); } });
   };
 
   const recordMatch = (result) => {

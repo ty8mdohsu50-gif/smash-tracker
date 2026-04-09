@@ -184,6 +184,8 @@ export default {
     language: "Language",
     dayBoundary: "Day boundary",
     dayBoundaryDesc: "Matches before this time count as the previous day",
+    region: "Region / Timezone",
+    regionDesc: "Select the timezone used for day boundary calculation",
   },
   auth: {
     login: "Log In",

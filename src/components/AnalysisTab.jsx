@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { BarChart3, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import MatchupNotesEditor, { needsReview } from "./MatchupNotesEditor";
 import Chart from "./Chart";
@@ -27,8 +27,27 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const { t, lang } = useI18n();
 
   // Navigation state
-  const [charDetail, setCharDetail] = useState(null);
-  const [oppDetail, setOppDetail] = useState(null);
+  const [charDetail, setCharDetailRaw] = useState(null);
+  const [oppDetail, setOppDetailRaw] = useState(null);
+
+  const setCharDetail = useCallback((v) => {
+    if (v && !isPC) window.history.pushState({ type: "charDetail", v }, "");
+    setCharDetailRaw(v);
+  }, [isPC]);
+  const setOppDetail = useCallback((v) => {
+    if (v && !isPC) window.history.pushState({ type: "oppDetail", v }, "");
+    setOppDetailRaw(v);
+  }, [isPC]);
+
+  useEffect(() => {
+    if (isPC) return;
+    const onPop = (e) => {
+      if (oppDetail) { setOppDetailRaw(null); return; }
+      if (charDetail) { setCharDetailRaw(null); return; }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [isPC, charDetail, oppDetail]);
   const [charSubTab, setCharSubTab] = useState("matchup");
   const [oppSubTab, setOppSubTab] = useState("myChars");
 
@@ -812,25 +831,10 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             <div style={{ marginBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{t("matchupNotes.title")}</div>
-                {data.settings?.myChar && (
-                  <div style={{ display: "flex", gap: 4 }}>
-                    {[["general", t("matchupNotes.generalNotes")], ["matchup", t("matchupNotes.matchupSpecific")]].map(([k, l]) => (
-                      <button key={k} onClick={() => setNoteMode(k)} style={{
-                        padding: "4px 10px", borderRadius: 8, border: "none", fontSize: 11, fontWeight: noteMode === k ? 700 : 500,
-                        background: noteMode === k ? T.accentGrad : T.inp, color: noteMode === k ? "#fff" : T.sub,
-                      }}>{l}</button>
-                    ))}
-                  </div>
-                )}
               </div>
-              {noteMode === "matchup" && data.settings?.myChar && (
-                <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>
-                  {fighterName(data.settings.myChar, lang)} {t("matchupNotes.vsLabel")} {fighterName(oppDetail, lang)}
-                </div>
-              )}
               <MatchupNotesEditor
-                key={noteMode === "matchup" && data.settings?.myChar ? `${data.settings.myChar}|${oppDetail}` : oppDetail}
-                noteKey={noteMode === "matchup" && data.settings?.myChar ? `${data.settings.myChar}|${oppDetail}` : oppDetail}
+                key={oppDetail}
+                noteKey={oppDetail}
                 data={data} onSave={onSave} T={T}
               />
             </div>

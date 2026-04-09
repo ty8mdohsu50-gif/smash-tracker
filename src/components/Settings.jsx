@@ -25,6 +25,9 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
   const [dayBoundary, setDayBoundary] = useState(
     () => localStorage.getItem("smash-day-boundary") || "5",
   );
+  const [region, setRegion] = useState(
+    () => localStorage.getItem("smash-region-tz") || Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
 
   const currentColor = data.themeColor || "black";
 
@@ -290,6 +293,45 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Region / Timezone */}
+          <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: T.text, marginBottom: 4 }}>
+              {t("settings.region")}
+            </div>
+            <div style={{ fontSize: 12, color: T.dim, marginBottom: 10 }}>
+              {t("settings.regionDesc")}
+            </div>
+            <select
+              value={region}
+              onChange={(e) => {
+                setRegion(e.target.value);
+                localStorage.setItem("smash-region-tz", e.target.value);
+              }}
+              style={{
+                width: "100%", padding: "10px 12px", borderRadius: 10,
+                border: `1px solid ${T.brd}`, background: T.inp, color: T.text,
+                fontSize: 14, fontWeight: 600,
+              }}
+            >
+              {[
+                { label: "日本 (JST)", tz: "Asia/Tokyo" },
+                { label: "韓国 (KST)", tz: "Asia/Seoul" },
+                { label: "中国/台湾/香港 (CST)", tz: "Asia/Shanghai" },
+                { label: "東南アジア (SGT)", tz: "Asia/Singapore" },
+                { label: "オーストラリア東部 (AEST)", tz: "Australia/Sydney" },
+                { label: "西ヨーロッパ (WET)", tz: "Europe/London" },
+                { label: "中央ヨーロッパ (CET)", tz: "Europe/Paris" },
+                { label: "米国東部 (EST)", tz: "America/New_York" },
+                { label: "米国中部 (CST)", tz: "America/Chicago" },
+                { label: "米国西部 (PST)", tz: "America/Los_Angeles" },
+                { label: "メキシコ (CDT)", tz: "America/Mexico_City" },
+                { label: "ブラジル (BRT)", tz: "America/Sao_Paulo" },
+              ].map(({ label, tz }) => (
+                <option key={tz} value={tz}>{label}</option>
+              ))}
+            </select>
           </div>
 
           {/* CSV / Reset */}

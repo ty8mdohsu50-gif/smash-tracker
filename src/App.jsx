@@ -67,9 +67,9 @@ export default function App() {
     ? window.matchMedia("(prefers-color-scheme: dark)").matches
     : true;
   const T = getTheme(data.dark !== undefined ? data.dark : prefersDark, data.themeColor || "black");
-  const [tabIdx, setTabIdx] = useState(0);
-  const [battleMode, setBattleMode] = useState("ranked");
-  const [analysisMode, setAnalysisMode] = useState("myChar");
+  const [tabIdx, setTabIdxRaw] = useState(0);
+  const [battleMode, setBattleModeRaw] = useState("ranked");
+  const [analysisMode, setAnalysisModeRaw] = useState("myChar");
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const [aboutPage, setAboutPage] = useState(false);
@@ -78,6 +78,34 @@ export default function App() {
   const mainRef = useRef(null);
   const userRef = useRef(user);
   userRef.current = user;
+
+  // Nav state refs for history management
+  const navRef = useRef({ tabIdx: 0, battleMode: "ranked", analysisMode: "myChar" });
+  const setTabIdx = useCallback((v) => { const val = typeof v === "function" ? v(navRef.current.tabIdx) : v; navRef.current.tabIdx = val; setTabIdxRaw(val); }, []);
+  const setBattleMode = useCallback((v) => { navRef.current.battleMode = v; setBattleModeRaw(v); }, []);
+  const setAnalysisMode = useCallback((v) => { navRef.current.analysisMode = v; setAnalysisModeRaw(v); }, []);
+
+  // Browser back button support
+  useEffect(() => {
+    const pushNav = () => {
+      const s = { tab: navRef.current.tabIdx, bm: navRef.current.battleMode, am: navRef.current.analysisMode };
+      window.history.pushState(s, "");
+    };
+    pushNav();
+    const onPop = (e) => {
+      if (showSettings) { setShowSettings(false); window.history.pushState(null, ""); return; }
+      if (aboutPage) { setAboutPage(false); window.history.pushState(null, ""); return; }
+      if (legalPage) { setLegalPage(null); window.history.pushState(null, ""); return; }
+      if (e.state) {
+        navRef.current = { tabIdx: e.state.tab, battleMode: e.state.bm, analysisMode: e.state.am };
+        setTabIdxRaw(e.state.tab);
+        setBattleModeRaw(e.state.bm);
+        setAnalysisModeRaw(e.state.am);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [showSettings, aboutPage, legalPage]);
   const isPC = useIsPC();
   const isLandscape = useIsLandscape();
 
