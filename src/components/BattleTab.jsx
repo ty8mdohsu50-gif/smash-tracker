@@ -148,6 +148,33 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     onSave({ ...data, matches: nm });
   };
 
+  /** ステージ等をタップしたとき、上の textarea の blur→onSave でスクロールが先頭に飛ぶのを防ぐ */
+  const suppressPointerFocus = (e) => {
+    e.preventDefault();
+  };
+
+  const restoreScrollAfter = (y) => {
+    if (y <= 0) return;
+    const run = () => {
+      if (window.scrollY < y - 12) window.scrollTo(0, y);
+    };
+    queueMicrotask(run);
+    requestAnimationFrame(() => requestAnimationFrame(run));
+    setTimeout(run, 80);
+  };
+
+  const saveCharMemoBlur = () => {
+    const y = typeof window !== "undefined" ? window.scrollY : 0;
+    onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } });
+    if (!isPC) restoreScrollAfter(y);
+  };
+
+  const saveMemoBlur = () => {
+    const y = typeof window !== "undefined" ? window.scrollY : 0;
+    saveMemo();
+    if (!isPC && memo) restoreScrollAfter(y);
+  };
+
   const saveGoals = () => onSave({ ...data, goals: { games: parseInt(gGames) || 0, winRate: parseInt(gWR) || 0 } });
 
   const switchCharPower = (charName) => {
@@ -226,12 +253,14 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   };
 
   const saveStage = (stageId) => {
+    const y = typeof window !== "undefined" ? window.scrollY : 0;
     const nm = [...data.matches];
     const last = nm[nm.length - 1];
     if (!last) return;
     nm[nm.length - 1] = { ...last, stage: stageId };
     onSave({ ...data, matches: nm });
     setSelectedStage(stageId);
+    if (!isPC) restoreScrollAfter(y);
   };
 
   const saveEndSession = (andShare) => {
@@ -616,7 +645,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 <textarea
                   ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
                   value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; }}
-                  onBlur={() => { onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } }); }}
+                  onBlur={saveCharMemoBlur}
                   placeholder={t("battle.charMemoPlaceholder")}
                   style={{ width: "100%", padding: "6px 8px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 36 }}
                 />
@@ -669,7 +698,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 {STAGES.map((s) => {
                   const active = selectedStage === s.id;
                   return (
-                    <button key={s.id} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
+                    <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
                       border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
                       overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
                       boxShadow: active ? T.accentGlow : "none",
@@ -716,7 +745,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 <FighterIcon name={oppChar} size={32} />
                 <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{fighterName(oppChar, lang)}</span>
               </div>
-              <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
+              <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemoBlur} placeholder={t("battle.memo")} rows={1}
                 style={{ width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
             </div>
 
@@ -730,7 +759,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 {STAGES.map((s) => {
                   const active = selectedStage === s.id;
                   return (
-                    <button key={s.id} onClick={() => saveStage(active ? null : s.id)} style={{
+                    <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => saveStage(active ? null : s.id)} style={{
                       border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
                       overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
                       boxShadow: active ? T.accentGlow : "none",
@@ -931,7 +960,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
             <div style={{ fontSize: 11, fontWeight: 700, color: T.text, marginBottom: 4 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
             <textarea ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
               value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }}
-              onBlur={() => { onSave({ ...data, charMemos: { ...(data.charMemos || {}), [myChar]: charMemoText } }); }}
+              onBlur={saveCharMemoBlur}
               placeholder={t("battle.charMemoPlaceholder")}
               style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 40 }} />
           </div>
@@ -1108,7 +1137,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                   {STAGES.map((s) => {
                     const active = selectedStage === s.id;
                     return (
-                      <button key={s.id} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
+                      <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
                         border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
                         overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
                         boxShadow: active ? T.accentGlow : "none",
@@ -1152,7 +1181,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 <div style={{ marginTop: 12 }}>
                   <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose, animation: "popIn .3s ease" }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
                 </div>
-                <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemo} placeholder={t("battle.memo")} rows={1}
+                <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemoBlur} placeholder={t("battle.memo")} rows={1}
                   style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
               {/* Stage selection (PC) */}
@@ -1165,21 +1194,21 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                   {STAGES.map((s) => {
                     const active = selectedStage === s.id;
                     return (
-                      <button key={s.id} onClick={() => saveStage(active ? null : s.id)} style={{
-                        border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
-                        overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
-                        boxShadow: active ? T.accentGlow : "none",
-                      }}>
-                        <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
-                        <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
-                          {lang === "ja" ? s.jp : s.en}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                    <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => saveStage(active ? null : s.id)} style={{
+                      border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
+                      overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
+                      boxShadow: active ? T.accentGlow : "none",
+                    }}>
+                      <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
+                      <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
+                        {lang === "ja" ? s.jp : s.en}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-              {/* Power update */}
+            </div>
+            {/* Power update */}
               <div style={{ ...cd, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>
                 <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
                 <div style={{ flex: 1 }}>{pwrInput(pEnd, setPEnd, t("battle.powerPlaceholder"), false)}</div>
