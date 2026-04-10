@@ -171,16 +171,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     const l = matchList.length - w;
     const rate = matchList.length > 0 ? Math.round((w / matchList.length) * 100) : 0;
     const lines = [`【SMASH TRACKER】${t("free.freeMatch")} vs ${opp}`, `${w}W ${l}L（${t("battle.winRate")} ${rate}%）`];
-    const muMap = {};
-    matchList.forEach((m) => {
-      const k = `${m.myChar}|${m.oppChar}`;
-      if (!muMap[k]) muMap[k] = { my: m.myChar, opp: m.oppChar, w: 0, l: 0 };
-      m.result === "win" ? muMap[k].w++ : muMap[k].l++;
-    });
-    const muEntries = Object.values(muMap).sort((a, b) => (b.w + b.l) - (a.w + a.l));
-    if (muEntries.length > 0) {
-      lines.push(muEntries.map((mu) => `${fighterName(mu.my, lang)} vs ${fighterName(mu.opp, lang)} ${mu.w}W${mu.l}L`).join("\n"));
-    }
     lines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
     return lines.join("\n");
   };
@@ -376,38 +366,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     <div>
       {!postRecord ? (
         <>
-          {noteKey && (() => {
-            const muPair = oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
-            const pw = muPair.filter((m) => m.result === "win").length;
-            const pl = muPair.length - pw;
-            const memoHist = muPair.filter((m) => String(m.memo || "").trim()).slice().reverse();
-            return (
-              <div style={{ ...cd, padding: "12px 16px", marginBottom: 10 }}>
-                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.prepReference")}</div>
-                {muPair.length > 0 ? (
-                  <div style={{ fontSize: 14, fontWeight: 800, color: barColor(pw / muPair.length), fontFamily: "'Chakra Petch', sans-serif", marginBottom: 8 }}>
-                    {pw}W {pl}L · {percentStr(pw, muPair.length)} <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>({muPair.length}{t("common.matches")})</span>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>{t("battle.firstMatch")}</div>
-                )}
-                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
-                {memoHist.length > 0 ? (
-                  <div style={{ maxHeight: 160, overflowY: "auto", marginBottom: 8 }}>
-                    {memoHist.slice(0, 15).map((m, i, arr) => (
-                      <div key={i} style={{ padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
-                        <span style={{ color: m.result === "win" ? T.win : T.lose, fontWeight: 800, fontSize: 10, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
-                        <span style={{ fontSize: 10, color: T.dim }}>{formatDate(m.date)}</span>
-                        <div style={{ fontSize: 12, color: T.sub, marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>{t("battle.noMemoMatches")}</div>
-                )}
-              </div>
-            );
-          })()}
           <div style={{ ...cd, padding: "12px 14px" }}>
             {showMyPicker ? (
               <CharPicker value={myChar} onChange={(c) => { setMyChar(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} />
@@ -452,9 +410,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
             <button type="button" onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #16A34A, #22C55E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(34,197,94,.3)" : "none" }}>{t("battle.win")}</button>
             <button type="button" onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? "linear-gradient(135deg, #E11D48, #F43F5E)" : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? "0 4px 16px rgba(244,63,94,.3)" : "none" }}>{t("battle.lose")}</button>
           </div>
-          {noteKey && (
-            <BattleNotes noteKey={noteKey} data={data} T={T} onSave={onSave} />
-          )}
           <div style={{ ...cd, padding: "12px 16px" }}>
             <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 8 }}>{t("stages.selectStage")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
@@ -467,6 +422,41 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
               ))}
             </div>
           </div>
+          {noteKey && (
+            <BattleNotes noteKey={noteKey} data={data} T={T} onSave={onSave} />
+          )}
+          {noteKey && (() => {
+            const muPair = oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+            const pw = muPair.filter((m) => m.result === "win").length;
+            const pl = muPair.length - pw;
+            const memoHist = muPair.filter((m) => String(m.memo || "").trim()).slice().reverse();
+            return (
+              <div style={{ ...cd, padding: "12px 16px", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.prepReference")}</div>
+                {muPair.length > 0 ? (
+                  <div style={{ fontSize: 14, fontWeight: 800, color: barColor(pw / muPair.length), fontFamily: "'Chakra Petch', sans-serif", marginBottom: 8 }}>
+                    {pw}W {pl}L · {percentStr(pw, muPair.length)} <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>({muPair.length}{t("common.matches")})</span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>{t("battle.firstMatch")}</div>
+                )}
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
+                {memoHist.length > 0 ? (
+                  <div style={{ maxHeight: 160, overflowY: "auto", marginBottom: 8 }}>
+                    {memoHist.slice(0, 15).map((m, i, arr) => (
+                      <div key={i} style={{ padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
+                        <span style={{ color: m.result === "win" ? T.win : T.lose, fontWeight: 800, fontSize: 10, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
+                        <span style={{ fontSize: 10, color: T.dim }}>{formatDate(m.date)}</span>
+                        <div style={{ fontSize: 12, color: T.sub, marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: T.dim, marginBottom: 8 }}>{t("battle.noMemoMatches")}</div>
+                )}
+              </div>
+            );
+          })()}
         </>
       ) : (
         <div style={{ ...cd, padding: "16px 18px" }}>

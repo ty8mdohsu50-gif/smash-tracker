@@ -784,8 +784,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           <div style={{ marginBottom: 12 }}>
             <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: 10 }}>
               <button type="button" onClick={() => {
-                const lines = [`【SMASH TRACKER】${formatDate(detailDate)}`, `${selectedDayData.w}W ${selectedDayData.l}L（${t("analysis.winRate")} ${percentStr(selectedDayData.w, total)}）`, "",
-                  ...ms.map((m) => `${m.result === "win" ? "WIN" : "LOSE"} ${fighterName(m.myChar, lang)} vs ${fighterName(m.oppChar, lang)}`),
+                const lines = [`【SMASH TRACKER】${formatDate(detailDate)}`, `${selectedDayData.w}W ${selectedDayData.l}L（${t("analysis.winRate")} ${percentStr(selectedDayData.w, total)}）`,
                   "", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/"];
                 doShare(lines.join("\n"));
               }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
