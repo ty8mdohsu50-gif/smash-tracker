@@ -13,7 +13,7 @@ export default function CharPicker({
   autoOpen = false,
   T,
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [open, setOpen] = useState(autoOpen);
   const [q, setQ] = useState("");
   const ref = useRef(null);
@@ -29,7 +29,13 @@ export default function CharPicker({
   }, []);
 
   useEffect(() => {
-    if (open && inputRef.current) inputRef.current.focus();
+    if (open && inputRef.current) {
+      try {
+        inputRef.current.focus({ preventScroll: true });
+      } catch {
+        inputRef.current.focus();
+      }
+    }
   }, [open]);
 
   const filtered = useMemo(() => {

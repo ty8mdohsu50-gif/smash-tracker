@@ -97,11 +97,16 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     prevPhase.current = phase;
   }
 
-  const isFirstRender = useRef(true);
+  const phaseScrollRef = useRef(phase);
   useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return; }
-    if (!isPC) window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [phase]);
+    if (isPC) return;
+    const prev = phaseScrollRef.current;
+    phaseScrollRef.current = phase;
+    // 対戦開始・記録完了のタイミングだけ上へ（ステージタップ等では phase は変わらないが、無闇な scrollTo を避ける）
+    if (prev === "setup" && phase === "battle") window.scrollTo({ top: 0, behavior: "smooth" });
+    else if (prev === "battle" && phase === "postMatch") window.scrollTo({ top: 0, behavior: "smooth" });
+    else if (prev === "end" && phase === "setup") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [phase, isPC]);
 
   const prevOppRef = useRef(oppChar);
   if (prevOppRef.current !== oppChar) {
