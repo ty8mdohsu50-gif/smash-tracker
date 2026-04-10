@@ -570,7 +570,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     </div>
   );
 
-  const dailyList = (filterFn, scope) => {
+  const dailyList = (filterFn, scope, dailyOpts = {}) => {
+    const { pcOverallRightColumn = false } = dailyOpts;
     const dailyMap = buildDailyMap(data.matches, filterFn);
     if (!Object.keys(dailyMap).length) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
 
@@ -616,10 +617,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
     const dotColor = (r) => r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A";
 
+    const calTight = pcOverallRightColumn && isPC;
     const calendarGrid = (
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, textAlign: "center" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: calTight ? 0 : 1, textAlign: "center" }}>
         {weekDays.map((d, i) => (
-          <div key={`h${i}`} style={{ fontSize: 10, fontWeight: 600, color: T.dim, padding: "2px 0" }}>{d}</div>
+          <div key={`h${i}`} style={{ fontSize: calTight ? 9 : 10, fontWeight: 600, color: T.dim, padding: calTight ? "1px 0" : "2px 0" }}>{d}</div>
         ))}
         {Array.from({ length: startOffset }).map((_, i) => <div key={`e${i}`} />)}
         {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -641,7 +643,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 else setDateDetailModal({ date: dateStr, scope });
               }}
               style={{
-                padding: isPC ? "5px 0" : "4px 0",
+                padding: calTight ? "3px 0" : isPC ? "5px 0" : "4px 0",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                 borderRadius: 8, cursor: hasData ? "pointer" : "default",
                 background: isSelected ? T.accentSoft : "transparent",
@@ -649,7 +651,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 opacity: isFuture ? 0.3 : 1, transition: "all .1s ease",
               }}
             >
-              <span style={{ fontSize: isPC ? 12 : 11, fontWeight: isToday ? 800 : 500, color: isSelected ? T.accent : isToday ? T.text : T.sub, lineHeight: 1 }}>
+              <span style={{ fontSize: calTight ? 10 : isPC ? 12 : 11, fontWeight: isToday ? 800 : 500, color: isSelected ? T.accent : isToday ? T.text : T.sub, lineHeight: 1 }}>
                 {day}
               </span>
               {hasData && (
@@ -661,8 +663,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       </div>
     );
 
+    const navMb = pcOverallRightColumn && isPC ? 4 : 10;
     const monthNav = (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: navMb }}>
         <button onClick={prevMonth} style={{ border: "none", background: "transparent", color: T.text, padding: 6, cursor: "pointer" }}>
           <ChevronLeft size={20} />
         </button>
@@ -881,33 +884,57 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       );
     })() : null;
 
-    return (
-      <>
-        <div style={{ ...cd, padding: isPC ? "8px 10px 10px" : "12px 14px", marginBottom: isPC ? 6 : 12 }}>
-          {monthNav}
-          {monthSummary}
-          {calendarGrid}
-          <div style={{ fontSize: 10, color: T.dim, marginTop: 6, lineHeight: 1.4 }}>{t("history.selectDateDesc")}</div>
-        </div>
-        {selectedDayData && dateDetailModal && dailyScopesEqual(dateDetailModal.scope, scope) && (
-          <div role="presentation" style={dailyModalShell.backdrop} onClick={() => setDateDetailModal(null)}>
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="analysis-daily-detail-title"
-              style={dailyModalShell.panel}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
-                <button type="button" aria-label={t("common.close")} onClick={() => setDateDetailModal(null)} style={closeDailyFs}>×</button>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div id="analysis-daily-detail-title" style={{ fontSize: isPC ? 17 : 16, fontWeight: 800, color: T.text, letterSpacing: "-0.02em" }}>{formatDate(detailDate)}</div>
-                </div>
-              </div>
-              {dayDetailModalContent}
+    const calCard = (
+      <div
+        style={{
+          ...cd,
+          padding: pcOverallRightColumn && isPC ? "8px 8px" : isPC ? "8px 10px 10px" : "12px 14px",
+          marginBottom: pcOverallRightColumn && isPC ? 0 : isPC ? 6 : 12,
+          ...(pcOverallRightColumn && isPC
+            ? { flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "auto" }
+            : {}),
+        }}
+      >
+        {monthNav}
+        {monthSummary}
+        <div style={{ flex: pcOverallRightColumn && isPC ? 1 : undefined, minHeight: 0 }}>{calendarGrid}</div>
+        <div style={{ fontSize: 9, color: T.dim, marginTop: 6, lineHeight: 1.35 }}>{t("history.selectDateDesc")}</div>
+      </div>
+    );
+
+    const modal = selectedDayData && dateDetailModal && dailyScopesEqual(dateDetailModal.scope, scope) && (
+      <div role="presentation" style={dailyModalShell.backdrop} onClick={() => setDateDetailModal(null)}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="analysis-daily-detail-title"
+          style={dailyModalShell.panel}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+            <button type="button" aria-label={t("common.close")} onClick={() => setDateDetailModal(null)} style={closeDailyFs}>×</button>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div id="analysis-daily-detail-title" style={{ fontSize: isPC ? 17 : 16, fontWeight: 800, color: T.text, letterSpacing: "-0.02em" }}>{formatDate(detailDate)}</div>
             </div>
           </div>
-        )}
+          {dayDetailModalContent}
+        </div>
+      </div>
+    );
+
+    if (pcOverallRightColumn && isPC) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 }}>
+          {calCard}
+          {modal}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {calCard}
+        {modal}
       </>
     );
   };
@@ -1423,112 +1450,219 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               doShare(sLines.join("\n"));
             }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}><Share2 size={12} /> {t("analysis.share")}</button>
           </div>
-          <div style={{
-            display: isPC ? "grid" : "block",
-            gridTemplateColumns: isPC ? "minmax(0, 1.1fr) minmax(0, 0.9fr)" : "1fr",
-            gap: isPC ? 8 : 0,
-            marginBottom: isPC ? 6 : 0,
-          }}
-          >
-            <div style={{ ...cd, display: "flex", padding: isPC ? "10px 12px" : "18px 12px", marginBottom: isPC ? 0 : 12, textAlign: "center" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div>
-                <div style={{ fontSize: isPC ? 20 : 22, fontWeight: 800, color: T.text, marginTop: 2 }}>{data.matches.length}</div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
-                <div style={{ fontSize: isPC ? 20 : 22, fontWeight: 800, color: T.text, marginTop: 2 }}>{percentStr(totalW, data.matches.length)}</div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
-                <div style={{ fontSize: isPC ? 20 : 22, fontWeight: 800, marginTop: 2 }}>
-                  <span style={{ color: T.win }}>{totalW}</span>
-                  <span style={{ color: T.dimmer }}> : </span>
-                  <span style={{ color: T.lose }}>{totalL}</span>
+          {isPC ? (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)", gap: 8, marginBottom: 10 }}>
+                <div style={{ ...cd, display: "flex", padding: "8px 10px", marginBottom: 0, textAlign: "center", alignItems: "center" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginTop: 2 }}>{data.matches.length}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: T.text, marginTop: 2 }}>{percentStr(totalW, data.matches.length)}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, marginTop: 2 }}>
+                      <span style={{ color: T.win }}>{totalW}</span>
+                      <span style={{ color: T.dimmer }}> : </span>
+                      <span style={{ color: T.lose }}>{totalL}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div style={{ marginBottom: isPC ? 0 : 8 }}>
-              <div style={{ fontSize: isPC ? 11 : 13, fontWeight: 700, color: T.sub, marginBottom: isPC ? 4 : 6 }}>{t("analysis.recentWinRate")}</div>
-              <div style={{ display: "flex", gap: 8, flexDirection: isPC ? "column" : "row" }}>
                 {[20, 50].filter((n) => n !== 50 || data.matches.length > 20).map((n) => {
                   const d = rolling[n];
                   const r = d.t ? d.w / d.t : 0;
                   return (
                     <div key={n} onClick={() => setExpandedRolling(n)} style={{
-                      ...cd, flex: 1, marginBottom: 0, padding: isPC ? "8px 10px" : "14px 16px", textAlign: "center", cursor: "pointer",
+                      ...cd, marginBottom: 0, padding: "8px 8px", textAlign: "center", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "center",
                     }}>
-                      <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
-                      <div style={{ fontSize: isPC ? 20 : 24, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 2 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
-                      {d.t > 0 && <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{d.w}W {d.t - d.w}L</div>}
+                      <div style={{ fontSize: 9, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 2 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
+                      {d.t > 0 && <div style={{ fontSize: 9, color: T.dim, marginTop: 2 }}>{d.w}W {d.t - d.w}L</div>}
                     </div>
                   );
                 })}
               </div>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: isPC ? 6 : 0 }}>
-            <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("analysis.timeOfDay")}</div>
-            <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
-            <div style={{ ...cd, padding: isPC ? "10px 10px" : "14px 12px", marginBottom: isPC ? 8 : 12 }}>
-              {Object.keys(hourlyStats).length === 0 ? (
-                <div style={{ textAlign: "center", color: T.dim, fontSize: 12, padding: 12 }}>{t("analysis.noData")}</div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: hourlyGridFluid, gap: 6 }}>
-                  {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
-                    const r = d.w / (d.w + d.l);
-                    const hrNum = Number(hr);
-                    const active = hourDetailModal === hrNum;
-                    return (
-                      <button key={hr} type="button" onClick={() => setHourDetailModal(hrNum)} style={{
-                        textAlign: "center", padding: "6px 4px", borderRadius: 10, minWidth: 0,
-                        background: active ? T.accentSoft : T.inp, cursor: "pointer",
-                        border: active ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
-                        fontFamily: "inherit",
-                      }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: active ? T.accent : T.text, lineHeight: 1.2 }}>{hr}{t("analysis.hour")}</div>
-                        <div style={{ fontSize: isPC ? 13 : 15, fontWeight: 800, color: barColor(r), marginTop: 2, lineHeight: 1.1 }}>{percentStr(d.w, d.w + d.l)}</div>
-                        <div style={{ fontSize: 9, color: T.dim, marginTop: 2 }}>{d.w + d.l}{t("analysis.battles")}</div>
-                      </button>
-                    );
-                  })}
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, alignItems: "stretch" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 3 }}>{t("stages.winRateByStage")}</div>
+                    <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+                    <div style={{ ...cd, padding: "10px 10px", marginBottom: 0 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                        {STAGES.map((stage) => {
+                          const ms = data.matches.filter((m) => m.stage === stage.id);
+                          const w = ms.filter((m) => m.result === "win").length;
+                          const l = ms.length - w;
+                          const has = ms.length > 0;
+                          const rr = has ? w / ms.length : 0;
+                          return (
+                            <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
+                              textAlign: "center", border: "none", padding: "4px 4px", borderRadius: 10, background: "transparent",
+                              cursor: "pointer", fontFamily: "inherit", width: "100%", minWidth: 0, opacity: has ? 1 : 0.42,
+                            }}>
+                              <img src={stageImg(stage.id)} alt="" style={{ width: "100%", height: 48, objectFit: "cover", borderRadius: 6 }} />
+                              <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 4, lineHeight: 1.2, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{stageName(stage.id, lang)}</div>
+                              <div style={{ fontSize: 12, fontWeight: 800, color: has ? barColor(rr) : T.dim, fontFamily: "'Chakra Petch', sans-serif", marginTop: 2 }}>{has ? `${Math.round(rr * 100)}%` : "—"}</div>
+                              <div style={{ fontSize: 8, color: T.dim }}>{has ? `${w}W ${l}L` : "—"}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 3 }}>{t("analysis.timeOfDay")}</div>
+                    <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+                    <div style={{ ...cd, padding: "8px 8px", marginBottom: 0 }}>
+                      {Object.keys(hourlyStats).length === 0 ? (
+                        <div style={{ textAlign: "center", color: T.dim, fontSize: 12, padding: 12 }}>{t("analysis.noData")}</div>
+                      ) : (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 4 }}>
+                          {Array.from({ length: 24 }, (_, hr) => {
+                            const d = hourlyStats[hr];
+                            const has = d && (d.w + d.l) > 0;
+                            const r = has ? d.w / (d.w + d.l) : 0;
+                            const active = hourDetailModal === hr;
+                            return (
+                              <button
+                                key={hr}
+                                type="button"
+                                onClick={() => has && setHourDetailModal(hr)}
+                                style={{
+                                  textAlign: "center", padding: "4px 2px", borderRadius: 8, minWidth: 0,
+                                  background: !has ? T.inp : active ? T.accentSoft : T.inp,
+                                  cursor: has ? "pointer" : "default",
+                                  border: active && has ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                                  fontFamily: "inherit", opacity: has ? 1 : 0.35,
+                                }}
+                              >
+                                <div style={{ fontSize: 9, fontWeight: 700, color: active && has ? T.accent : T.text, lineHeight: 1.1 }}>{hr}{t("analysis.hour")}</div>
+                                <div style={{ fontSize: 11, fontWeight: 800, color: has ? barColor(r) : T.dim, marginTop: 2, lineHeight: 1 }}>{has ? percentStr(d.w, d.w + d.l) : "—"}</div>
+                                <div style={{ fontSize: 8, color: T.dim, marginTop: 1 }}>{has ? `${d.w + d.l}` : ""}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-          {data.matches.some((m) => m.stage) && (
-            <div style={{ marginBottom: isPC ? 4 : 0 }}>
-              <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("stages.winRateByStage")}</div>
-              <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
-              <div style={{ ...cd, padding: isPC ? "10px 10px" : "12px 14px", marginBottom: isPC ? 0 : 14 }}>
-                <div style={{ display: "grid", gridTemplateColumns: stageGridFluid, gap: 8 }}>
-                  {STAGES.map((stage) => {
-                    const ms = data.matches.filter((m) => m.stage === stage.id);
-                    if (ms.length === 0) return null;
-                    const w = ms.filter((m) => m.result === "win").length;
-                    const l = ms.length - w;
-                    const rr = w / ms.length;
-                    return (
-                      <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
-                        textAlign: "center", border: "none", padding: "4px 2px", borderRadius: 10, background: "transparent",
-                        cursor: "pointer", fontFamily: "inherit", width: "100%", minWidth: 0,
-                      }}>
-                        <img src={stageImg(stage.id)} alt="" style={{ width: "100%", aspectRatio: "16 / 9", height: "auto", maxHeight: isPC ? 44 : 48, objectFit: "cover", borderRadius: 6 }} />
-                        <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 4, lineHeight: 1.25, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{stageName(stage.id, lang)}</div>
-                        <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 800, color: barColor(rr), fontFamily: "'Chakra Petch', sans-serif", marginTop: 2 }}>{Math.round(rr * 100)}%</div>
-                        <div style={{ fontSize: 8, color: T.dim }}>{w}W {l}L</div>
-                      </button>
-                    );
-                  })}
+                <div style={{ display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 6 }}>{t("analysis.allDailyRecord")}</div>
+                  {dailyList(() => true, { type: "overall" }, { pcOverallRightColumn: true })}
                 </div>
               </div>
-            </div>
+            </>
+          ) : (
+            <>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr",
+                gap: 8,
+                marginBottom: 0,
+              }}
+              >
+                <div style={{ ...cd, display: "flex", padding: "18px 12px", marginBottom: 12, textAlign: "center" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginTop: 2 }}>{data.matches.length}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginTop: 2 }}>{percentStr(totalW, data.matches.length)}</div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, marginTop: 2 }}>
+                      <span style={{ color: T.win }}>{totalW}</span>
+                      <span style={{ color: T.dimmer }}> : </span>
+                      <span style={{ color: T.lose }}>{totalL}</span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 6 }}>{t("analysis.recentWinRate")}</div>
+                  <div style={{ display: "flex", gap: 8, flexDirection: "row" }}>
+                    {[20, 50].filter((n) => n !== 50 || data.matches.length > 20).map((n) => {
+                      const d = rolling[n];
+                      const r = d.t ? d.w / d.t : 0;
+                      return (
+                        <div key={n} onClick={() => setExpandedRolling(n)} style={{
+                          ...cd, flex: 1, marginBottom: 0, padding: "14px 16px", textAlign: "center", cursor: "pointer",
+                        }}>
+                          <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
+                          <div style={{ fontSize: 24, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 2 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
+                          {d.t > 0 && <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{d.w}W {d.t - d.w}L</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginBottom: 6 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("analysis.timeOfDay")}</div>
+                <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+                <div style={{ ...cd, padding: "14px 12px", marginBottom: 12 }}>
+                  {Object.keys(hourlyStats).length === 0 ? (
+                    <div style={{ textAlign: "center", color: T.dim, fontSize: 12, padding: 12 }}>{t("analysis.noData")}</div>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: hourlyGridFluid, gap: 6 }}>
+                      {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
+                        const r = d.w / (d.w + d.l);
+                        const hrNum = Number(hr);
+                        const active = hourDetailModal === hrNum;
+                        return (
+                          <button key={hr} type="button" onClick={() => setHourDetailModal(hrNum)} style={{
+                            textAlign: "center", padding: "6px 4px", borderRadius: 10, minWidth: 0,
+                            background: active ? T.accentSoft : T.inp, cursor: "pointer",
+                            border: active ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                            fontFamily: "inherit",
+                          }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: active ? T.accent : T.text, lineHeight: 1.2 }}>{hr}{t("analysis.hour")}</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: barColor(r), marginTop: 2, lineHeight: 1.1 }}>{percentStr(d.w, d.w + d.l)}</div>
+                            <div style={{ fontSize: 9, color: T.dim, marginTop: 2 }}>{d.w + d.l}{t("analysis.battles")}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {data.matches.some((m) => m.stage) && (
+                <div style={{ marginBottom: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("stages.winRateByStage")}</div>
+                  <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+                  <div style={{ ...cd, padding: "12px 14px", marginBottom: 14 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: stageGridFluid, gap: 8 }}>
+                      {STAGES.map((stage) => {
+                        const ms = data.matches.filter((m) => m.stage === stage.id);
+                        if (ms.length === 0) return null;
+                        const w = ms.filter((m) => m.result === "win").length;
+                        const l = ms.length - w;
+                        const rr = w / ms.length;
+                        return (
+                          <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
+                            textAlign: "center", border: "none", padding: "4px 2px", borderRadius: 10, background: "transparent",
+                            cursor: "pointer", fontFamily: "inherit", width: "100%", minWidth: 0,
+                          }}>
+                            <img src={stageImg(stage.id)} alt="" style={{ width: "100%", aspectRatio: "16 / 9", height: "auto", maxHeight: 48, objectFit: "cover", borderRadius: 6 }} />
+                            <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 4, lineHeight: 1.25, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{stageName(stage.id, lang)}</div>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: barColor(rr), fontFamily: "'Chakra Petch', sans-serif", marginTop: 2 }}>{Math.round(rr * 100)}%</div>
+                            <div style={{ fontSize: 8, color: T.dim }}>{w}W {l}L</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.allDailyRecord")}</div>
+              {dailyList(() => true, { type: "overall" })}
+            </>
           )}
-
-          {/* All daily records (integrated from HistoryTab) */}
-          <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: isPC ? 4 : 8 }}>{t("analysis.allDailyRecord")}</div>
-          {dailyList(() => true, { type: "overall" })}
         </div>
       )}
 
