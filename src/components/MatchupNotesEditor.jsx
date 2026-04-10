@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, Fragment } from "react";
 import { useI18n } from "../i18n/index.jsx";
 import { STAGES, stageName, stageImg } from "../constants/stages";
 
@@ -174,7 +174,9 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
   );
 }
 
-export function BattleNotes({ noteKey, data, T, onSave }) {
+const BATTLE_NOTES_SECTION_ORDER = ["flash", "gameplan", "bans"];
+
+export function BattleNotes({ noteKey, data, T, onSave, sections }) {
   const { t, lang } = useI18n();
   const [savedKey, setSavedKey] = useState(null);
   const notes = data.matchupNotes?.[noteKey] || EMPTY_NOTE;
@@ -214,87 +216,102 @@ export function BattleNotes({ noteKey, data, T, onSave }) {
     { key: "gameplan", icon: "📋", color: T.sub, bg: T.card, border: T.brd, inputBg: T.inp },
   ];
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
-      {TEXT_SECTIONS.map(({ key, icon, color, bg, border, inputBg }) => (
-        <div key={key} style={{ background: bg, borderRadius: 10, border: `1px solid ${border}`, overflow: "hidden" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px" }}>
-            <span style={{ fontSize: 12 }}>{icon}</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color }}>{t(`matchupNotes.${key}`)}</span>
-            {savedKey === key && <span style={{ fontSize: 10, color: T.win, fontWeight: 600, marginLeft: "auto" }}>{t("matchupNotes.autoSaved")}</span>}
-          </div>
-          <div style={{ padding: "0 12px 8px" }}>
-            {key === "flash" && <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("matchupNotes.flashDesc")}</div>}
-            <textarea
-              defaultValue={notes[key] || ""}
-              onFocus={(e) => {
-                if (key === "gameplan" && !e.target.value.trim()) {
-                  const tpl = t("matchupNotes.gameplanPlaceholder");
-                  e.target.value = tpl;
-                  e.target.style.height = "auto";
-                  e.target.style.height = Math.max(36, e.target.scrollHeight) + "px";
-                }
-              }}
-              onBlur={(e) => { if (e.target.value !== (notes[key] || "")) saveSection(key, e.target.value); }}
-              placeholder={t(`matchupNotes.${key}Placeholder`)}
-              ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
-              onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(36, e.target.scrollHeight) + "px"; }}
-              style={{
-                width: "100%", padding: "6px 8px", background: inputBg, border: "none", borderRadius: 6,
-                color: T.text, fontSize: 11, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden",
-                fontFamily: "inherit", lineHeight: 1.6, minHeight: 36,
-              }}
-            />
-          </div>
-        </div>
-      ))}
+  const order = sections?.length ? sections : BATTLE_NOTES_SECTION_ORDER;
 
-      {/* Stage ban selection */}
-      <div style={{ background: T.card, borderRadius: 10, border: `1px solid ${T.brd}`, overflow: "hidden" }}>
+  const renderTextSection = (key) => {
+    const meta = TEXT_SECTIONS.find((s) => s.key === key);
+    if (!meta) return null;
+    const { icon, color, bg, border, inputBg } = meta;
+    return (
+      <div key={key} style={{ background: bg, borderRadius: 10, border: `1px solid ${border}`, overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px" }}>
-          <span style={{ fontSize: 12 }}>🗺️</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("matchupNotes.stageBan")}</span>
-          {savedKey === "stageBans" && <span style={{ fontSize: 10, color: T.win, fontWeight: 600, marginLeft: "auto" }}>{t("matchupNotes.autoSaved")}</span>}
-          <span style={{ fontSize: 10, color: T.dim, marginLeft: savedKey === "stageBans" ? 0 : "auto" }}>{bans.length}/3</span>
+          <span style={{ fontSize: 12 }}>{icon}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color }}>{t(`matchupNotes.${key}`)}</span>
+          {savedKey === key && <span style={{ fontSize: 10, color: T.win, fontWeight: 600, marginLeft: "auto" }}>{t("matchupNotes.autoSaved")}</span>}
         </div>
         <div style={{ padding: "0 12px 8px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 5 }}>
-            {STAGES.map((st) => {
-              const isBanned = bans.includes(st.id);
-              const stats = stageStats[st.id];
-              const r = stats ? stats.w / (stats.w + stats.l) : null;
-              return (
-                <div key={st.id}
-                  onClick={() => {
-                    let next;
-                    if (isBanned) { next = bans.filter((b) => b !== st.id); }
-                    else if (bans.length < 3) { next = [...bans, st.id]; }
-                    else { return; }
-                    updateBans(next);
-                  }}
-                  style={{
-                    position: "relative", borderRadius: 6, overflow: "hidden",
-                    cursor: bans.length >= 3 && !isBanned ? "not-allowed" : "pointer",
-                    border: isBanned ? `2px solid ${T.lose}` : `1px solid ${T.brd}`,
-                    opacity: isBanned ? 0.4 : 1, transition: "all .15s ease",
-                  }}
-                >
-                  <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 32, objectFit: "cover", display: "block" }} />
-                  {isBanned && (
-                    <div style={{ position: "absolute", inset: 0, background: "rgba(255,69,58,.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 16, fontWeight: 900, color: T.lose }}>✕</span>
-                    </div>
-                  )}
-                  <div style={{ padding: "2px 3px", textAlign: "center", background: T.inp }}>
-                    <div style={{ fontSize: 8, fontWeight: 600, color: T.text, lineHeight: 1.2 }}>{stageName(st.id, lang)}</div>
-                    {stats && <div style={{ fontSize: 7, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A" }}>{Math.round(r * 100)}%</div>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {key === "flash" && <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("matchupNotes.flashDesc")}</div>}
+          <textarea
+            defaultValue={notes[key] || ""}
+            onFocus={(e) => {
+              if (key === "gameplan" && !e.target.value.trim()) {
+                const tpl = t("matchupNotes.gameplanPlaceholder");
+                e.target.value = tpl;
+                e.target.style.height = "auto";
+                e.target.style.height = Math.max(36, e.target.scrollHeight) + "px";
+              }
+            }}
+            onBlur={(e) => { if (e.target.value !== (notes[key] || "")) saveSection(key, e.target.value); }}
+            placeholder={t(`matchupNotes.${key}Placeholder`)}
+            ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
+            onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(36, e.target.scrollHeight) + "px"; }}
+            style={{
+              width: "100%", padding: "6px 8px", background: inputBg, border: "none", borderRadius: 6,
+              color: T.text, fontSize: 11, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden",
+              fontFamily: "inherit", lineHeight: 1.6, minHeight: 36,
+            }}
+          />
         </div>
       </div>
+    );
+  };
+
+  const renderBans = () => (
+    <div key="bans" style={{ background: T.card, borderRadius: 10, border: `1px solid ${T.brd}`, overflow: "hidden" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px" }}>
+        <span style={{ fontSize: 12 }}>🗺️</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("matchupNotes.stageBan")}</span>
+        {savedKey === "stageBans" && <span style={{ fontSize: 10, color: T.win, fontWeight: 600, marginLeft: "auto" }}>{t("matchupNotes.autoSaved")}</span>}
+        <span style={{ fontSize: 10, color: T.dim, marginLeft: savedKey === "stageBans" ? 0 : "auto" }}>{bans.length}/3</span>
+      </div>
+      <div style={{ padding: "0 12px 8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 5 }}>
+          {STAGES.map((st) => {
+            const isBanned = bans.includes(st.id);
+            const stats = stageStats[st.id];
+            const r = stats ? stats.w / (stats.w + stats.l) : null;
+            return (
+              <div key={st.id}
+                onClick={() => {
+                  let next;
+                  if (isBanned) { next = bans.filter((b) => b !== st.id); }
+                  else if (bans.length < 3) { next = [...bans, st.id]; }
+                  else { return; }
+                  updateBans(next);
+                }}
+                style={{
+                  position: "relative", borderRadius: 6, overflow: "hidden",
+                  cursor: bans.length >= 3 && !isBanned ? "not-allowed" : "pointer",
+                  border: isBanned ? `2px solid ${T.lose}` : `1px solid ${T.brd}`,
+                  opacity: isBanned ? 0.4 : 1, transition: "all .15s ease",
+                }}
+              >
+                <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 32, objectFit: "cover", display: "block" }} />
+                {isBanned && (
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(255,69,58,.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 16, fontWeight: 900, color: T.lose }}>✕</span>
+                  </div>
+                )}
+                <div style={{ padding: "2px 3px", textAlign: "center", background: T.inp }}>
+                  <div style={{ fontSize: 8, fontWeight: 600, color: T.text, lineHeight: 1.2 }}>{stageName(st.id, lang)}</div>
+                  {stats && <div style={{ fontSize: 7, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A" }}>{Math.round(r * 100)}%</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+      {order.map((k) => (
+        <Fragment key={k}>
+          {(k === "flash" || k === "gameplan") && renderTextSection(k)}
+          {k === "bans" && renderBans()}
+        </Fragment>
+      ))}
     </div>
   );
 }

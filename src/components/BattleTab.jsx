@@ -68,6 +68,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const recMy = useMemo(() => recentChars(data.matches, "myChar"), [data]);
   const recOpp = useMemo(() => recentChars(data.matches, "oppChar"), [data]);
 
+  const matchupNotesKey = useMemo(() => {
+    if (!oppChar || !myChar) return null;
+    const full = `${myChar}|${oppChar}`;
+    return data.matchupNotes?.[full] != null ? full : oppChar;
+  }, [oppChar, myChar, data.matchupNotes]);
+
   const tM = useMemo(() => data.matches.filter((m) => m.date === today()), [data]);
   const tW = tM.filter((m) => m.result === "win").length;
   const tL = tM.length - tW;
@@ -329,6 +335,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const cd = { background: T.card, borderRadius: 16, padding: "16px 18px", marginBottom: 12, boxShadow: T.sh, border: `1px solid ${T.brd}`, transition: "box-shadow .2s ease" };
   const goalInputStyle = { flex: 1, padding: "12px 14px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 16, fontWeight: 700, outline: "none", boxSizing: "border-box", fontFamily: "'Chakra Petch', sans-serif" };
   const activeBtn = (disabled) => ({ width: "100%", padding: 16, border: "none", borderRadius: 14, background: disabled ? T.inp : T.accentGrad, color: disabled ? T.dim : "#fff", fontSize: 17, fontWeight: 800, boxShadow: disabled ? "none" : T.accentGlow, transition: "all .2s ease", marginBottom: 12 });
+  const btnR = { border: "none", borderRadius: 10, padding: "6px 11px", fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all .15s ease", fontFamily: "inherit" };
 
   const pwrInput = (val, set, ph, big) => (
     <input type="text" inputMode="numeric" autoComplete="off" autoCorrect="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other"
@@ -492,9 +499,9 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     </div>
   );
 
-  // ── Opp context info (shown in battle when opp selected) ──
+  // ── 対策参考（マッチアップ別メモ履歴・戦績のみ。メモ帳は BattleNotes と分割） ──
 
-  const oppContextInfo = oppChar && myChar && !result && (() => {
+  const rankedPrepReferenceBlock = oppChar && myChar && !result && (() => {
     const oppMatches = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
     const oppW = oppMatches.filter((m) => m.result === "win").length;
     const oppL = oppMatches.length - oppW;
@@ -502,38 +509,27 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     const pastMemos = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar && String(m.memo || "").trim()).slice().reverse();
     return (
       <div style={{ ...cd, padding: "14px 16px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <FighterIcon name={oppChar} size={28} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{fighterName(oppChar, lang)}</span>
-          </div>
-          {oppMatches.length > 0 && (
-            <span style={{ fontSize: 16, fontWeight: 800, color: barColor(oppWinRate), fontFamily: "'Chakra Petch', sans-serif" }}>
-              {oppW}W:{oppL}L
-            </span>
-          )}
-        </div>
         <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.prepReference")}</div>
-        {data.matchupNotes?.[`${myChar}|${oppChar}`]
-          ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} onSave={onSave} />
-          : <BattleNotes noteKey={oppChar} data={data} T={T} onSave={onSave} />
-        }
-        <div style={{ borderTop: `1px solid ${T.inp}`, paddingTop: 8, marginTop: 4 }}>
-          <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
-          {pastMemos.length > 0 ? (
-            <div style={{ maxHeight: 200, overflowY: "auto" }}>
-              {pastMemos.slice(0, 20).map((m, i, arr) => (
-                <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
-                  <span style={{ color: m.result === "win" ? T.win : T.lose, fontWeight: 800, fontSize: 10, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
-                  <span style={{ color: T.dim, fontSize: 10 }}>{formatDateShort(m.date)}</span>
-                  <div style={{ marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ fontSize: 12, color: T.dim }}>{t("battle.noMemoMatches")}</div>
-          )}
-        </div>
+        {oppMatches.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{oppMatches.length}{t("common.matches")} {oppW}W {oppL}L</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: barColor(oppWinRate), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(oppW, oppMatches.length)}</span>
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
+        {pastMemos.length > 0 ? (
+          <div style={{ maxHeight: 200, overflowY: "auto" }}>
+            {pastMemos.slice(0, 20).map((m, i, arr) => (
+              <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
+                <span style={{ color: m.result === "win" ? T.win : T.lose, fontWeight: 800, fontSize: 10, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
+                <span style={{ color: T.dim, fontSize: 10 }}>{formatDateShort(m.date)}</span>
+                <div style={{ marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, color: T.dim }}>{t("battle.noMemoMatches")}</div>
+        )}
       </div>
     );
   })();
@@ -613,82 +609,88 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
         {/* ── BATTLE ── */}
         {phase === "battle" && (
           <div style={{ animation: "fadeUp .2s ease" }}>
-            {/* Status bar */}
-            <div style={{ ...cd, padding: "14px 16px", marginBottom: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <FighterIcon name={myChar} size={36} />
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{fighterName(myChar, lang)}</div>
-                    {tM.length > 0 && <div style={{ fontSize: 13, color: T.dim, marginTop: 2 }}>{tM.length}{t("battle.matches")} {percentStr(tW, tM.length)}</div>}
-                  </div>
+            {/* 今日の簡易ステータス */}
+            <div style={{ ...cd, padding: "10px 14px", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.text, fontFamily: "'Chakra Petch', sans-serif" }}>
+                  {tM.length > 0 ? (
+                    <><span style={{ color: T.win }}>{tW}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{tL}</span><span style={{ color: T.dim, fontSize: 12, fontWeight: 600, marginLeft: 6 }}>{tM.length}{t("battle.matches")} {percentStr(tW, tM.length)}</span></>
+                  ) : <span style={{ color: T.dim, fontSize: 12 }}>{t("battle.matches")} 0</span>}
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  {tM.length > 0 && (
-                    <div style={{ fontSize: 22, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
-                      <span style={{ color: T.win }}>{tW}</span>
-                      <span style={{ color: T.dimmer, fontSize: 16, margin: "0 4px" }}>:</span>
-                      <span style={{ color: T.lose }}>{tL}</span>
-                    </div>
-                  )}
-                  <div style={{ fontSize: 12, fontWeight: 600, color: T.dim, marginTop: 4 }}>
-                    {numFormat(pStart)}{pEnd ? " → " + numFormat(pEnd) : ""}
-                  </div>
-                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: T.dim }}>{numFormat(pStart)}{pEnd ? ` → ${numFormat(pEnd)}` : ""}</div>
               </div>
             </div>
 
-            {/* Char memo */}
-            {myChar && (
-              <div style={{ ...cd, padding: "10px 14px", marginBottom: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 4 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
-                <textarea
-                  ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
-                  value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; }}
-                  onBlur={saveCharMemoBlur}
-                  placeholder={t("battle.charMemoPlaceholder")}
-                  style={{ width: "100%", padding: "6px 8px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 36 }}
-                />
-              </div>
-            )}
-
-            {/* Pending result + opp selection */}
             {result && pendingResultBanner}
 
-            {/* Opponent selection */}
-            <div style={{ ...cd, padding: "14px 16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <div style={{ fontSize: 15, color: T.text, fontWeight: 700 }}>{t("battle.oppChar")}</div>
-                {oppChar && <button onClick={() => { setOppChar(""); setResult(null); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 13, fontWeight: 600, padding: "6px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 4 }}><X size={14} /> {t("battle.clear")}</button>}
-              </div>
-              {showOppPicker || (result && !oppChar) ? (
+            {/* 使用キャラ・相手キャラ（フリー対戦と同型） */}
+            <div style={{ ...cd, padding: "12px 14px" }}>
+              {showMyPicker ? (
+                <CharPicker value={myChar} onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} />
+              ) : showOppPicker || (result && !oppChar) ? (
                 <div>
-                  <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); if (result) { setTimeout(() => confirmOppAndRecord(), 0); } }} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} />
+                  <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); if (result) { setTimeout(() => confirmOppAndRecord(), 0); } }} label={t("battle.oppChar")} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} />
                   {recOpp.length > 0 && !oppChar && (
                     <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
                       {recOpp.slice(0, 3).map((c) => (
-                        <button key={c} onClick={() => { setOppChar(c); setShowOppPicker(false); if (result) { setOppChar(c); setTimeout(() => { recordMatch(result, c); setResult(null); }, 0); } }} style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{fighterName(c, lang)}</button>
+                        <button key={c} type="button" onClick={() => { setOppChar(c); setShowOppPicker(false); if (result) { setTimeout(() => { recordMatch(result, c); setResult(null); }, 0); } }} style={{ ...btnR, background: T.inp, color: T.text }}>{fighterName(c, lang)}</button>
                       ))}
                     </div>
                   )}
                 </div>
               ) : (
-                <div>
-                  {oppChar ? (
-                    <button onClick={() => setShowOppPicker(true)} style={{ width: "100%", padding: "14px 16px", background: T.card, border: `2px solid ${T.accent}`, borderRadius: 12, display: "flex", alignItems: "center", gap: 10, textAlign: "left", fontSize: 15, fontWeight: 600, color: T.text }}>
-                      <FighterIcon name={oppChar} size={32} />{fighterName(oppChar, lang)}
-                    </button>
-                  ) : (
-                    <button onClick={() => setShowOppPicker(true)} style={{ width: "100%", padding: "14px 16px", background: T.card, border: `2px solid ${T.dimmer}`, borderRadius: 12, color: T.dim, textAlign: "left", fontSize: 15 }}>{t("charPicker.select")}</button>
-                  )}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, alignItems: "start" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>{t("battle.selectChar")}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      {myChar && <FighterIcon name={myChar} size={28} />}
+                      <span style={{ fontSize: 14, fontWeight: 700, color: myChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{myChar ? fighterName(myChar, lang) : t("battle.notSelected")}</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      <button type="button" onClick={() => { setShowOppPicker(false); setShowMyPicker(true); }} style={{ ...btnR, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                      {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
+                        <button type="button" key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ ...btnR, background: T.inp, color: T.text }}>{fighterName(c, lang)}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ minWidth: 0, borderLeft: `1px solid ${T.inp}`, paddingLeft: 12, marginLeft: -1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <div style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("battle.oppChar")}</div>
+                      {oppChar && (
+                        <button type="button" onClick={() => { setOppChar(""); setResult(null); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 6, display: "flex", alignItems: "center", gap: 4 }}><X size={12} /> {t("battle.clear")}</button>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      {oppChar && <FighterIcon name={oppChar} size={28} />}
+                      <span style={{ fontSize: 14, fontWeight: 700, color: oppChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{oppChar ? fighterName(oppChar, lang) : t("battle.notSelected")}</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      <button type="button" onClick={() => { setShowMyPicker(false); setShowOppPicker(true); }} style={{ ...btnR, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                      {recOpp.filter((c) => c !== oppChar).slice(0, 3).map((c) => (
+                        <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnR, background: T.inp, color: T.text }}>{fighterName(c, lang)}</button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Context info */}
-            {oppContextInfo}
+            {/* 勝ち負け */}
+            {!result && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: "0 4px 16px rgba(34,197,94,.3)" }}>{t("battle.win")}</button>
+                  <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: "0 4px 16px rgba(244,63,94,.3)" }}>{t("battle.lose")}</button>
+                </div>
+              </div>
+            )}
 
-            {/* Stage selection (mobile battle phase) */}
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button type="button" onClick={() => setPhase("end")} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
+              <button type="button" onClick={() => { setPhase("setup"); setShowOppPicker(false); setShowMyPicker(false); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.dim, fontSize: 13, fontWeight: 600 }}>{t("battle.changeChar")}</button>
+            </div>
+
+            {/* ステージ選択 */}
             <div style={{ ...cd, padding: "10px 14px", marginTop: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontSize: 13 }}>🗺️</span>
@@ -713,20 +715,29 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               </div>
             </div>
 
-            {/* Win/Lose buttons */}
-            {!result && (
-              <div style={{ marginTop: 14 }}>
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button onClick={() => selectRes("win")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: "0 4px 16px rgba(34,197,94,.3)" }}>{t("battle.win")}</button>
-                  <button onClick={() => selectRes("lose")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: "0 4px 16px rgba(244,63,94,.3)" }}>{t("battle.lose")}</button>
-                </div>
+            {/* キャラメモ */}
+            {myChar && (
+              <div style={{ ...cd, padding: "10px 14px", marginTop: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 4 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
+                <textarea
+                  ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
+                  value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; }}
+                  onBlur={saveCharMemoBlur}
+                  placeholder={t("battle.charMemoPlaceholder")}
+                  style={{ width: "100%", padding: "6px 8px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 36 }}
+                />
               </div>
             )}
 
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button onClick={() => setPhase("end")} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
-              <button onClick={() => { setPhase("setup"); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.dim, fontSize: 13, fontWeight: 600 }}>{t("battle.changeChar")}</button>
-            </div>
+            {/* メモ帳: 速攻 → 対策参考 → ゲームプラン → BAN */}
+            {matchupNotesKey && !result && (
+              <>
+                <BattleNotes noteKey={matchupNotesKey} data={data} T={T} onSave={onSave} sections={["flash"]} />
+                {rankedPrepReferenceBlock}
+                <BattleNotes noteKey={matchupNotesKey} data={data} T={T} onSave={onSave} sections={["gameplan"]} />
+                <BattleNotes noteKey={matchupNotesKey} data={data} T={T} onSave={onSave} sections={["bans"]} />
+              </>
+            )}
           </div>
         )}
 
@@ -906,63 +917,13 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const pcSidebar = (
     <div style={{ flex: 1, minWidth: 0, background: T.card, borderRadius: 20, padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh, position: "sticky", top: 90, display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: "calc(100vh - 120px)" }}>
       <div style={{ flex: 1, overflowY: "auto" }}>
-        {/* Opponent matchup info (battle phase with opp selected) */}
-        {phase === "battle" && oppChar && (
+        {/* メモ帳（速攻 → 対策参考 → ゲームプラン → BAN）— キャラメモはメイン列へ移動 */}
+        {phase === "battle" && oppChar && matchupNotesKey && !result && (
           <div style={{ padding: "16px 24px", borderBottom: `1px solid ${T.inp}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <FighterIcon name={oppChar} size={32} />
-              <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{fighterName(oppChar, lang)}</div>
-            </div>
-            {data.matchupNotes?.[`${myChar}|${oppChar}`]
-              ? <BattleNotes noteKey={`${myChar}|${oppChar}`} data={data} T={T} onSave={onSave} />
-              : <BattleNotes noteKey={oppChar} data={data} T={T} onSave={onSave} />
-            }
-            {(() => {
-              const allOpp = data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
-              if (!allOpp.length) return null;
-              const w = allOpp.filter((m) => m.result === "win").length;
-              const l = allOpp.length - w;
-              const rate = w / allOpp.length;
-              const memoOnly = allOpp.filter((m) => String(m.memo || "").trim()).slice().reverse();
-              return (
-                <div>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("battle.prepReference")}</div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{allOpp.length}{t("common.matches")} {w}W {l}L</span>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: barColor(rate), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(w, allOpp.length)}</span>
-                  </div>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("battle.memoMatchHistory")}</div>
-                  {memoOnly.length > 0 ? (
-                    <div style={{ maxHeight: 220, overflowY: "auto" }}>
-                      {memoOnly.slice(0, 25).map((m, i) => (
-                        <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                            <span style={{ fontSize: 11, color: T.dim }}>{formatDateShort(m.date)}</span>
-                            <span style={{ fontSize: 11, color: T.dim }}>{formatTime(m.time)}</span>
-                          </div>
-                          <div style={{ fontSize: 12, color: T.sub, marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: 12, color: T.dim }}>{t("battle.noMemoMatches")}</div>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Char memo (above today's goals) */}
-        {myChar && phase === "battle" && (
-          <div style={{ padding: "12px 20px", borderBottom: `1px solid ${T.inp}` }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.text, marginBottom: 4 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
-            <textarea ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
-              value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }}
-              onBlur={saveCharMemoBlur}
-              placeholder={t("battle.charMemoPlaceholder")}
-              style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 40 }} />
+            <BattleNotes noteKey={matchupNotesKey} data={data} T={T} onSave={onSave} sections={["flash"]} />
+            {rankedPrepReferenceBlock}
+            <BattleNotes noteKey={matchupNotesKey} data={data} T={T} onSave={onSave} sections={["gameplan"]} />
+            <BattleNotes noteKey={matchupNotesKey} data={data} T={T} onSave={onSave} sections={["bans"]} />
           </div>
         )}
 
@@ -1110,24 +1071,68 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
               {result && pendingResultBanner}
 
               <div style={{ ...cd, padding: "14px 18px", marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <div style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("battle.oppChar")}</div>
-                  {oppChar && <button onClick={() => { setOppChar(""); setResult(null); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 12, fontWeight: 600, padding: "5px 10px", borderRadius: 8, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}><X size={12} /> {t("battle.clear")}</button>}
-                </div>
-                {oppChar && !showOppPicker && <div style={{ fontSize: 16, fontWeight: 800, color: T.text, marginBottom: 6 }}>{fighterName(oppChar, lang)}</div>}
-                {showOppPicker || (result && !oppChar) ? (
-                  <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); if (result) { setTimeout(() => { recordMatch(result, c); setResult(null); }, 0); } }} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} />
+                {showMyPicker ? (
+                  <CharPicker value={myChar} onChange={(c) => { setMyChar(c); switchCharPower(c); setShowMyPicker(false); }} label={t("battle.selectChar")} placeholder={t("charPicker.select")} recent={recMy} autoOpen T={T} />
+                ) : showOppPicker || (result && !oppChar) ? (
+                  <div>
+                    <CharPicker value={oppChar} onChange={(c) => { setOppChar(c); setShowOppPicker(false); if (result) { setTimeout(() => { recordMatch(result, c); setResult(null); }, 0); } }} label={t("battle.oppChar")} placeholder={t("charPicker.select")} recent={recOpp} autoOpen T={T} />
+                    {recOpp.length > 0 && !oppChar && (
+                      <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {recOpp.slice(0, 5).map((c) => (
+                          <button key={c} type="button" onClick={() => { setOppChar(c); setShowOppPicker(false); if (result) { setTimeout(() => { recordMatch(result, c); setResult(null); }, 0); } }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{fighterName(c, lang)}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {recOpp.slice(0, 5).map((c) => (
-                      <button key={c} onClick={() => setOppChar(c)} style={{ padding: "8px 16px", borderRadius: 10, border: oppChar === c ? `2px solid ${T.accent}` : "none", background: oppChar === c ? T.accentSoft : T.inp, color: oppChar === c ? T.accent : T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{fighterName(c, lang)}</button>
-                    ))}
-                    <button onClick={() => setShowOppPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px dashed ${T.dimmer}`, background: "transparent", color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.other")}</button>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignItems: "start" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>{t("battle.selectChar")}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        {myChar && <FighterIcon name={myChar} size={28} />}
+                        <span style={{ fontSize: 15, fontWeight: 700, color: myChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{myChar ? fighterName(myChar, lang) : t("battle.notSelected")}</span>
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        <button type="button" onClick={() => { setShowOppPicker(false); setShowMyPicker(true); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                        {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
+                          <button type="button" key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.text }}>{fighterName(c, lang)}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ minWidth: 0, borderLeft: `1px solid ${T.inp}`, paddingLeft: 14, marginLeft: -1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                        <div style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{t("battle.oppChar")}</div>
+                        {oppChar && (
+                          <button type="button" onClick={() => { setOppChar(""); setResult(null); }} style={{ border: "none", background: T.loseBg, color: T.lose, fontSize: 11, fontWeight: 600, padding: "4px 8px", borderRadius: 6, display: "flex", alignItems: "center", gap: 4 }}><X size={12} /> {t("battle.clear")}</button>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        {oppChar && <FighterIcon name={oppChar} size={28} />}
+                        <span style={{ fontSize: 15, fontWeight: 700, color: oppChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{oppChar ? fighterName(oppChar, lang) : t("battle.notSelected")}</span>
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        <button type="button" onClick={() => { setShowMyPicker(false); setShowOppPicker(true); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                        {recOpp.filter((c) => c !== oppChar).slice(0, 5).map((c) => (
+                          <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: oppChar === c ? T.accentSoft : T.inp, color: oppChar === c ? T.accent : T.text, border: oppChar === c ? `1px solid ${T.accentBorder}` : "none" }}>{fighterName(c, lang)}</button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Stage selection (PC battle phase) */}
+              {!result && (
+                <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+                  <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(34,197,94,.3)" }}>{t("battle.win")}</button>
+                  <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(244,63,94,.3)" }}>{t("battle.lose")}</button>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                <button type="button" onClick={() => setPhase("end")} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 12, fontWeight: 600 }}>{t("battle.endSession")}</button>
+                <button type="button" onClick={() => { setPhase("setup"); setShowOppPicker(false); setShowMyPicker(false); setResult(null); }} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 12, fontWeight: 600 }}>{t("battle.changeChar")}</button>
+              </div>
+
               <div style={{ ...cd, padding: "10px 14px", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                   <span style={{ fontSize: 13 }}>🗺️</span>
@@ -1152,17 +1157,16 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
                 </div>
               </div>
 
-              {!result && (
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button onClick={() => selectRes("win")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(34,197,94,.3)" }}>{t("battle.win")}</button>
-                  <button onClick={() => selectRes("lose")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(244,63,94,.3)" }}>{t("battle.lose")}</button>
+              {myChar && (
+                <div style={{ ...cd, padding: "12px 18px", marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: T.text, marginBottom: 4 }}>{fighterName(myChar, lang)} {t("battle.charMemo")}</div>
+                  <textarea ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
+                    value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }}
+                    onBlur={saveCharMemoBlur}
+                    placeholder={t("battle.charMemoPlaceholder")}
+                    style={{ width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 40 }} />
                 </div>
               )}
-
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <button onClick={() => setPhase("end")} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 12, fontWeight: 600 }}>{t("battle.endSession")}</button>
-                <button onClick={() => { setPhase("setup"); setShowOppPicker(false); setResult(null); }} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 12, fontWeight: 600 }}>{t("battle.changeChar")}</button>
-              </div>
             </div>
           )}
 
