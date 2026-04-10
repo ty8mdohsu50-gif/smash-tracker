@@ -541,7 +541,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     );
   };
 
-  const stageGridColsDisplay = isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)";
+  /** 対戦ありステージのみ等で件数が変わるため、横スクロール無しで折り返す */
+  const stageGridFluid = "repeat(auto-fill, minmax(76px, 1fr))";
+  const hourlyGridFluid = "repeat(auto-fill, minmax(62px, 1fr))";
 
   const charSortToolbar = (sortKey, hideKey) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 12 }}>
@@ -855,7 +857,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           {Object.keys(stageDist).length > 0 && (
             <div style={{ marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: T.dim, marginBottom: 6 }}>{t("stages.winRateByStage")}</div>
-              <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 6 }}>
+              <div style={{ display: "grid", gridTemplateColumns: stageGridFluid, gap: 6 }}>
                 {STAGES.filter((st) => stageDist[st.id]).map((st) => {
                   const sd = stageDist[st.id];
                   const sr = sd.w / (sd.w + sd.l);
@@ -1361,7 +1363,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                       {stageMatches.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "24px 0", color: T.dim, fontSize: 13 }}>{t("stages.noData")}</div>
                       ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 8 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: stageGridFluid, gap: 8 }}>
                           {STAGES.map((stage) => {
                             const ms = stageMatches.filter((m) => m.stage === stage.id);
                             const w = ms.filter((m) => m.result === "win").length;
@@ -1466,72 +1468,63 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             </div>
           </div>
 
-          <div style={{
-            display: isPC ? "grid" : "block",
-            gridTemplateColumns: isPC ? "minmax(0, 1fr) minmax(0, 1fr)" : "1fr",
-            gap: isPC ? 8 : 0,
-            marginBottom: isPC ? 4 : 0,
-            alignItems: "start",
-          }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("analysis.timeOfDay")}</div>
-              <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
-              <div style={{ ...cd, padding: isPC ? "8px 8px" : "14px 12px", marginBottom: isPC ? 0 : 12 }}>
-                {Object.keys(hourlyStats).length === 0 ? (
-                  <div style={{ textAlign: "center", color: T.dim, fontSize: 12, padding: 12 }}>{t("analysis.noData")}</div>
-                ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 4 : 6 }}>
-                    {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
-                      const r = d.w / (d.w + d.l);
-                      const hrNum = Number(hr);
-                      const active = hourDetailModal === hrNum;
-                      return (
-                        <button key={hr} type="button" onClick={() => setHourDetailModal(hrNum)} style={{
-                          textAlign: "center", padding: isPC ? "5px 2px" : "8px 4px", borderRadius: 10,
-                          background: active ? T.accentSoft : T.inp, cursor: "pointer",
-                          border: active ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
-                          fontFamily: "inherit",
-                        }}>
-                          <div style={{ fontSize: isPC ? 10 : 12, fontWeight: 700, color: active ? T.accent : T.text }}>{hr}{t("analysis.hour")}</div>
-                          <div style={{ fontSize: isPC ? 13 : 16, fontWeight: 800, color: barColor(r), marginTop: 1 }}>{percentStr(d.w, d.w + d.l)}</div>
-                          <div style={{ fontSize: 9, color: T.dim }}>{d.w + d.l}{t("analysis.battles")}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+          <div style={{ marginBottom: isPC ? 6 : 0 }}>
+            <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("analysis.timeOfDay")}</div>
+            <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+            <div style={{ ...cd, padding: isPC ? "10px 10px" : "14px 12px", marginBottom: isPC ? 8 : 12 }}>
+              {Object.keys(hourlyStats).length === 0 ? (
+                <div style={{ textAlign: "center", color: T.dim, fontSize: 12, padding: 12 }}>{t("analysis.noData")}</div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: hourlyGridFluid, gap: 6 }}>
+                  {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
+                    const r = d.w / (d.w + d.l);
+                    const hrNum = Number(hr);
+                    const active = hourDetailModal === hrNum;
+                    return (
+                      <button key={hr} type="button" onClick={() => setHourDetailModal(hrNum)} style={{
+                        textAlign: "center", padding: "6px 4px", borderRadius: 10, minWidth: 0,
+                        background: active ? T.accentSoft : T.inp, cursor: "pointer",
+                        border: active ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                        fontFamily: "inherit",
+                      }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: active ? T.accent : T.text, lineHeight: 1.2 }}>{hr}{t("analysis.hour")}</div>
+                        <div style={{ fontSize: isPC ? 13 : 15, fontWeight: 800, color: barColor(r), marginTop: 2, lineHeight: 1.1 }}>{percentStr(d.w, d.w + d.l)}</div>
+                        <div style={{ fontSize: 9, color: T.dim, marginTop: 2 }}>{d.w + d.l}{t("analysis.battles")}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-            {data.matches.some((m) => m.stage) && (
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("stages.winRateByStage")}</div>
-                <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
-                <div style={{ ...cd, padding: isPC ? "8px 8px" : "12px 14px", marginBottom: isPC ? 0 : 14 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(4, 1fr)" : stageGridColsDisplay, gap: isPC ? 6 : 8 }}>
-                    {STAGES.map((stage) => {
-                      const ms = data.matches.filter((m) => m.stage === stage.id);
-                      if (ms.length === 0) return null;
-                      const w = ms.filter((m) => m.result === "win").length;
-                      const l = ms.length - w;
-                      const rr = w / ms.length;
-                      return (
-                        <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
-                          textAlign: "center", border: "none", padding: 4, borderRadius: 10, background: "transparent",
-                          cursor: "pointer", fontFamily: "inherit", width: "100%",
-                        }}>
-                          <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: "100%", height: isPC ? 32 : 40, objectFit: "cover", borderRadius: 6 }} />
-                          <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stageName(stage.id, lang)}</div>
-                          <div style={{ fontSize: isPC ? 12 : 14, fontWeight: 800, color: barColor(rr), fontFamily: "'Chakra Petch', sans-serif" }}>{Math.round(rr * 100)}%</div>
-                          <div style={{ fontSize: 8, color: T.dim }}>{w}W {l}L</div>
-                        </button>
-                      );
-                    })}
-                  </div>
+          </div>
+          {data.matches.some((m) => m.stage) && (
+            <div style={{ marginBottom: isPC ? 4 : 0 }}>
+              <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("stages.winRateByStage")}</div>
+              <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+              <div style={{ ...cd, padding: isPC ? "10px 10px" : "12px 14px", marginBottom: isPC ? 0 : 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: stageGridFluid, gap: 8 }}>
+                  {STAGES.map((stage) => {
+                    const ms = data.matches.filter((m) => m.stage === stage.id);
+                    if (ms.length === 0) return null;
+                    const w = ms.filter((m) => m.result === "win").length;
+                    const l = ms.length - w;
+                    const rr = w / ms.length;
+                    return (
+                      <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
+                        textAlign: "center", border: "none", padding: "4px 2px", borderRadius: 10, background: "transparent",
+                        cursor: "pointer", fontFamily: "inherit", width: "100%", minWidth: 0,
+                      }}>
+                        <img src={stageImg(stage.id)} alt="" style={{ width: "100%", aspectRatio: "16 / 9", height: "auto", maxHeight: isPC ? 44 : 48, objectFit: "cover", borderRadius: 6 }} />
+                        <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 4, lineHeight: 1.25, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{stageName(stage.id, lang)}</div>
+                        <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 800, color: barColor(rr), fontFamily: "'Chakra Petch', sans-serif", marginTop: 2 }}>{Math.round(rr * 100)}%</div>
+                        <div style={{ fontSize: 8, color: T.dim }}>{w}W {l}L</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* All daily records (integrated from HistoryTab) */}
           <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: isPC ? 4 : 8 }}>{t("analysis.allDailyRecord")}</div>
@@ -1978,7 +1971,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     {Object.keys(stageData).length > 0 && (
                       <div style={{ marginBottom: 16 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("stages.winRateByStage")}</div>
-                        <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 8 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: stageGridFluid, gap: 8 }}>
                           {STAGES.filter((st) => stageData[st.id]).map((st) => {
                             const sd = stageData[st.id];
                             const sr = sd.w / (sd.w + sd.l);
