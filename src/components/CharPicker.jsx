@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { FIGHTERS, getSearchText } from "../constants/fighters";
+import { FIGHTERS, getSearchText, fighterName } from "../constants/fighters";
 import { useI18n } from "../i18n/index.jsx";
 import { normalizeCharSearchInput } from "../utils/format";
 import FighterIcon from "./FighterIcon";
@@ -35,10 +35,8 @@ export default function CharPicker({
   const filtered = useMemo(() => {
     const trimmed = q.trim();
     if (!trimmed) {
-      const seen = new Set(recent);
-      const recentOrdered = recent.filter((c) => FIGHTERS.includes(c));
-      const rest = FIGHTERS.filter((c) => !seen.has(c));
-      return [...recentOrdered, ...rest];
+      const seen = new Set(recent.filter((c) => FIGHTERS.includes(c)));
+      return FIGHTERS.filter((c) => !seen.has(c));
     }
     const lq = normalizeCharSearchInput(trimmed);
     return FIGHTERS.filter((f) => normalizeCharSearchInput(getSearchText(f)).includes(lq))
@@ -83,7 +81,7 @@ export default function CharPicker({
         }}
       >
         {value && <FighterIcon name={value} size={32} />}
-        {value || placeholder || t("charPicker.select")}
+        {value ? fighterName(value, lang) : (placeholder || t("charPicker.select"))}
       </button>
 
       {open && (
@@ -194,7 +192,7 @@ export default function CharPicker({
                     }}
                   >
                     <FighterIcon name={c} size={24} />
-                    {c}
+                    {fighterName(c, lang)}
                   </button>
                 ))}
               </div>
@@ -222,7 +220,7 @@ export default function CharPicker({
                 }}
               >
                 <FighterIcon name={f} size={32} />
-                {f}
+                {fighterName(f, lang)}
               </div>
             ))}
             {filtered.length === 0 && (

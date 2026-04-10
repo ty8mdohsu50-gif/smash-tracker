@@ -131,6 +131,47 @@ function streakStatsInMatches(msChrono) {
   return { maxWin: maxW, maxLose: maxL };
 }
 
+/** Build per-day aggregates for the calendar (matches include original index). */
+function buildDailyMap(dataMatches, filterFn) {
+  const dailyMap = {};
+  dataMatches.forEach((m, idx) => {
+    if (!filterFn(m)) return;
+    const dateStr = m.date;
+    if (!dailyMap[dateStr]) dailyMap[dateStr] = { w: 0, l: 0, matches: [] };
+    if (m.result === "win") dailyMap[dateStr].w++;
+    else dailyMap[dateStr].l++;
+    dailyMap[dateStr].matches.push({ ...m, idx });
+  });
+  return dailyMap;
+}
+
+function dailyScopesEqual(a, b) {
+  if (!a || !b) return false;
+  if (a.type !== b.type) return false;
+  if (a.type === "overall") return true;
+  return a.c === b.c;
+}
+
+function analysisModalShellStyles(isPC, T) {
+  return {
+    backdrop: {
+      position: "fixed", inset: 0, zIndex: Z_ANALYSIS_FULLSCREEN,
+      background: "rgba(0,0,0,0.5)",
+      display: "flex", alignItems: isPC ? "center" : "flex-end", justifyContent: "center",
+      padding: isPC ? 20 : 10,
+      animation: "fadeUp .14s ease",
+    },
+    panel: {
+      width: "100%", maxWidth: isPC ? 700 : "100%",
+      maxHeight: isPC ? "min(90vh, 880px)" : "96dvh",
+      background: T.card,
+      borderRadius: isPC ? 20 : "18px 18px 0 0",
+      boxShadow: isPC ? "0 24px 72px rgba(0,0,0,0.3)" : "0 -8px 40px rgba(0,0,0,0.18)",
+      display: "flex", flexDirection: "column", overflow: "hidden",
+    },
+  };
+}
+
 function topOpponentStats(ms, limit) {
   const map = {};
   ms.forEach((m) => {
@@ -177,7 +218,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
   // Expansion state
   const [expandedItem, setExpandedItem] = useState(null);
-  const [expandedDate, setExpandedDate] = useState(null);
+  /** Day drill-down: { date: "YYYY-MM-DD", scope: { type, c? } } — shown in modal (not inline). */
+  const [dateDetailModal, setDateDetailModal] = useState(null);
   const [expandedRolling, setExpandedRolling] = useState(null);
   const [hourDetailModal, setHourDetailModal] = useState(null);
   const [stageDetailId, setStageDetailId] = useState(null);
@@ -470,7 +512,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const bgColor = !fought ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
     const handleClick = () => {
       if (popupOverride?.isOppMode) {
-        setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setExpandedDate(null);
+        setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setDateDetailModal(null);
         return;
       }
       if (popupOverride) { setMatchupPopup(popupOverride); return; }
@@ -526,14 +568,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     </div>
   );
 
-  const dailyList = (filterFn) => {
-    const dailyMap = {};
-    data.matches.filter(filterFn).forEach((m) => {
-      const idx = data.matches.indexOf(m);
-      if (!dailyMap[m.date]) dailyMap[m.date] = { w: 0, l: 0, matches: [] };
-      m.result === "win" ? dailyMap[m.date].w++ : dailyMap[m.date].l++;
-      dailyMap[m.date].matches.push({ ...m, idx });
-    });
+  const dailyList = (filterFn, scope) => {
+    const dailyMap = buildDailyMap(data.matches, filterFn);
     if (!Object.keys(dailyMap).length) return <div style={{ ...cd, textAlign: "center", padding: 20, color: T.dim, fontSize: 13 }}>{t("analysis.noData")}</div>;
 
     const [yStr, mStr] = dailyMonth.split("-");
@@ -553,17 +589,17 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     const prevMonth = () => {
       const d = new Date(year, month - 1, 1);
       setDailyMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-      setExpandedDate(null);
+      setDateDetailModal(null);
     };
     const nextMonth = () => {
       const d = new Date(year, month + 1, 1);
       setDailyMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-      setExpandedDate(null);
+      setDateDetailModal(null);
     };
     const goCurrentMonth = () => {
       const now = new Date();
       setDailyMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`);
-      setExpandedDate(null);
+      setDateDetailModal(null);
     };
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -589,7 +625,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
           const dayData = dailyMap[dateStr];
           const isFuture = dateStr > todayStr;
-          const isSelected = expandedDate === dateStr;
+          const isSelected = dateDetailModal?.date === dateStr && dailyScopesEqual(dateDetailModal?.scope, scope);
           const isToday = dateStr === todayStr;
           const hasData = !!dayData;
           const r = hasData ? dayData.w / (dayData.w + dayData.l) : 0;
@@ -597,7 +633,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           return (
             <div
               key={day}
-              onClick={() => { if (hasData) setExpandedDate(isSelected ? null : dateStr); }}
+              onClick={() => {
+                if (!hasData) return;
+                if (isSelected) setDateDetailModal(null);
+                else setDateDetailModal({ date: dateStr, scope });
+              }}
               style={{
                 padding: isPC ? "5px 0" : "4px 0",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -683,9 +723,13 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       );
     });
 
-    const selectedDayData = expandedDate ? dailyMap[expandedDate] : null;
+    const detailDate = dateDetailModal && dailyScopesEqual(dateDetailModal.scope, scope) ? dateDetailModal.date : null;
+    const selectedDayData = detailDate ? dailyMap[detailDate] : null;
 
-    const detailPanel = selectedDayData ? (() => {
+    const closeDailyFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 20, fontWeight: 700, flexShrink: 0 };
+    const dailyModalShell = analysisModalShellStyles(isPC, T);
+
+    const dayDetailModalContent = selectedDayData ? (() => {
       const ms = selectedDayData.matches;
       const total = selectedDayData.w + selectedDayData.l;
       const r = total ? selectedDayData.w / total : 0;
@@ -699,7 +743,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
       // GSP change
       const dayPowers = ms.filter((m) => m.power).map((m) => m.power);
-      const dailyEntry = data.daily?.[expandedDate];
+      const dailyEntry = data.daily?.[detailDate];
       const charPowers = dailyEntry?.chars || {};
       let gspStart = null, gspEnd = null;
       for (const cp of Object.values(charPowers)) {
@@ -731,12 +775,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
       const sessionEnd = times.length > 1 ? formatTime(times[times.length - 1]) : null;
 
       return (
-        <div style={{ ...cd, padding: "16px 18px" }}>
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{formatDate(expandedDate)}</span>
-              <button onClick={() => {
-                const lines = [`【SMASH TRACKER】${formatDate(expandedDate)}`, `${selectedDayData.w}W ${selectedDayData.l}L（${t("analysis.winRate")} ${percentStr(selectedDayData.w, total)}）`, "",
+        <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: isPC ? "14px 18px 20px" : "12px 14px 18px", background: T.bg }}>
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: 10 }}>
+              <button type="button" onClick={() => {
+                const lines = [`【SMASH TRACKER】${formatDate(detailDate)}`, `${selectedDayData.w}W ${selectedDayData.l}L（${t("analysis.winRate")} ${percentStr(selectedDayData.w, total)}）`, "",
                   ...ms.map((m) => `${m.result === "win" ? "WIN" : "LOSE"} ${fighterName(m.myChar, lang)} vs ${fighterName(m.oppChar, lang)}`),
                   "", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/"];
                 doShare(lines.join("\n"));
@@ -829,45 +872,41 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           )}
 
           {/* Match list */}
-          <div style={{ maxHeight: isPC ? 380 : 280, overflowY: "auto" }}>
+          <div style={{ maxHeight: "min(52vh, 480px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
             {matchDetail(ms)}
           </div>
         </div>
       );
-    })() : (
-      <div style={{ ...cd, textAlign: "center", padding: isPC ? "48px 20px" : "24px 16px", color: T.dim, fontSize: 13 }}>
-        {t("history.selectDateDesc")}
-      </div>
-    );
+    })() : null;
 
-    // ── PC: calendar left (50%) + detail right (50%) ──
-    if (isPC) {
-      return (
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ ...cd, padding: "14px 18px" }}>
-              {monthNav}
-              {monthSummary}
-              {calendarGrid}
-            </div>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {detailPanel}
-          </div>
-        </div>
-      );
-    }
-
-    // ── Mobile: calendar on top + detail below ──
     return (
-      <div>
-        <div style={{ ...cd, padding: "12px 14px" }}>
+      <>
+        <div style={{ ...cd, padding: isPC ? "8px 10px 10px" : "12px 14px", marginBottom: isPC ? 6 : 12 }}>
           {monthNav}
           {monthSummary}
           {calendarGrid}
+          <div style={{ fontSize: 10, color: T.dim, marginTop: 6, lineHeight: 1.4 }}>{t("history.selectDateDesc")}</div>
         </div>
-        {expandedDate && detailPanel}
-      </div>
+        {selectedDayData && dateDetailModal && dailyScopesEqual(dateDetailModal.scope, scope) && (
+          <div role="presentation" style={dailyModalShell.backdrop} onClick={() => setDateDetailModal(null)}>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="analysis-daily-detail-title"
+              style={dailyModalShell.panel}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+                <button type="button" aria-label={t("common.close")} onClick={() => setDateDetailModal(null)} style={closeDailyFs}>×</button>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div id="analysis-daily-detail-title" style={{ fontSize: isPC ? 17 : 16, fontWeight: 800, color: T.text, letterSpacing: "-0.02em" }}>{formatDate(detailDate)}</div>
+                </div>
+              </div>
+              {dayDetailModalContent}
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
@@ -914,21 +953,115 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
     );
   };
 
-  const matchLogRow = (m, i, total) => (
+  const analysisShell = analysisModalShellStyles(isPC, T);
+  const analysisModalBackdrop = analysisShell.backdrop;
+  const analysisModalPanel = analysisShell.panel;
+  const matchLogGridCols = isPC
+    ? "76px 28px minmax(0,1fr) 22px 28px minmax(0,1.1fr) minmax(68px, 104px) 56px"
+    : "58px 22px minmax(0,1fr) 16px 22px minmax(0,1fr) minmax(0,56px) 44px";
+
+  const analysisMatchLogRow = (m, i, total) => (
     <div key={i} style={{ borderBottom: i < total - 1 ? `1px solid ${T.inp}` : "none" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0" }}>
-        <span style={{ fontSize: 13, color: T.dim, flexShrink: 0, minWidth: 80 }}>{formatDate(m.date)}</span>
-        <FighterIcon name={m.myChar} size={24} />
-        <span style={{ fontSize: 12, color: T.sub, flexShrink: 0 }}>{shortName(m.myChar, lang)}</span>
-        <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>vs</span>
-        <FighterIcon name={m.oppChar} size={24} />
-        <span style={{ fontSize: 12, color: T.sub, flexShrink: 0 }}>{shortName(m.oppChar, lang)}</span>
-        {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-        <span style={{ fontSize: 12, fontWeight: 800, width: 40, textAlign: "center", flexShrink: 0, marginLeft: "auto", padding: "2px 0", borderRadius: 6, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>
-          {m.result === "win" ? "WIN" : "LOSE"}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: matchLogGridCols,
+          alignItems: "center",
+          columnGap: isPC ? 8 : 4,
+          rowGap: 0,
+          padding: isPC ? "10px 12px" : "8px 10px",
+          minHeight: isPC ? 46 : 42,
+        }}
+      >
+        <span style={{ fontSize: isPC ? 12 : 11, color: T.dim, fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{formatDate(m.date)}</span>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FighterIcon name={m.myChar} size={isPC ? 26 : 22} />
+        </div>
+        <span
+          style={{ fontSize: isPC ? 12 : 11, fontWeight: 600, color: T.text, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 }}
+          title={fighterName(m.myChar, lang)}
+        >
+          {fighterName(m.myChar, lang)}
         </span>
+        <span style={{ fontSize: 10, color: T.dim, textAlign: "center", fontWeight: 700 }}>{t("common.vs")}</span>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FighterIcon name={m.oppChar} size={isPC ? 26 : 22} />
+        </div>
+        <span
+          style={{ fontSize: isPC ? 12 : 11, fontWeight: 600, color: T.text, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 }}
+          title={fighterName(m.oppChar, lang)}
+        >
+          {fighterName(m.oppChar, lang)}
+        </span>
+        <span
+          style={{ fontSize: isPC ? 11 : 10, color: m.stage ? T.sub : T.dim, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center", fontWeight: 500 }}
+          title={m.stage ? stageName(m.stage, lang) : ""}
+        >
+          {m.stage ? stageName(m.stage, lang) : "—"}
+        </span>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <span style={{
+            fontSize: isPC ? 11 : 10, fontWeight: 800, letterSpacing: "0.02em", minWidth: 42, textAlign: "center", padding: "5px 8px", borderRadius: 8,
+            background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose,
+          }}
+          >
+            {m.result === "win" ? t("common.win") : t("common.lose")}
+          </span>
+        </div>
       </div>
-      {m.memo && <div style={{ fontSize: 12, color: T.sub, paddingBottom: 6, paddingLeft: 2 }}>{m.memo}</div>}
+      {m.memo && String(m.memo).trim() && (
+        <div style={{
+          margin: "2px 10px 10px",
+          padding: "10px 12px",
+          background: T.inp,
+          borderRadius: 10,
+          fontSize: isPC ? 13 : 12,
+          color: T.text,
+          lineHeight: 1.5,
+          borderLeft: `3px solid ${T.accent}`,
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}
+        >
+          {m.memo}
+        </div>
+      )}
+    </div>
+  );
+
+  const analysisMatchLogTable = (matchesRev) => (
+    <div style={{ borderRadius: 14, border: `1px solid ${T.brd}`, overflow: "hidden", background: T.card }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: matchLogGridCols,
+          alignItems: "center",
+          columnGap: isPC ? 8 : 4,
+          padding: isPC ? "10px 12px" : "8px 10px",
+          borderBottom: `1px solid ${T.brd}`,
+          background: T.inp,
+          position: "sticky",
+          top: 0,
+          zIndex: 1,
+          fontSize: isPC ? 10 : 9,
+          fontWeight: 800,
+          color: T.dim,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+        }}
+      >
+        <span style={{ fontVariantNumeric: "tabular-nums" }}>{t("analysis.logColDate")}</span>
+        <span style={{ display: "flex", justifyContent: "center" }} aria-hidden="true" />
+        <span>{t("analysis.logColYou")}</span>
+        <span style={{ textAlign: "center", fontSize: 9, fontWeight: 800 }}>{t("common.vs")}</span>
+        <span style={{ display: "flex", justifyContent: "center" }} aria-hidden="true" />
+        <span>{t("analysis.logColOpp")}</span>
+        <span style={{ textAlign: "center" }}>{t("analysis.logColStage")}</span>
+        <span style={{ textAlign: "center" }}>{t("analysis.logColResult")}</span>
+      </div>
+      <div style={{ maxHeight: isPC ? "min(52vh, 480px)" : "min(46vh, 380px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+        {matchesRev.map((m, i, arr) => analysisMatchLogRow(m, i, arr.length))}
+      </div>
     </div>
   );
 
@@ -958,13 +1091,13 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   return (
     <div>
       {/* Top-level tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-        {pill("myChar", t("analysis.myChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
-        {pill("oppChar", t("analysis.oppChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
-        {pill("overall", t("analysis.overall"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setExpandedDate(null); })}
+      <div style={{ display: "flex", gap: 6, marginBottom: isPC ? 8 : 12 }}>
+        {pill("myChar", t("analysis.myChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDateDetailModal(null); })}
+        {pill("oppChar", t("analysis.oppChar"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDateDetailModal(null); })}
+        {pill("overall", t("analysis.overall"), aMode, (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDateDetailModal(null); })}
       </div>
       {data.matches.length > 0 && (
-        <div style={{ fontSize: 11, color: T.dim, marginBottom: 14, lineHeight: 1.45 }}>{t("analysis.rankedOnlyNote")}</div>
+        <div style={{ fontSize: 10, color: T.dim, marginBottom: isPC ? 6 : 10, lineHeight: 1.45 }}>{t("analysis.rankedOnlyNote")}</div>
       )}
 
       {/* ═══════════════ MODE: MY CHAR ═══════════════ */}
@@ -988,7 +1121,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                   const iconSize = isPC ? 36 : 28;
                   const bgColor = !used ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
                   return (
-                    <div key={s.c} onClick={() => { if (used) { setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setExpandedDate(null); setPeriod("all"); } }}
+                    <div key={s.c} onClick={() => { if (used) { setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setDateDetailModal(null); setPeriod("all"); } }}
                       style={{
                         display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                         padding: isPC ? "8px 4px" : "6px 2px", borderRadius: 10,
@@ -1022,7 +1155,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           <div>
             {/* Header */}
             <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
-              <button onClick={() => { setCharDetail(null); setExpandedItem(null); setExpandedDate(null); }} style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
+              <button onClick={() => { setCharDetail(null); setExpandedItem(null); setDateDetailModal(null); }} style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
                 {t("analysis.backToList")}
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1059,7 +1192,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             {/* Sub-tabs: matchup / trend / daily */}
             <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
               {[["matchup", t("analysis.matchup")], ["trend", t("analysis.trend")], ["daily", t("analysis.dailyRecord")]].map(([k, l]) => (
-                <button key={k} onClick={() => { setCharSubTab(k); setExpandedItem(null); setExpandedDate(null); }} style={{
+                <button key={k} onClick={() => { setCharSubTab(k); setExpandedItem(null); setDateDetailModal(null); }} style={{
                   flex: 1, padding: "10px 0", borderRadius: 10, border: "none", fontSize: 13,
                   fontWeight: charSubTab === k ? 700 : 500, textAlign: "center",
                   background: charSubTab === k ? T.accentGrad : T.inp, color: charSubTab === k ? "#fff" : T.sub, transition: "all .15s ease",
@@ -1112,7 +1245,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 >
                   {t("analysis.openMatchLog")}
                 </button>
-                {dailyList((m) => m.myChar === charDetail)}
+                {dailyList((m) => m.myChar === charDetail, { type: "myChar", c: charDetail })}
               </div>
             )}
           </div>
@@ -1150,7 +1283,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           <div>
             {/* Header */}
             <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
-              <button onClick={() => { setOppDetail(null); setExpandedItem(null); setExpandedDate(null); }} style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
+              <button onClick={() => { setOppDetail(null); setExpandedItem(null); setDateDetailModal(null); }} style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
                 {t("analysis.backToList")}
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1179,7 +1312,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 {/* Sub-tabs: myChars / history / stages */}
                 <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
                   {[["myChars", t("analysis.myCharUsed")], ["history", t("analysis.matchHistory")], ["stages", t("stages.winRateByStage")]].map(([k, l]) => (
-                    <button key={k} onClick={() => { setOppSubTab(k); setExpandedItem(null); setExpandedDate(null); }} style={{
+                    <button key={k} onClick={() => { setOppSubTab(k); setExpandedItem(null); setDateDetailModal(null); }} style={{
                       flex: 1, padding: "10px 0", borderRadius: 10, border: "none", fontSize: 12,
                       fontWeight: oppSubTab === k ? 700 : 500, textAlign: "center",
                       background: oppSubTab === k ? T.accentGrad : T.inp, color: oppSubTab === k ? "#fff" : T.sub, transition: "all .15s ease",
@@ -1216,7 +1349,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                     >
                       {t("analysis.openMatchLog")}
                     </button>
-                    {dailyList((m) => m.oppChar === oppDetail)}
+                    {dailyList((m) => m.oppChar === oppDetail, { type: "oppChar", c: oppDetail })}
                   </div>
                 )}
 
@@ -1267,15 +1400,15 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
             type="button"
             onClick={() => setMatchLogModal({ title: t("analysis.matchLogTitleOverall"), matches: matchesWithIdx })}
             style={{
-              width: "100%", marginBottom: 12, padding: "10px 14px", borderRadius: 12, border: `1px solid ${T.accentBorder}`,
-              background: T.accentSoft, color: T.accent, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              width: "100%", marginBottom: isPC ? 6 : 10, padding: isPC ? "8px 12px" : "10px 14px", borderRadius: 12, border: `1px solid ${T.accentBorder}`,
+              background: T.accentSoft, color: T.accent, fontSize: isPC ? 12 : 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
             }}
           >
             {t("analysis.openMatchLog")}
           </button>
           {/* Summary + Share */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: T.sub }}>{t("share.overallStats")}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isPC ? 6 : 8 }}>
+            <span style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub }}>{t("share.overallStats")}</span>
             <button onClick={() => {
               const tw = data.matches.filter((m) => m.result === "win").length;
               const tl = data.matches.length - tw;
@@ -1288,105 +1421,121 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               doShare(sLines.join("\n"));
             }} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}><Share2 size={12} /> {t("analysis.share")}</button>
           </div>
-          <div style={{ ...cd, display: "flex", padding: isPC ? "24px 20px" : "18px 12px", textAlign: "center" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginTop: 4 }}>{data.matches.length}</div>
+          <div style={{
+            display: isPC ? "grid" : "block",
+            gridTemplateColumns: isPC ? "minmax(0, 1.1fr) minmax(0, 0.9fr)" : "1fr",
+            gap: isPC ? 8 : 0,
+            marginBottom: isPC ? 6 : 0,
+          }}
+          >
+            <div style={{ ...cd, display: "flex", padding: isPC ? "10px 12px" : "18px 12px", marginBottom: isPC ? 0 : 12, textAlign: "center" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div>
+                <div style={{ fontSize: isPC ? 20 : 22, fontWeight: 800, color: T.text, marginTop: 2 }}>{data.matches.length}</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                <div style={{ fontSize: isPC ? 20 : 22, fontWeight: 800, color: T.text, marginTop: 2 }}>{percentStr(totalW, data.matches.length)}</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                <div style={{ fontSize: isPC ? 20 : 22, fontWeight: 800, marginTop: 2 }}>
+                  <span style={{ color: T.win }}>{totalW}</span>
+                  <span style={{ color: T.dimmer }}> : </span>
+                  <span style={{ color: T.lose }}>{totalL}</span>
+                </div>
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginTop: 4 }}>{percentStr(totalW, data.matches.length)}</div>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>
-                <span style={{ color: T.win }}>{totalW}</span>
-                <span style={{ color: T.dimmer }}> : </span>
-                <span style={{ color: T.lose }}>{totalL}</span>
+            <div style={{ marginBottom: isPC ? 0 : 8 }}>
+              <div style={{ fontSize: isPC ? 11 : 13, fontWeight: 700, color: T.sub, marginBottom: isPC ? 4 : 6 }}>{t("analysis.recentWinRate")}</div>
+              <div style={{ display: "flex", gap: 8, flexDirection: isPC ? "column" : "row" }}>
+                {[20, 50].filter((n) => n !== 50 || data.matches.length > 20).map((n) => {
+                  const d = rolling[n];
+                  const r = d.t ? d.w / d.t : 0;
+                  return (
+                    <div key={n} onClick={() => setExpandedRolling(n)} style={{
+                      ...cd, flex: 1, marginBottom: 0, padding: isPC ? "8px 10px" : "14px 16px", textAlign: "center", cursor: "pointer",
+                    }}>
+                      <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
+                      <div style={{ fontSize: isPC ? 20 : 24, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 2 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
+                      {d.t > 0 && <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{d.w}W {d.t - d.w}L</div>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Recent win rate */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("analysis.recentWinRate")}</div>
-          <div style={{ display: "flex", gap: isPC ? 16 : 8, marginBottom: isPC ? 12 : 8 }}>
-            {[20, 50].filter((n) => n !== 50 || data.matches.length > 20).map((n) => {
-              const d = rolling[n];
-              const r = d.t ? d.w / d.t : 0;
-              return (
-                <div key={n} onClick={() => setExpandedRolling(n)} style={{
-                  ...cd, flex: 1, marginBottom: 0, padding: "14px 16px", textAlign: "center", cursor: "pointer",
-                }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 4 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
-                  {d.t > 0 && <div style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>{d.w}W {d.t - d.w}L</div>}
+          <div style={{
+            display: isPC ? "grid" : "block",
+            gridTemplateColumns: isPC ? "minmax(0, 1fr) minmax(0, 1fr)" : "1fr",
+            gap: isPC ? 8 : 0,
+            marginBottom: isPC ? 4 : 0,
+            alignItems: "start",
+          }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("analysis.timeOfDay")}</div>
+              <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+              <div style={{ ...cd, padding: isPC ? "8px 8px" : "14px 12px", marginBottom: isPC ? 0 : 12 }}>
+                {Object.keys(hourlyStats).length === 0 ? (
+                  <div style={{ textAlign: "center", color: T.dim, fontSize: 12, padding: 12 }}>{t("analysis.noData")}</div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 4 : 6 }}>
+                    {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
+                      const r = d.w / (d.w + d.l);
+                      const hrNum = Number(hr);
+                      const active = hourDetailModal === hrNum;
+                      return (
+                        <button key={hr} type="button" onClick={() => setHourDetailModal(hrNum)} style={{
+                          textAlign: "center", padding: isPC ? "5px 2px" : "8px 4px", borderRadius: 10,
+                          background: active ? T.accentSoft : T.inp, cursor: "pointer",
+                          border: active ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                          fontFamily: "inherit",
+                        }}>
+                          <div style={{ fontSize: isPC ? 10 : 12, fontWeight: 700, color: active ? T.accent : T.text }}>{hr}{t("analysis.hour")}</div>
+                          <div style={{ fontSize: isPC ? 13 : 16, fontWeight: 800, color: barColor(r), marginTop: 1 }}>{percentStr(d.w, d.w + d.l)}</div>
+                          <div style={{ fontSize: 9, color: T.dim }}>{d.w + d.l}{t("analysis.battles")}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            {data.matches.some((m) => m.stage) && (
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: 2 }}>{t("stages.winRateByStage")}</div>
+                <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
+                <div style={{ ...cd, padding: isPC ? "8px 8px" : "12px 14px", marginBottom: isPC ? 0 : 14 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(4, 1fr)" : stageGridColsDisplay, gap: isPC ? 6 : 8 }}>
+                    {STAGES.map((stage) => {
+                      const ms = data.matches.filter((m) => m.stage === stage.id);
+                      if (ms.length === 0) return null;
+                      const w = ms.filter((m) => m.result === "win").length;
+                      const l = ms.length - w;
+                      const rr = w / ms.length;
+                      return (
+                        <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
+                          textAlign: "center", border: "none", padding: 4, borderRadius: 10, background: "transparent",
+                          cursor: "pointer", fontFamily: "inherit", width: "100%",
+                        }}>
+                          <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: "100%", height: isPC ? 32 : 40, objectFit: "cover", borderRadius: 6 }} />
+                          <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stageName(stage.id, lang)}</div>
+                          <div style={{ fontSize: isPC ? 12 : 14, fontWeight: 800, color: barColor(rr), fontFamily: "'Chakra Petch', sans-serif" }}>{Math.round(rr * 100)}%</div>
+                          <div style={{ fontSize: 8, color: T.dim }}>{w}W {l}L</div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Hourly stats */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 4 }}>{t("analysis.timeOfDay")}</div>
-          <div style={{ fontSize: 11, color: T.dim, marginBottom: 8 }}>{t("analysis.tapForDetail")}</div>
-          <div style={{ ...cd, padding: "14px 12px" }}>
-            {Object.keys(hourlyStats).length === 0 ? (
-              <div style={{ textAlign: "center", color: T.dim, fontSize: 13, padding: 16 }}>{t("analysis.noData")}</div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(8, 1fr)" : "repeat(4, 1fr)", gap: 6 }}>
-                {Object.entries(hourlyStats).sort((a, b) => Number(a[0]) - Number(b[0])).map(([hr, d]) => {
-                  const r = d.w / (d.w + d.l);
-                  const hrNum = Number(hr);
-                  const active = hourDetailModal === hrNum;
-                  return (
-                    <button key={hr} type="button" onClick={() => setHourDetailModal(hrNum)} style={{
-                      textAlign: "center", padding: "8px 4px", borderRadius: 10,
-                      background: active ? T.accentSoft : T.inp, cursor: "pointer",
-                      border: active ? `2px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
-                      fontFamily: "inherit",
-                    }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: active ? T.accent : T.text }}>{hr}{t("analysis.hour")}</div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: barColor(r), marginTop: 2 }}>{percentStr(d.w, d.w + d.l)}</div>
-                      <div style={{ fontSize: 10, color: T.dim }}>{d.w + d.l}{t("analysis.battles")}</div>
-                    </button>
-                  );
-                })}
               </div>
             )}
           </div>
 
-          {/* Stage win rate (overall) */}
-          {data.matches.some((m) => m.stage) && (
-            <>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 4 }}>{t("stages.winRateByStage")}</div>
-              <div style={{ fontSize: 11, color: T.dim, marginBottom: 8 }}>{t("analysis.tapForDetail")}</div>
-              <div style={{ ...cd, padding: "12px 14px", marginBottom: isPC ? 20 : 14 }}>
-                <div style={{ display: "grid", gridTemplateColumns: stageGridColsDisplay, gap: 8 }}>
-                  {STAGES.map((stage) => {
-                    const ms = data.matches.filter((m) => m.stage === stage.id);
-                    if (ms.length === 0) return null;
-                    const w = ms.filter((m) => m.result === "win").length;
-                    const l = ms.length - w;
-                    const r = w / ms.length;
-                    return (
-                      <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
-                        textAlign: "center", border: "none", padding: 4, borderRadius: 10, background: "transparent",
-                        cursor: "pointer", fontFamily: "inherit", width: "100%",
-                      }}>
-                        <img src={stageImg(stage.id)} alt={stage.jp} style={{ width: "100%", height: 40, objectFit: "cover", borderRadius: 6 }} />
-                        <div style={{ fontSize: 10, fontWeight: 600, color: T.text, marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{stageName(stage.id, lang)}</div>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{Math.round(r * 100)}%</div>
-                        <div style={{ fontSize: 9, color: T.dim }}>{w}W {l}L</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
-
           {/* All daily records (integrated from HistoryTab) */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("analysis.allDailyRecord")}</div>
-          {dailyList(() => true)}
+          <div style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub, marginBottom: isPC ? 4 : 8 }}>{t("analysis.allDailyRecord")}</div>
+          {dailyList(() => true, { type: "overall" })}
         </div>
       )}
 
@@ -1420,65 +1569,69 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         graphPoints.forEach((p, i) => { areaD += ` L ${xAt(i, graphPoints.length)} ${yAt(p.rate)}`; });
         areaD += ` L ${xAt(graphPoints.length - 1, graphPoints.length)} ${topPad + plotH} Z`;
 
-        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 22, flexShrink: 0 };
+        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 20, fontWeight: 700, flexShrink: 0 };
 
         return (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="analysis-fs-rolling-title"
-            style={{ position: "fixed", inset: 0, zIndex: Z_ANALYSIS_FULLSCREEN, background: T.bg, display: "flex", flexDirection: "column", animation: "fadeUp .12s ease" }}
-          >
-            <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+          <div role="presentation" style={analysisModalBackdrop} onClick={() => setExpandedRolling(null)}>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="analysis-fs-rolling-title"
+              style={analysisModalPanel}
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div style={{ flexShrink: 0, padding: "14px 18px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
               <button type="button" aria-label={t("common.close")} onClick={() => setExpandedRolling(null)} style={closeFs}>×</button>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div id="analysis-fs-rolling-title" style={{ fontSize: 17, fontWeight: 800, color: T.text }}>{t("battle.recentLabel")} {n}{t("analysis.battles")}</div>
-                <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>{t("analysis.rollingDetailSubtitle", { n })}</div>
+                <div id="analysis-fs-rolling-title" style={{ fontSize: isPC ? 18 : 16, fontWeight: 800, color: T.text, letterSpacing: "-0.02em" }}>{t("battle.recentLabel")} {n}{t("analysis.battles")}</div>
+                <div style={{ fontSize: 12, color: T.dim, marginTop: 4, lineHeight: 1.45 }}>{t("analysis.rollingDetailSubtitle", { n })}</div>
               </div>
             </div>
-            <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "16px 16px 28px" }}>
+            <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: isPC ? "18px 20px 24px" : "14px 14px 20px", background: T.bg }}>
               <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(4, 1fr)" : "repeat(2, 1fr)", gap: 10, marginBottom: 14 }}>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.winRate")}</div>
                   <div style={{ fontSize: 28, fontWeight: 900, color: barColor(rR), fontFamily: "'Chakra Petch', sans-serif", marginTop: 4 }}>{percentStr(rW, recentMs.length)}</div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.winLoss")}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
                     <span style={{ color: T.win }}>{rW}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{recentMs.length - rW}</span>
                   </div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.vsOverallWr")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.vsOverallWr")}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, color: diffPt >= 0 ? T.win : T.lose, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
                     {diffPt >= 0 ? "+" : ""}{diffPt}pt
                   </div>
                   <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{t("analysis.career")} {percentStr(totalW, data.matches.length)}</div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.periodRange")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.periodRange")}</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginTop: 6, lineHeight: 1.35 }}>
                     {dateFirst && dateLast ? `${formatDate(dateFirst)} → ${formatDate(dateLast)}` : "—"}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-                <div style={{ flex: "1 1 140px", background: T.inp, borderRadius: 12, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 4 }}>{t("analysis.streakInWindow")}</div>
-                  <div style={{ fontSize: 14, color: T.text, lineHeight: 1.5 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isPC ? "minmax(0,1fr) minmax(0,1.4fr)" : "1fr", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 16px", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700, marginBottom: 6 }}>{t("analysis.streakInWindow")}</div>
+                  <div style={{ fontSize: 14, color: T.text, lineHeight: 1.55 }}>
                     <div><span style={{ color: T.win, fontWeight: 800 }}>{t("analysis.streakMaxWin", { n: streak.maxWin })}</span></div>
                     <div><span style={{ color: T.lose, fontWeight: 800 }}>{t("analysis.streakMaxLose", { n: streak.maxLose })}</span></div>
                   </div>
                 </div>
-                <div style={{ flex: "2 1 220px", background: T.inp, borderRadius: 12, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("analysis.topOpponents")}</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {topOpp.length === 0 ? <span style={{ fontSize: 12, color: T.dim }}>—</span> : topOpp.map((o) => (
-                      <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <FighterIcon name={o.c} size={26} />
-                        <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(o.c, lang)}</span>
-                        <span style={{ fontSize: 11, color: T.dim }}>{o.w}W{o.l}L</span>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 16px", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700, marginBottom: 8 }}>{t("analysis.topOpponents")}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(132px, 1fr))", gap: 10 }}>
+                    {topOpp.length === 0 ? <span style={{ fontSize: 13, color: T.dim }}>—</span> : topOpp.map((o) => (
+                      <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, padding: "6px 8px", borderRadius: 10, background: T.card, border: `1px solid ${T.brd}` }}>
+                        <FighterIcon name={o.c} size={28} />
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={fighterName(o.c, lang)}>{fighterName(o.c, lang)}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginTop: 2 }}>{o.w}W {o.l}L</div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1489,7 +1642,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 <div style={{ marginBottom: 18 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.winRateTransition")}</div>
                   <div style={{ fontSize: 11, color: T.dim, marginBottom: 10 }}>{t("analysis.rollingGraphCaption", { n })}</div>
-                  <div style={{ background: T.inp, borderRadius: 16, padding: "12px 8px 8px", width: "100%", maxWidth: 900, margin: "0 auto" }}>
+                  <div style={{ background: T.inp, borderRadius: 16, padding: "12px 8px 8px", width: "100%", maxWidth: "100%", margin: "0 auto", border: `1px solid ${T.brd}` }}>
                     <svg viewBox={`0 0 ${vbW} ${vbH}`} style={{ width: "100%", height: "auto", display: "block", minHeight: 260 }}>
                       {[0, 0.25, 0.5, 0.75, 1].map((lev) => (
                         <line key={lev} x1={leftPad} y1={yAt(lev)} x2={vbW - rightPad} y2={yAt(lev)} stroke={T.brd} strokeWidth="1" opacity={0.85} />
@@ -1523,10 +1676,9 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 </div>
               )}
 
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
-              <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.brd}`, padding: "10px 14px 14px" }}>
-                {recentMs.slice().reverse().map((m, i, arr) => matchLogRow(m, i, arr.length))}
-              </div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, letterSpacing: "0.02em" }}>{t("analysis.matchHistory")}</div>
+              {analysisMatchLogTable(recentMs.slice().reverse())}
+            </div>
             </div>
           </div>
         );
@@ -1550,43 +1702,45 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         });
         const topO = topOpponentStats(hourMs, 6);
         const lowSample = tH < 5;
-        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 22, flexShrink: 0 };
+        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 20, fontWeight: 700, flexShrink: 0 };
 
         return (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="analysis-fs-hour-title"
-            style={{ position: "fixed", inset: 0, zIndex: Z_ANALYSIS_FULLSCREEN, background: T.bg, display: "flex", flexDirection: "column", animation: "fadeUp .12s ease" }}
-          >
-            <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+          <div role="presentation" style={analysisModalBackdrop} onClick={() => setHourDetailModal(null)}>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="analysis-fs-hour-title"
+              style={analysisModalPanel}
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div style={{ flexShrink: 0, padding: "14px 18px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
               <button type="button" aria-label={t("common.close")} onClick={() => setHourDetailModal(null)} style={closeFs}>×</button>
-              <div style={{ flex: 1 }}>
-                <div id="analysis-fs-hour-title" style={{ fontSize: 17, fontWeight: 800, color: T.text }}>{t("analysis.hourDetailTitle", { h: hr })}</div>
-                <div style={{ fontSize: 12, color: T.dim, marginTop: 4 }}>{t("analysis.hourDetailSubtitle")}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div id="analysis-fs-hour-title" style={{ fontSize: isPC ? 18 : 16, fontWeight: 800, color: T.text, letterSpacing: "-0.02em" }}>{t("analysis.hourDetailTitle", { h: hr })}</div>
+                <div style={{ fontSize: 12, color: T.dim, marginTop: 4, lineHeight: 1.45 }}>{t("analysis.hourDetailSubtitle")}</div>
               </div>
             </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 28px" }}>
+            <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: isPC ? "18px 20px 24px" : "14px 14px 20px", background: T.bg }}>
               {lowSample && (
-                <div style={{ background: "#FF9F0A22", border: "1px solid #FF9F0A55", borderRadius: 12, padding: "10px 12px", fontSize: 12, color: T.text, marginBottom: 12 }}>{t("analysis.lowSample")}</div>
+                <div style={{ background: "#FF9F0A22", border: "1px solid #FF9F0A55", borderRadius: 12, padding: "12px 14px", fontSize: 13, color: T.text, marginBottom: 14, lineHeight: 1.5 }}>{t("analysis.lowSample")}</div>
               )}
               <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(4, 1fr)" : "repeat(2, 1fr)", gap: 10, marginBottom: 14 }}>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.winRate")}</div>
                   <div style={{ fontSize: 28, fontWeight: 900, color: barColor(rH), fontFamily: "'Chakra Petch', sans-serif", marginTop: 4 }}>{percentStr(d.w, tH)}</div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.winLoss")}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
                     <span style={{ color: T.win }}>{d.w}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{d.l}</span>
                   </div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.vsOverallWr")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.vsOverallWr")}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, color: diffPt >= 0 ? T.win : T.lose, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>{diffPt >= 0 ? "+" : ""}{diffPt}pt</div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.hourShareOfAll")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.hourShareOfAll")}</div>
                   <div style={{ fontSize: 24, fontWeight: 900, color: T.text, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>{pctOfAll}%</div>
                   <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{tH}{t("common.matches")}</div>
                 </div>
@@ -1595,7 +1749,7 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
               <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.adjacentHours")}</div>
               <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
                 {adj.map(({ h: hh, t: tt, r: rr }) => (
-                  <div key={hh} style={{ flex: "1 1 100px", background: T.inp, borderRadius: 12, padding: "10px 8px", textAlign: "center", opacity: tt ? 1 : 0.45 }}>
+                  <div key={hh} style={{ flex: "1 1 100px", background: T.inp, borderRadius: 12, padding: "10px 8px", textAlign: "center", opacity: tt ? 1 : 0.45, border: `1px solid ${T.brd}` }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: hh === hr ? T.accent : T.text }}>{hh}{t("analysis.hour")}</div>
                     <div style={{ fontSize: 15, fontWeight: 800, color: rr == null ? T.dim : barColor(rr), marginTop: 4 }}>{rr == null ? "—" : `${Math.round(rr * 100)}%`}</div>
                     <div style={{ fontSize: 10, color: T.dim }}>{tt}{t("analysis.battles")}</div>
@@ -1603,23 +1757,24 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
                 ))}
               </div>
 
-              <div style={{ background: T.inp, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
-                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("analysis.topOpponents")}</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                  {topO.length === 0 ? <span style={{ fontSize: 12, color: T.dim }}>—</span> : topO.map((o) => (
-                    <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <FighterIcon name={o.c} size={26} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(o.c, lang)}</span>
-                      <span style={{ fontSize: 11, color: T.dim }}>{o.w}W{o.l}L</span>
+              <div style={{ background: T.inp, borderRadius: 14, padding: "14px 16px", marginBottom: 16, border: `1px solid ${T.brd}` }}>
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 700, marginBottom: 8 }}>{t("analysis.topOpponents")}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(132px, 1fr))", gap: 10 }}>
+                  {topO.length === 0 ? <span style={{ fontSize: 13, color: T.dim }}>—</span> : topO.map((o) => (
+                    <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, padding: "6px 8px", borderRadius: 10, background: T.card, border: `1px solid ${T.brd}` }}>
+                      <FighterIcon name={o.c} size={28} />
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={fighterName(o.c, lang)}>{fighterName(o.c, lang)}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginTop: 2 }}>{o.w}W {o.l}L</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
-              <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.brd}`, padding: "10px 14px 14px" }}>
-                {hourMs.map((m, i, arr) => matchLogRow(m, i, arr.length))}
-              </div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, letterSpacing: "0.02em" }}>{t("analysis.matchHistory")}</div>
+              {analysisMatchLogTable(hourMs)}
+            </div>
             </div>
           </div>
         );
@@ -1640,62 +1795,65 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
         const stageMsIdx = matchesWithIdx.filter((m) => m.stage === stageDetailId).slice().reverse();
         const topO = topOpponentStats(ms, 6);
         const stMeta = STAGES.find((s) => s.id === stageDetailId);
-        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 22, flexShrink: 0 };
+        const closeFs = { border: "none", background: T.inp, borderRadius: 12, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 20, fontWeight: 700, flexShrink: 0 };
 
         return (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="analysis-fs-stage-title"
-            style={{ position: "fixed", inset: 0, zIndex: Z_ANALYSIS_FULLSCREEN, background: T.bg, display: "flex", flexDirection: "column", animation: "fadeUp .12s ease" }}
-          >
-            <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
+          <div role="presentation" style={analysisModalBackdrop} onClick={() => setStageDetailId(null)}>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="analysis-fs-stage-title"
+              style={analysisModalPanel}
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div style={{ flexShrink: 0, padding: "14px 18px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
               <button type="button" aria-label={t("common.close")} onClick={() => setStageDetailId(null)} style={closeFs}>×</button>
               <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-                {stMeta && <img src={stageImg(stageDetailId)} alt={stageName(stageDetailId, lang)} style={{ width: 72, height: 40, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />}
+                {stMeta && <img src={stageImg(stageDetailId)} alt={stageName(stageDetailId, lang)} style={{ width: isPC ? 80 : 64, height: isPC ? 44 : 36, objectFit: "cover", borderRadius: 10, flexShrink: 0, border: `1px solid ${T.brd}` }} />}
                 <div style={{ minWidth: 0 }}>
-                  <div id="analysis-fs-stage-title" style={{ fontSize: 17, fontWeight: 800, color: T.text }}>{stageName(stageDetailId, lang)}</div>
-                  <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>{t("analysis.stageDetailSubtitle")}</div>
+                  <div id="analysis-fs-stage-title" style={{ fontSize: isPC ? 18 : 16, fontWeight: 800, color: T.text, letterSpacing: "-0.02em", lineHeight: 1.25 }}>{stageName(stageDetailId, lang)}</div>
+                  <div style={{ fontSize: 12, color: T.dim, marginTop: 4, lineHeight: 1.45 }}>{t("analysis.stageDetailSubtitle")}</div>
                 </div>
               </div>
             </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 28px" }}>
+            <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: isPC ? "18px 20px 24px" : "14px 14px 20px", background: T.bg }}>
               <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(3, 1fr)" : "1fr", gap: 10, marginBottom: 14 }}>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.winRate")}</div>
                   <div style={{ fontSize: 28, fontWeight: 900, color: barColor(rS), fontFamily: "'Chakra Petch', sans-serif", marginTop: 4 }}>{percentStr(w, ms.length)}</div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.winLoss")}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>
                     <span style={{ color: T.win }}>{w}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{l}</span>
                   </div>
                   <div style={{ fontSize: 10, color: T.dim, marginTop: 4 }}>{ms.length}{t("common.matches")}</div>
                 </div>
-                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
-                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.vsCareerWr")}</div>
+                <div style={{ background: T.inp, borderRadius: 14, padding: "14px 12px", textAlign: "center", border: `1px solid ${T.brd}` }}>
+                  <div style={{ fontSize: 11, color: T.dim, fontWeight: 700 }}>{t("analysis.vsCareerWr")}</div>
                   <div style={{ fontSize: 22, fontWeight: 900, color: diffPt >= 0 ? T.win : T.lose, marginTop: 4, fontFamily: "'Chakra Petch', sans-serif" }}>{diffPt >= 0 ? "+" : ""}{diffPt}pt</div>
                   <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{t("analysis.vsStagedOnly")} {diffStaged >= 0 ? "+" : ""}{diffStaged}pt</div>
                 </div>
               </div>
 
-              <div style={{ background: T.inp, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
-                <div style={{ fontSize: 11, color: T.dim, fontWeight: 600, marginBottom: 6 }}>{t("analysis.topOpponents")}</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ background: T.inp, borderRadius: 14, padding: "14px 16px", marginBottom: 16, border: `1px solid ${T.brd}` }}>
+                <div style={{ fontSize: 11, color: T.dim, fontWeight: 700, marginBottom: 8 }}>{t("analysis.topOpponents")}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(132px, 1fr))", gap: 10 }}>
                   {topO.map((o) => (
-                    <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <FighterIcon name={o.c} size={26} />
-                      <span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(o.c, lang)}</span>
-                      <span style={{ fontSize: 11, color: T.dim }}>{o.w}W{o.l}L</span>
+                    <div key={o.c} style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, padding: "6px 8px", borderRadius: 10, background: T.card, border: `1px solid ${T.brd}` }}>
+                      <FighterIcon name={o.c} size={28} />
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={fighterName(o.c, lang)}>{fighterName(o.c, lang)}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginTop: 2 }}>{o.w}W {o.l}L</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.matchHistory")}</div>
-              <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.brd}`, padding: "10px 14px 14px" }}>
-                {stageMsIdx.map((m, i, arr) => matchLogRow(m, i, arr.length))}
-              </div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, letterSpacing: "0.02em" }}>{t("analysis.matchHistory")}</div>
+              {analysisMatchLogTable(stageMsIdx)}
+            </div>
             </div>
           </div>
         );

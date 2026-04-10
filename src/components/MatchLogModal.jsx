@@ -70,9 +70,7 @@ export default function MatchLogModal({ open, onClose, title, matches, T, t, lan
                 </div>
                 {m.memo && String(m.memo).trim() ? (
                   <div style={{ fontSize: 14, color: T.text, lineHeight: 1.55, background: T.inp, padding: "10px 12px", borderRadius: 10, whiteSpace: "pre-wrap" }}>{m.memo}</div>
-                ) : (
-                  <div style={{ fontSize: 12, color: T.dim, fontStyle: "italic" }}>{t("analysis.logNoMemo")}</div>
-                )}
+                ) : null}
               </div>
             ))
           )}
