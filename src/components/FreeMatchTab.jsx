@@ -502,7 +502,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   );
 
   // Analysis area
-  const analysisArea = oppMs.length > 0 && (
+  const analysisArea = (
     <div>
       <div style={{ fontSize: 14, fontWeight: 800, color: T.text, padding: "12px 0 8px", borderTop: `1px solid ${T.brd}`, marginTop: 8 }}>
         {t("free.analysis")}
@@ -511,7 +511,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
       {/* Summary */}
       <div style={{ ...cd, display: "flex", padding: "12px 10px", textAlign: "center" }}>
         <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div><div style={{ fontSize: 20, fontWeight: 900, color: T.text, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>{oppMs.length}</div></div>
-        <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div><div style={{ fontSize: 20, fontWeight: 900, color: barColor(totalW / oppMs.length), marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(totalW, oppMs.length)}</div></div>
+        <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div><div style={{ fontSize: 20, fontWeight: 900, color: oppMs.length > 0 ? barColor(totalW / oppMs.length) : T.dim, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>{oppMs.length > 0 ? percentStr(totalW, oppMs.length) : "-"}</div></div>
         <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div><div style={{ fontSize: 20, fontWeight: 900, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}><span style={{ color: T.win }}>{totalW}</span><span style={{ color: T.dimmer, fontSize: 12, margin: "0 2px" }}>:</span><span style={{ color: T.lose }}>{totalL}</span></div></div>
       </div>
       {/* Win rate trend */}
