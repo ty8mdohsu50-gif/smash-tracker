@@ -40,6 +40,7 @@ export function useNavigation({ showSettings, setShowSettings, aboutPage, setAbo
   }, [showSettings, aboutPage, legalPage, setShowSettings, setAboutPage, setLegalPage]);
 
   const ANALYSIS_MODES = ["myChar", "oppChar", "overall"];
+  const BATTLE_MODES = ["ranked", "free", "quick"];
 
   const onWheel = useCallback((e) => {
     if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
@@ -57,14 +58,15 @@ export function useNavigation({ showSettings, setShowSettings, aboutPage, setAbo
       const am = navRef.current.analysisMode;
 
       if (tab === 0) {
-        if (bm === "ranked" && dir > 0) { setBattleMode("free"); }
-        else if (bm === "free" && dir > 0) { setTabIdx(1); setAnalysisMode("myChar"); }
-        else if (bm === "free" && dir < 0) { setBattleMode("ranked"); }
+        const bmIdx = BATTLE_MODES.indexOf(bm);
+        if (dir > 0 && bmIdx < BATTLE_MODES.length - 1) { setBattleMode(BATTLE_MODES[bmIdx + 1]); }
+        else if (dir > 0 && bmIdx === BATTLE_MODES.length - 1) { setTabIdx(1); setAnalysisMode("myChar"); }
+        else if (dir < 0 && bmIdx > 0) { setBattleMode(BATTLE_MODES[bmIdx - 1]); }
       } else if (tab === 1) {
         const idx = ANALYSIS_MODES.indexOf(am);
         if (dir > 0 && idx < ANALYSIS_MODES.length - 1) { setAnalysisMode(ANALYSIS_MODES[idx + 1]); }
         else if (dir < 0 && idx > 0) { setAnalysisMode(ANALYSIS_MODES[idx - 1]); }
-        else if (dir < 0 && idx === 0) { setTabIdx(0); setBattleMode("free"); }
+        else if (dir < 0 && idx === 0) { setTabIdx(0); setBattleMode(BATTLE_MODES[BATTLE_MODES.length - 1]); }
       }
     }
   }, [setBattleMode, setTabIdx, setAnalysisMode]);
@@ -92,13 +94,14 @@ export function useNavigation({ showSettings, setShowSettings, aboutPage, setAbo
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     if (Math.abs(dx) > 50 && Date.now() - touchRef.current.t < 400) {
       if (navRef.current.tabIdx === 0) {
-        if (navRef.current.battleMode === "ranked" && dx < 0) {
-          setBattleMode("free");
-        } else if (navRef.current.battleMode === "free" && dx < 0) {
+        const bmIdx = BATTLE_MODES.indexOf(navRef.current.battleMode);
+        if (dx < 0 && bmIdx < BATTLE_MODES.length - 1) {
+          setBattleMode(BATTLE_MODES[bmIdx + 1]);
+        } else if (dx < 0 && bmIdx === BATTLE_MODES.length - 1) {
           setTabIdx(1);
           setAnalysisMode("myChar");
-        } else if (navRef.current.battleMode === "free" && dx > 0) {
-          setBattleMode("ranked");
+        } else if (dx > 0 && bmIdx > 0) {
+          setBattleMode(BATTLE_MODES[bmIdx - 1]);
         }
         return;
       }
@@ -110,7 +113,7 @@ export function useNavigation({ showSettings, setShowSettings, aboutPage, setAbo
           setAnalysisMode(ANALYSIS_MODES[idx - 1]);
         } else if (dx > 0 && idx === 0) {
           setTabIdx(0);
-          setBattleMode("free");
+          setBattleMode(BATTLE_MODES[BATTLE_MODES.length - 1]);
         }
         return;
       }
