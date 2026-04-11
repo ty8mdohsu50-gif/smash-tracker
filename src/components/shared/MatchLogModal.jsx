@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { Z_MATCH_LOG_MODAL } from "../constants/zIndex";
+import { Z_MATCH_LOG_MODAL } from "../../constants/zIndex";
 import FighterIcon from "./FighterIcon";
-import { shortName } from "../constants/fighters";
-import { stageName } from "../constants/stages";
-import { formatDate, formatTime } from "../utils/format";
+import { shortName } from "../../constants/fighters";
+import { stageName } from "../../constants/stages";
+import { formatDate, formatTime } from "../../utils/format";
 
 const MAX_ROWS = 200;
 

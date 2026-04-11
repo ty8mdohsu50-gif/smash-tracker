@@ -1,72 +1,31 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState } from "react";
 import { Swords, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import { getTheme } from "./styles/theme";
-import { load, save, cloudLoad, cloudSave, migrateLocalToCloud } from "./utils/storage";
-import { supabase } from "./lib/supabase";
+import { load } from "./utils/storage";
 import AuthPage from "./components/AuthPage";
 import Settings from "./components/Settings";
 import LegalPage from "./components/LegalPage";
 import AboutPage from "./components/AboutPage";
-import BattleTab from "./components/BattleTab";
-// HistoryTab removed - integrated into AnalysisTab
-import AnalysisTab from "./components/AnalysisTab";
+import BattleTab from "./components/battle/BattleTab";
+import AnalysisTab from "./components/analysis/AnalysisTab";
 import { useI18n } from "./i18n/index.jsx";
+import { useIsPC } from "./hooks/useIsPC";
+import { useIsLandscape } from "./hooks/useIsLandscape";
+import { useAuth } from "./hooks/useAuth";
+import { useCloudSync } from "./hooks/useCloudSync";
+import { useThemeEffect } from "./hooks/useThemeEffect";
+import { useNavigation } from "./hooks/useNavigation";
 
 const TAB_ICONS = [Swords, BarChart3];
-const PC_BREAKPOINT = 1024;
-
-function useIsPC() {
-  const query = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
-  const [isPC, setIsPC] = useState(() => {
-    if (typeof window.matchMedia === "function") {
-      return window.matchMedia(query).matches;
-    }
-    return window.innerWidth >= PC_BREAKPOINT;
-  });
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") {
-      const onResize = () => setIsPC(window.innerWidth >= PC_BREAKPOINT);
-      window.addEventListener("resize", onResize);
-      return () => window.removeEventListener("resize", onResize);
-    }
-    const mql = window.matchMedia(query);
-    const onChange = (e) => setIsPC(e.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-  return isPC;
-}
-
-function useIsLandscape() {
-  const [isLandscape, setIsLandscape] = useState(
-    () => window.innerWidth > window.innerHeight && window.innerHeight < 500,
-  );
-  useEffect(() => {
-    const handler = () =>
-      setIsLandscape(window.innerWidth > window.innerHeight && window.innerHeight < 500);
-    window.addEventListener("resize", handler);
-    window.addEventListener("orientationchange", handler);
-    return () => {
-      window.removeEventListener("resize", handler);
-      window.removeEventListener("orientationchange", handler);
-    };
-  }, []);
-  return isLandscape;
-}
 
 export default function App() {
   const { t } = useI18n();
   const TABS = [t("app.tabs.battle"), t("app.tabs.analysis")];
-  const [user, setUser] = useState(undefined);
-  const [skippedAuth, setSkippedAuth] = useState(
-    () => localStorage.getItem("smash-skipped-auth") === "1",
-  );
-  const [data, setData] = useState(() => load());
-  const [loading, setLoading] = useState(true);
+
+  const { user, loading, skippedAuth, handleLogout, handleSkip } = useAuth();
+  const { data, saveData } = useCloudSync(user);
   const T = getTheme(data.dark !== undefined ? data.dark : false, data.themeColor || "black");
-  const [tabIdx, setTabIdxRaw] = useState(0);
-  const [battleMode, setBattleModeRaw] = useState("ranked");
-  const [analysisMode, setAnalysisModeRaw] = useState("myChar");
+
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const [aboutPage, setAboutPage] = useState(false);
@@ -75,161 +34,18 @@ export default function App() {
     const d = load();
     return !d.matches || d.matches.length === 0;
   });
-  const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
-  const wheelRef = useRef({ acc: 0, cooldown: false });
-  const mainRef = useRef(null);
-  const userRef = useRef(user);
-  userRef.current = user;
 
-  // Nav state refs for history management
-  const navRef = useRef({ tabIdx: 0, battleMode: "ranked", analysisMode: "myChar" });
-  const setTabIdx = useCallback((v) => { const val = typeof v === "function" ? v(navRef.current.tabIdx) : v; navRef.current.tabIdx = val; setTabIdxRaw(val); }, []);
-  const setBattleMode = useCallback((v) => { navRef.current.battleMode = v; setBattleModeRaw(v); }, []);
-  const setAnalysisMode = useCallback((v) => { navRef.current.analysisMode = v; setAnalysisModeRaw(v); }, []);
-
-  // Browser back button support
-  useEffect(() => {
-    const pushNav = () => {
-      const s = { tab: navRef.current.tabIdx, bm: navRef.current.battleMode, am: navRef.current.analysisMode };
-      window.history.pushState(s, "");
-    };
-    pushNav();
-    const onPop = (e) => {
-      if (showSettings) { setShowSettings(false); window.history.pushState(null, ""); return; }
-      if (aboutPage) { setAboutPage(false); window.history.pushState(null, ""); return; }
-      if (legalPage) { setLegalPage(null); window.history.pushState(null, ""); return; }
-      if (e.state) {
-        navRef.current = { tabIdx: e.state.tab, battleMode: e.state.bm, analysisMode: e.state.am };
-        setTabIdxRaw(e.state.tab);
-        setBattleModeRaw(e.state.bm);
-        setAnalysisModeRaw(e.state.am);
-      }
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, [showSettings, aboutPage, legalPage]);
   const isPC = useIsPC();
   const isLandscape = useIsLandscape();
+  useThemeEffect(T);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      },
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
-    // Reset viewport scale after login (Android Chrome workaround)
-    const vp = document.querySelector('meta[name="viewport"]');
-    if (vp) {
-      vp.setAttribute("content", "width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover");
-    }
-    window.scrollTo(0, 0);
-
-    let cancelled = false;
-    const init = async () => {
-      await migrateLocalToCloud(user.id);
-      const cloud = await cloudLoad(user.id);
-      if (cancelled) return;
-
-      const local = load();
-      const localCount = local.matches?.length || 0;
-      const cloudCount = cloud?.matches?.length || 0;
-
-      if (cloudCount > localCount) {
-        setData(cloud);
-        save(cloud);
-      } else if (localCount > cloudCount) {
-        setData(local);
-        cloudSave(user.id, local);
-      } else if (cloud) {
-        setData(cloud);
-        save(cloud);
-      }
-    };
-    init();
-
-    return () => { cancelled = true; };
-  }, [user]);
-
-  useEffect(() => {
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", T.bg);
-    const root = document.documentElement;
-    root.style.setProperty("--accent", T.accent);
-    root.style.setProperty("--accent-scroll", `${T.accent}33`);
-    root.style.setProperty("--accent-scroll-hover", `${T.accent}59`);
-  }, [T]);
-
-  const sv = useCallback((d) => {
-    setData(d);
-    save(d);
-
-    if (userRef.current) {
-      cloudSave(userRef.current.id, d);
-    }
-  }, []);
-
-  const ANALYSIS_MODES_PC = ["myChar", "oppChar", "overall"];
-  const onWheel = useCallback((e) => {
-    if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
-    e.preventDefault();
-    if (wheelRef.current.cooldown) return;
-    wheelRef.current.acc += e.deltaX;
-    if (Math.abs(wheelRef.current.acc) > 120) {
-      const dir = wheelRef.current.acc > 0 ? 1 : -1;
-      wheelRef.current.acc = 0;
-      wheelRef.current.cooldown = true;
-      setTimeout(() => { wheelRef.current.cooldown = false; }, 500);
-
-      const tab = navRef.current.tabIdx;
-      const bm = navRef.current.battleMode;
-      const am = navRef.current.analysisMode;
-
-      if (tab === 0) {
-        if (bm === "ranked" && dir > 0) { setBattleMode("free"); }
-        else if (bm === "free" && dir > 0) { setTabIdx(1); setAnalysisMode("myChar"); }
-        else if (bm === "free" && dir < 0) { setBattleMode("ranked"); }
-      } else if (tab === 1) {
-        const idx = ANALYSIS_MODES_PC.indexOf(am);
-        if (dir > 0 && idx < ANALYSIS_MODES_PC.length - 1) { setAnalysisMode(ANALYSIS_MODES_PC[idx + 1]); }
-        else if (dir < 0 && idx > 0) { setAnalysisMode(ANALYSIS_MODES_PC[idx - 1]); }
-        else if (dir < 0 && idx === 0) { setTabIdx(0); setBattleMode("free"); }
-      }
-    }
-  }, [setBattleMode, setTabIdx, setAnalysisMode]);
-
-  useEffect(() => {
-    if (!isPC) return;
-    const el = mainRef.current;
-    if (!el) return;
-    el.addEventListener("wheel", onWheel, { passive: false, capture: true });
-    return () => el.removeEventListener("wheel", onWheel, { capture: true });
-  }, [isPC, onWheel]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSkippedAuth(false);
-    localStorage.removeItem("smash-skipped-auth");
-  };
-
-  const handleSkip = () => {
-    window.scrollTo(0, 0);
-    setSkippedAuth(true);
-    localStorage.setItem("smash-skipped-auth", "1");
-  };
+  const {
+    tabIdx, setTabIdx,
+    battleMode, setBattleMode,
+    analysisMode, setAnalysisMode,
+    mainRef,
+    onTouchStart, onTouchMove, onTouchEnd,
+  } = useNavigation({ showSettings, setShowSettings, aboutPage, setAboutPage, legalPage, setLegalPage, isPC });
 
   if (loading) {
     return (
@@ -254,52 +70,10 @@ export default function App() {
     return <AuthPage onSkip={handleSkip} />;
   }
 
-  const onTS = (e) => {
-    const t = e.touches[0];
-    touchRef.current = { x: t.clientX, y: t.clientY, t: Date.now(), sw: false };
-  };
-  const onTM = (e) => {
-    const dx = e.touches[0].clientX - touchRef.current.x;
-    const dy = e.touches[0].clientY - touchRef.current.y;
-    if (!touchRef.current.sw && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10)
-      touchRef.current.sw = true;
-  };
-  const ANALYSIS_MODES = ["myChar", "oppChar", "overall"];
-  // Swipe order: ranked → free → analysis(myChar → oppChar → overall)
-  const onTE = (e) => {
-    if (!touchRef.current.sw) return;
-    const dx = e.changedTouches[0].clientX - touchRef.current.x;
-    if (Math.abs(dx) > 50 && Date.now() - touchRef.current.t < 400) {
-      if (tabIdx === 0) {
-        if (battleMode === "ranked" && dx < 0) {
-          setBattleMode("free");
-        } else if (battleMode === "free" && dx < 0) {
-          setTabIdx(1);
-          setAnalysisMode("myChar");
-        } else if (battleMode === "free" && dx > 0) {
-          setBattleMode("ranked");
-        }
-        return;
-      }
-      if (tabIdx === 1) {
-        const idx = ANALYSIS_MODES.indexOf(analysisMode);
-        if (dx < 0 && idx < ANALYSIS_MODES.length - 1) {
-          setAnalysisMode(ANALYSIS_MODES[idx + 1]);
-        } else if (dx > 0 && idx > 0) {
-          setAnalysisMode(ANALYSIS_MODES[idx - 1]);
-        } else if (dx > 0 && idx === 0) {
-          setTabIdx(0);
-          setBattleMode("free");
-        }
-        return;
-      }
-    }
-  };
-
   const settingsModal = showSettings && (
     <Settings
       data={data}
-      onSave={sv}
+      onSave={saveData}
       onClose={() => setShowSettings(false)}
       onOpenLegal={(page) => setLegalPage(page)}
       onOpenAbout={() => setAboutPage(true)}
@@ -310,19 +84,11 @@ export default function App() {
   );
 
   const legalModal = legalPage && (
-    <LegalPage
-      T={T}
-      page={legalPage}
-      onClose={() => setLegalPage(null)}
-    />
+    <LegalPage T={T} page={legalPage} onClose={() => setLegalPage(null)} />
   );
 
   const aboutModal = aboutPage && (
-    <AboutPage
-      T={T}
-      onClose={() => setAboutPage(false)}
-      onOpenLegal={(page) => { setAboutPage(false); setLegalPage(page); }}
-    />
+    <AboutPage T={T} onClose={() => setAboutPage(false)} onOpenLegal={(page) => { setAboutPage(false); setLegalPage(page); }} />
   );
 
   const onboardModal = showOnboard && (
@@ -351,9 +117,9 @@ export default function App() {
   if (!isPC) {
     return (
       <div
-        onTouchStart={onTS}
-        onTouchMove={onTM}
-        onTouchEnd={onTE}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
         style={{
           minHeight: "100vh",
           background: T.bg,
@@ -391,14 +157,7 @@ export default function App() {
               onClick={() => { setTabIdx(0); setBattleMode("ranked"); }}
               style={{ display: "flex", alignItems: "center", gap: 10, background: "transparent", border: "none", padding: 0, cursor: "pointer" }}
             >
-              <div
-                style={{
-                  width: isLandscape ? 28 : 36,
-                  height: isLandscape ? 28 : 36,
-                  borderRadius: 10,
-                  overflow: "hidden",
-                }}
-              >
+              <div style={{ width: isLandscape ? 28 : 36, height: isLandscape ? 28 : 36, borderRadius: 10, overflow: "hidden" }}>
                 <img src="/icon.png" alt="" style={{ width: isLandscape ? 28 : 36, height: isLandscape ? 28 : 36, objectFit: "contain" }} />
               </div>
               <span style={{ fontSize: isLandscape ? 14 : 17, fontWeight: 700, letterSpacing: 1.5, color: T.accent, fontFamily: "'Chakra Petch', sans-serif" }}>
@@ -467,8 +226,8 @@ export default function App() {
         </div>
         <div style={{ padding: isLandscape ? "8px 12px 20px" : "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} battleMode={battleMode} setBattleMode={setBattleMode} />}
-            {tabIdx === 1 && <AnalysisTab data={data} onSave={sv} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} battleMode={battleMode} setBattleMode={setBattleMode} />}
+            {tabIdx === 1 && <AnalysisTab data={data} onSave={saveData} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>
       </div>
@@ -508,14 +267,7 @@ export default function App() {
           onClick={() => { setTabIdx(0); setBattleMode("ranked"); }}
           style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 24px", marginBottom: 40, background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}
         >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              overflow: "hidden",
-            }}
-          >
+          <div style={{ width: 40, height: 40, borderRadius: 12, overflow: "hidden" }}>
             <img src="/icon.png" alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
           </div>
           <div>
@@ -640,8 +392,8 @@ export default function App() {
 
         <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={sv} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} />}
-            {tabIdx === 1 && <AnalysisTab data={data} onSave={sv} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} />}
+            {tabIdx === 1 && <AnalysisTab data={data} onSave={saveData} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>
       </main>

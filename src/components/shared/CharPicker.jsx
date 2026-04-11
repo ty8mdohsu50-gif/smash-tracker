@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { FIGHTERS, getSearchText, fighterName } from "../constants/fighters";
-import { useI18n } from "../i18n/index.jsx";
-import { normalizeCharSearchInput } from "../utils/format";
+import { FIGHTERS, getSearchText, fighterName } from "../../constants/fighters";
+import { useI18n } from "../../i18n/index.jsx";
+import { normalizeCharSearchInput } from "../../utils/format";
 import FighterIcon from "./FighterIcon";
 
 export default function CharPicker({

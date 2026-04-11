@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Share2 } from "lucide-react";
-import SharePopup from "./SharePopup";
+import SharePopup from "./shared/SharePopup";
 import { useI18n } from "../i18n/index.jsx";
 
 export default function AboutPage({ T, onClose, onOpenLegal }) {

@@ -1,68 +1,61 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useRef, useMemo } from "react";
 import { Share2, ChevronLeft, ChevronRight } from "lucide-react";
-import { BattleNotes } from "./MatchupNotesEditor";
-import CharPicker from "./CharPicker";
-import FighterIcon from "./FighterIcon";
-import SharePopup from "./SharePopup";
-import Toast from "./Toast";
-import ConfirmDialog from "./ConfirmDialog";
-import Chart from "./Chart";
-import { fighterName, shortName, FIGHTERS } from "../constants/fighters";
-import { STAGES, stageName, stageImg } from "../constants/stages";
-import { useI18n } from "../i18n/index.jsx";
-import { today, formatDate, formatTime, percentStr, barColor, recentChars } from "../utils/format";
+import { BattleNotes } from "../shared/MatchupNotesEditor";
+import CharPicker from "../shared/CharPicker";
+import FighterIcon from "../shared/FighterIcon";
+import Chart from "../shared/Chart";
+import { fighterName, shortName, FIGHTERS } from "../../constants/fighters";
+import { STAGES, stageName, stageImg } from "../../constants/stages";
+import { useI18n } from "../../i18n/index.jsx";
+import { today, formatDate, formatTime, percentStr, barColor } from "../../utils/format";
 
-export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
+export default function OpponentDetail({
+  data,
+  onSave,
+  selectedOpponent,
+  setSelectedOpponent,
+  myChar,
+  setMyChar,
+  oppChar,
+  setOppChar,
+  showMyPicker,
+  setShowMyPicker,
+  showOppPicker,
+  setShowOppPicker,
+  recMy,
+  recOpp,
+  freeMatches,
+  postRecord,
+  setPostRecord,
+  lastResult,
+  freeMemo,
+  setFreeMemo,
+  selectedStage,
+  setSelectedStage,
+  expandedMatchup,
+  setExpandedMatchup,
+  editingStageMatch,
+  setEditingStageMatch,
+  calMonth,
+  setCalMonth,
+  calDate,
+  setCalDate,
+  recordMatch,
+  deleteFreeMatch,
+  saveFreeMemo,
+  updateFreeMatchStage,
+  buildShareText,
+  doShare,
+  isPC,
+  T,
+  cd,
+  btnBase,
+  overlays,
+}) {
   const { t, lang } = useI18n();
-
-  const [selectedOpponent, setSelectedOpponentRaw] = useState(null);
-  const setSelectedOpponent = (v) => {
-    if (v && !isPC) window.history.pushState({ type: "freeOpp", v }, "");
-    setSelectedOpponentRaw(v);
-  };
-
-  useEffect(() => {
-    if (isPC) return;
-    const onPop = () => {
-      if (selectedOpponent) { setSelectedOpponentRaw(null); return; }
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, [isPC, selectedOpponent]);
-  const [myChar, setMyChar] = useState(data.settings?.myChar || "");
-  const [oppChar, setOppChar] = useState("");
-  const [showMyPicker, setShowMyPicker] = useState(false);
-  const [showOppPicker, setShowOppPicker] = useState(false);
-  const [newOpponentName, setNewOpponentName] = useState("");
-  const [sharePopupText, setSharePopupText] = useState(null);
-  const [showAddInput, setShowAddInput] = useState(false);
-  const [lastResult, setLastResult] = useState(null);
-  const [postRecord, setPostRecord] = useState(false);
-  const [freeMemo, setFreeMemo] = useState("");
-  const [toast, setToast] = useState(null);
-  const [confirmAction, setConfirmAction] = useState(null);
-  const [expandedMatchup, setExpandedMatchup] = useState(null);
-  const [editingStageMatch, setEditingStageMatch] = useState(null);
-  const [selectedStage, setSelectedStage] = useState(null);
-  const [calMonth, setCalMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  });
-  const [calDate, setCalDate] = useState(null);
-
   const analysisRef = useRef(null);
-  const dataRef = useRef(data);
-  dataRef.current = data;
 
-  const freeMatches = useMemo(() => data.freeMatches || [], [data.freeMatches]);
-  const freeOpponents = useMemo(() => data.freeOpponents || [], [data.freeOpponents]);
-  const recMy = useMemo(() => recentChars(freeMatches, "myChar"), [freeMatches]);
-  const recOpp = useMemo(() => recentChars(freeMatches, "oppChar"), [freeMatches]);
-
-  // Removed auto-scroll to analysis after recording
-
-  // Analysis data (top-level for hooks rules)
-  const oppMs = useMemo(() => selectedOpponent ? freeMatches.filter((m) => m.opponent === selectedOpponent) : [], [freeMatches, selectedOpponent]);
+  const oppMs = useMemo(() => freeMatches.filter((m) => m.opponent === selectedOpponent), [freeMatches, selectedOpponent]);
 
   const matchups = useMemo(() => {
     const s = {};
@@ -101,157 +94,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     return map;
   }, [oppMs]);
 
-  // Actions
-  const getOpponentStats = (opp) => {
-    const ms = freeMatches.filter((m) => m.opponent === opp);
-    const w = ms.filter((m) => m.result === "win").length;
-    return { total: ms.length, w, l: ms.length - w };
-  };
-
-  const addOpponent = () => {
-    const name = newOpponentName.trim();
-    if (!name || freeOpponents.includes(name)) return;
-    onSave({ ...data, freeOpponents: [...freeOpponents, name] });
-    setNewOpponentName(""); setShowAddInput(false);
-  };
-
-  const deleteOpponent = (opp) => {
-    onSave({ ...data, freeOpponents: freeOpponents.filter((o) => o !== opp), freeMatches: freeMatches.filter((m) => m.opponent !== opp) });
-  };
-
-  const deleteFreeMatch = (match) => {
-    setConfirmAction({
-      message: t("common.deleteConfirm"),
-      onConfirm: () => {
-        const cur = dataRef.current;
-        const fm = cur.freeMatches || [];
-        const idx = fm.findIndex((m) => m.date === match.date && m.time === match.time && m.myChar === match.myChar && m.oppChar === match.oppChar && m.result === match.result);
-        if (idx === -1) { setConfirmAction(null); return; }
-        const nf = [...fm];
-        nf.splice(idx, 1);
-        onSave({ ...cur, freeMatches: nf });
-        setConfirmAction(null);
-      },
-    });
-  };
-
-  const saveFreeMemo = () => {
-    const cur = dataRef.current;
-    const fm = cur.freeMatches || [];
-    if (fm.length === 0) return;
-    const text = freeMemo.trim();
-    const nf = [...fm];
-    const last = nf[nf.length - 1];
-    nf[nf.length - 1] = { ...last, memo: text || undefined };
-    onSave({ ...cur, freeMatches: nf });
-  };
-
-  const recordMatch = (result) => {
-    if (!myChar || !oppChar || !selectedOpponent) return;
-    const entry = { date: today(), time: new Date().toISOString(), opponent: selectedOpponent, myChar, oppChar, result, memo: "" };
-    if (selectedStage) entry.stage = selectedStage;
-    onSave({ ...data, freeMatches: [...freeMatches, entry] });
-    setFreeMemo("");
-    setLastResult(result); setPostRecord(true); setToast(t("battle.toastRecorded"));
-  };
-
-  const updateFreeMatchStage = (match, newStage) => {
-    const cur = dataRef.current;
-    const fm = cur.freeMatches || [];
-    const idx = fm.findIndex((m) => m.date === match.date && m.time === match.time && m.myChar === match.myChar && m.oppChar === match.oppChar && m.result === match.result);
-    if (idx === -1) return;
-    const nf = [...fm];
-    nf[idx] = { ...nf[idx], stage: newStage || undefined };
-    onSave({ ...cur, freeMatches: nf });
-    setEditingStageMatch(null);
-  };
-
-  const buildShareText = (opp, matchList) => {
-    const w = matchList.filter((m) => m.result === "win").length;
-    const l = matchList.length - w;
-    const rate = matchList.length > 0 ? Math.round((w / matchList.length) * 100) : 0;
-    const lines = [`【SMASH TRACKER】${t("free.freeMatch")} vs ${opp}`, `${w}W ${l}L（${t("battle.winRate")} ${rate}%）`];
-    lines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
-    return lines.join("\n");
-  };
-
-  const doShare = async (text) => {
-    if (navigator.share) { try { await navigator.share({ text }); return; } catch (_) { /* */ } }
-    setSharePopupText(text);
-  };
-
-  // UI helpers
-  const cd = { background: T.card, borderRadius: 16, border: `1px solid ${T.brd}`, boxShadow: T.sh, padding: "16px 18px", marginBottom: 12, transition: "box-shadow .2s ease" };
-  const btnBase = { border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .15s ease", fontFamily: "inherit" };
-
-  const overlays = (
-    <>
-      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
-      {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
-    </>
-  );
-
-  // ══════════════════════════════
-  // OPPONENT LIST
-  // ══════════════════════════════
-  if (!selectedOpponent) {
-    return (
-      <div style={{ animation: "fadeUp .2s ease" }}>
-        {/* Add opponent */}
-        <div style={cd}>
-          {showAddInput ? (
-            <div style={{ display: "flex", gap: 8 }}>
-              <input type="text" value={newOpponentName} onChange={(e) => setNewOpponentName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") addOpponent(); if (e.key === "Escape") { setShowAddInput(false); setNewOpponentName(""); } }}
-                placeholder={t("free.opponentName")} autoFocus
-                style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${T.accent}`, background: T.inp, color: T.text, fontSize: 14, outline: "none", fontFamily: "inherit" }} />
-              <button onClick={addOpponent} disabled={!newOpponentName.trim()} style={{ ...btnBase, padding: "10px 18px", background: newOpponentName.trim() ? T.accentGrad : T.inp, color: newOpponentName.trim() ? "#fff" : T.dim, fontSize: 13, boxShadow: newOpponentName.trim() ? T.accentGlow : "none" }}>{t("free.add")}</button>
-              <button onClick={() => { setShowAddInput(false); setNewOpponentName(""); }} style={{ ...btnBase, padding: "10px 14px", background: T.inp, color: T.sub, fontSize: 13 }}>×</button>
-            </div>
-          ) : (
-            <button onClick={() => setShowAddInput(true)} style={{ ...btnBase, width: "100%", background: T.accentSoft, color: T.accent, border: `1.5px dashed ${T.accentBorder}`, fontSize: 14 }}>+ {t("free.addOpponent")}</button>
-          )}
-        </div>
-
-        {freeOpponents.length === 0 ? (
-          <div style={{ ...cd, textAlign: "center", padding: "32px 18px" }}><div style={{ fontSize: 14, color: T.dim }}>{t("free.noOpponents")}</div></div>
-        ) : (
-          <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
-            {freeOpponents.map((opp) => {
-              const { total, w, l } = getOpponentStats(opp);
-              const rate = total > 0 ? Math.round((w / total) * 100) : null;
-              return (
-                <div key={opp} style={{ ...cd, display: "flex", alignItems: "center", gap: 12, marginBottom: isPC ? 0 : 10 }}>
-                  <button onClick={() => { setSelectedOpponent(opp); setPostRecord(false); setExpandedMatchup(null); setCalDate(null); }}
-                    style={{ flex: 1, display: "flex", alignItems: "center", gap: 14, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", fontFamily: "inherit" }}>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: T.accentSoft, border: `2px solid ${T.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: T.accent, flexShrink: 0 }}>{opp[0]}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{opp}</div>
-                      {total > 0 ? (
-                        <div style={{ fontSize: 12, color: T.sub, marginTop: 2 }}>
-                          <span style={{ color: T.win, fontWeight: 700 }}>{w}{t("free.winLabel")}</span>{" : "}<span style={{ color: T.lose, fontWeight: 700 }}>{l}{t("free.loseLabel")}</span>{"  "}
-                          <span style={{ color: rate >= 60 ? T.win : rate >= 40 ? "#FF9F0A" : T.lose, fontWeight: 700 }}>{rate}%</span>
-                        </div>
-                      ) : <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>—</div>}
-                    </div>
-                    <ChevronRight size={16} style={{ color: T.dim, flexShrink: 0 }} />
-                  </button>
-                  <button onClick={() => setConfirmAction({ message: `${opp} ${t("free.deleteOpponent")}?`, onConfirm: () => { deleteOpponent(opp); setConfirmAction(null); } })}
-                    style={{ ...btnBase, padding: "6px 10px", background: T.loseBg, color: T.lose, fontSize: 12 }}>×</button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {overlays}
-      </div>
-    );
-  }
-
-  // ══════════════════════════════
-  // OPPONENT DETAIL (single scroll)
-  // ══════════════════════════════
   const todayMs = freeMatches.filter((m) => m.opponent === selectedOpponent && m.date === today());
   const todayW = todayMs.filter((m) => m.result === "win").length;
   const todayL = todayMs.length - todayW;
@@ -262,7 +104,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const calendarView = (() => {
     const [yStr, mStr] = calMonth.split("-");
     const year = Number(yStr); const mo = parseInt(mStr) - 1;
-    const monthLabel = lang === "ja" ? `${year}年${mo + 1}月` : `${new Date(year, mo).toLocaleString("en", { month: "long" })} ${year}`;
+    const monthLabel = lang === "ja" ? `${year}${mo + 1}` : `${new Date(year, mo).toLocaleString("en", { month: "long" })} ${year}`;
     const firstDay = new Date(year, mo, 1).getDay();
     const daysInMonth = new Date(year, mo + 1, 0).getDate();
     const startOffset = (firstDay + 6) % 7;
@@ -522,7 +364,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
         </div>
       )}
 
-      {/* Matchups – 4 per row grid */}
+      {/* Matchups */}
       {matchups.length > 0 && (
         <div style={{ ...cd, padding: "14px 16px" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("free.matchupStats")}</div>
@@ -595,7 +437,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     </div>
   );
 
-  // ── PC: 2-column layout ──
+  // -- PC: 2-column layout --
   if (isPC) {
     return (
       <div style={{ animation: "fadeUp .2s ease" }}>
@@ -621,7 +463,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     );
   }
 
-  // ── Mobile: single scroll ──
+  // -- Mobile: single scroll --
   return (
     <div style={{ animation: "fadeUp .2s ease" }}>
       {/* Header */}

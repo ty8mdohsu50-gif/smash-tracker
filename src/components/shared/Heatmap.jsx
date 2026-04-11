@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useI18n } from "../i18n/index.jsx";
+import { useI18n } from "../../i18n/index.jsx";
 const WEEKS = 13;
 
 function getCellColor(count, T) {

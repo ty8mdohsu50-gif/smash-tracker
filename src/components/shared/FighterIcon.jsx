@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fighterIconUrl } from "../constants/fighters";
+import { fighterIconUrl } from "../../constants/fighters";
 
 export default function FighterIcon({ name, size = 24, style }) {
   const [failed, setFailed] = useState(false);

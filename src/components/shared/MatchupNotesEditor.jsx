@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, Fragment } from "react";
-import { useI18n } from "../i18n/index.jsx";
-import { STAGES, stageName, stageImg } from "../constants/stages";
+import { useI18n } from "../../i18n/index.jsx";
+import { STAGES, stageName, stageImg } from "../../constants/stages";
 
 const SECTIONS = ["flash", "gameplan", "stage"];
 const EMPTY_NOTE = { flash: "", gameplan: "", stage: "" };

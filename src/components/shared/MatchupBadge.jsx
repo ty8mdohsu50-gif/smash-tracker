@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import FighterIcon from "./FighterIcon";
-import { fighterName } from "../constants/fighters";
-import { useI18n } from "../i18n/index.jsx";
-import { formatDateShort, formatTime } from "../utils/format";
+import { fighterName } from "../../constants/fighters";
+import { useI18n } from "../../i18n/index.jsx";
+import { formatDateShort, formatTime } from "../../utils/format";
 
 export default function MatchupBadge({ myChar, oppChar, matches, T }) {
   const { t, lang } = useI18n();

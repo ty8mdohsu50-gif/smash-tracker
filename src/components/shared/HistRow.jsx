@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { formatTime } from "../utils/format";
-import { shortName } from "../constants/fighters";
-import { useI18n } from "../i18n/index.jsx";
+import { formatTime } from "../../utils/format";
+import { shortName } from "../../constants/fighters";
+import { useI18n } from "../../i18n/index.jsx";
 import FighterIcon from "./FighterIcon";
 import ConfirmDialog from "./ConfirmDialog";
 

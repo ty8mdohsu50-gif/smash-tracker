@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { getShareLinks } from "../utils/share";
-import { useI18n } from "../i18n/index.jsx";
-import { Z_SHARE_POPUP } from "../constants/zIndex";
+import { getShareLinks } from "../../utils/share";
+import { useI18n } from "../../i18n/index.jsx";
+import { Z_SHARE_POPUP } from "../../constants/zIndex";
 
 const XIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
