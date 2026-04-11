@@ -113,17 +113,3 @@ export const lastEndPower = (dl, charName) => {
   }
   return "";
 };
-
-export const getDayPowerSummary = (day) => {
-  if (!day) return { start: null, end: null };
-  if (day.chars) {
-    const chars = Object.values(day.chars);
-    const starts = chars.map((c) => c.start).filter(Boolean);
-    const ends = chars.map((c) => c.end).filter(Boolean);
-    return {
-      start: starts.length ? Math.min(...starts) : null,
-      end: ends.length ? Math.max(...ends) : null,
-    };
-  }
-  return { start: day.start || null, end: day.end || null };
-};
