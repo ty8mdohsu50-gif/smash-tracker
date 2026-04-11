@@ -260,6 +260,15 @@ export default {
     remaining: "{n} more to go",
     goalWinRate: "Win Rate {current}% / Goal {target}%",
   },
+  quick: {
+    title: "Quick",
+    desc: "Press W / L keys to record",
+    recorded: "Recorded!",
+    setOpp: "Opponent",
+    unknown: "Not set",
+    noChar: "Go to Settings and select your fighter first",
+    tapToSetOpp: "Tap to set opponent",
+  },
   free: {
     title: "Free Battle",
     addOpponent: "Add new opponent",

@@ -1,12 +1,14 @@
-import { X, Zap, Share2 } from "lucide-react";
+import { X, Zap, Share2, Camera } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import SharePopup from "../shared/SharePopup";
+import SessionCard from "../shared/SessionCard";
 import Toast from "../shared/Toast";
 import ConfirmDialog from "../shared/ConfirmDialog";
 import FighterIcon from "../shared/FighterIcon";
 import { fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
+import { useSessionCard } from "../../hooks/useSessionCard";
 import {
   today,
   formatDateWithDay,
@@ -53,6 +55,8 @@ export default function MobileBattle({ state, data, onSave, T }) {
     deleteMatch, updateMatchStage, saveStage,
     saveEndSession,
   } = state;
+
+  const { cardRef, generating, imageBlob, generateCard, clearImage } = useSessionCard();
 
   const cd = getCardStyle(T);
   const btnR = getBtnR();
@@ -564,7 +568,29 @@ export default function MobileBattle({ state, data, onSave, T }) {
             <button onClick={() => saveEndSession(true)} style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <Share2 size={14} /> {t("battle.share")}
             </button>
+            <button onClick={async () => { const blob = await generateCard(); if (blob) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `smash-tracker-${today()}.png`; a.click(); URL.revokeObjectURL(url); } }} disabled={generating} style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <Camera size={14} /> {generating ? "..." : (lang === "ja" ? "サマリーカード保存" : "Save Summary Card")}
+            </button>
             <button onClick={() => setPhase("battle")} style={{ width: "100%", padding: 12, marginTop: 8, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>{t("battle.backToBattle")}</button>
+
+            {/* Hidden session card for image generation */}
+            <div style={{ position: "absolute", left: -9999, top: 0 }}>
+              <SessionCard
+                ref={cardRef}
+                myChar={myChar}
+                tW={tW}
+                tL={tL}
+                tM={tM}
+                oppStats={oppStats}
+                dayStart={dayStart}
+                dayEnd={dayEnd}
+                streak={streak}
+                date={today()}
+                playerTag={data.settings?.playerTag || ""}
+                T={T}
+                lang={lang}
+              />
+            </div>
           </div>
         );
       })()}

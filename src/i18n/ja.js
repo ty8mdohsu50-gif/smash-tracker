@@ -260,6 +260,15 @@ export default {
     remaining: "達成まであと{n}戦",
     goalWinRate: "勝率 {current}% / 目標{target}%",
   },
+  quick: {
+    title: "クイック",
+    desc: "W / L キーでも記録できます",
+    recorded: "記録しました",
+    setOpp: "相手キャラ",
+    unknown: "未設定",
+    noChar: "設定 → 使用キャラを選択してください",
+    tapToSetOpp: "タップして相手キャラを設定",
+  },
   free: {
     title: "フリー対戦",
     addOpponent: "新しい相手を追加",
