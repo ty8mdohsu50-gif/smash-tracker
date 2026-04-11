@@ -311,6 +311,7 @@ export default function OpponentDetail({
             onBlur={saveFreeMemo}
             placeholder={t("battle.memo")}
             rows={1}
+            maxLength={500}
             style={{ width: "100%", marginBottom: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }}
           />
           <div style={{ display: "flex", gap: 10 }}>

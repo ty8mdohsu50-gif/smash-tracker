@@ -101,6 +101,7 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
                 placeholder={t(`matchupNotes.${s}Placeholder`)}
                 ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(40, el.scrollHeight) + "px"; } }}
                 onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(40, e.target.scrollHeight) + "px"; }}
+                maxLength={2000}
                 style={{
                   width: "100%", padding: "8px 10px", background: T.inp, border: "none", borderRadius: 8,
                   color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden",
@@ -245,6 +246,7 @@ export function BattleNotes({ noteKey, data, T, onSave, sections }) {
             placeholder={t(`matchupNotes.${key}Placeholder`)}
             ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; } }}
             onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = Math.max(36, e.target.scrollHeight) + "px"; }}
+            maxLength={2000}
             style={{
               width: "100%", padding: "6px 8px", background: inputBg, border: "none", borderRadius: 6,
               color: T.text, fontSize: 11, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden",

@@ -1,8 +1,20 @@
 const DAY_NAMES = ["日", "月", "火", "水", "木", "金", "土"];
 
+const ALLOWED_TZ = new Set([
+  "Asia/Tokyo", "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore",
+  "Australia/Sydney", "Europe/London", "Europe/Paris",
+  "America/New_York", "America/Chicago", "America/Los_Angeles",
+  "America/Mexico_City", "America/Sao_Paulo",
+]);
+
+const getSafeTz = () => {
+  const raw = localStorage.getItem("smash-region-tz");
+  return raw && ALLOWED_TZ.has(raw) ? raw : Intl.DateTimeFormat().resolvedOptions().timeZone;
+};
+
 export const today = () => {
   const offset = parseInt(localStorage.getItem("smash-day-boundary") || "5", 10);
-  const tz = localStorage.getItem("smash-region-tz") || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const tz = getSafeTz();
   const d = new Date();
   const local = new Date(d.toLocaleString("en-US", { timeZone: tz }));
   local.setHours(local.getHours() - offset);

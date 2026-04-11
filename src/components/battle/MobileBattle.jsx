@@ -399,6 +399,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
                 value={charMemoText} onChange={(e) => { setCharMemoText(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = Math.max(36, el.scrollHeight) + "px"; }}
                 onBlur={saveCharMemoBlur}
                 placeholder={t("battle.charMemoPlaceholder")}
+                maxLength={500}
                 style={{ width: "100%", padding: "6px 8px", background: T.inp, border: "none", borderRadius: 8, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "none", fontFamily: "inherit", lineHeight: 1.5, overflow: "hidden", minHeight: 36 }}
               />
             </div>
@@ -432,6 +433,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
               <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{fighterName(oppChar, lang)}</span>
             </div>
             <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemoBlur} placeholder={t("battle.memo")} rows={1}
+              maxLength={500}
               style={{ width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
           </div>
 
@@ -553,6 +555,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             <div style={cd}>
               <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 10 }}>{t("battle.review")}</div>
               <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} rows={3}
+                maxLength={2000}
                 style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
             </div>
 
