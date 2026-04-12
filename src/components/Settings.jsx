@@ -442,6 +442,44 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
             <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("settings.account")}</div>
               <div style={{ fontSize: 13, color: T.dim, marginBottom: 12, wordBreak: "break-all" }}>{user.email}</div>
+
+              {/* OBS Overlay URL */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.sub, marginBottom: 6 }}>
+                  {lang === "ja" ? "OBS オーバーレイURL" : "OBS Overlay URL"}
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/overlay?user=${user.id}`}
+                    style={{
+                      flex: 1, padding: "8px 10px", background: T.inp, border: `1px solid ${T.brd}`,
+                      borderRadius: 8, color: T.text, fontSize: 11, outline: "none", boxSizing: "border-box",
+                      fontFamily: "'Chakra Petch', monospace",
+                    }}
+                    onClick={(e) => e.target.select()}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/overlay?user=${user.id}`);
+                    }}
+                    style={{
+                      padding: "8px 14px", border: `1px solid ${T.brd}`, borderRadius: 8,
+                      background: T.card, color: T.accent, fontSize: 12, fontWeight: 600,
+                      cursor: "pointer", flexShrink: 0,
+                    }}
+                  >
+                    {lang === "ja" ? "コピー" : "Copy"}
+                  </button>
+                </div>
+                <div style={{ fontSize: 10, color: T.dimmer, marginTop: 4 }}>
+                  {lang === "ja"
+                    ? "OBSの「ブラウザソース」にこのURLを貼り付けてください"
+                    : "Paste this URL into OBS Browser Source"}
+                </div>
+              </div>
+
               <button
                 onClick={() => { handleClose(); onLogout(); }}
                 style={{

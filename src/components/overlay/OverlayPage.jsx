@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Zap } from "lucide-react";
 import FighterIcon from "../shared/FighterIcon";
 import { fighterName } from "../../constants/fighters";
-import { load } from "../../utils/storage";
+import { load, cloudLoad } from "../../utils/storage";
 import { useI18n } from "../../i18n/index.jsx";
 import {
   today,
@@ -15,12 +15,25 @@ export default function OverlayPage() {
   const { lang } = useI18n();
   const [data, setData] = useState(() => load());
 
-  useEffect(() => {
-    const interval = setInterval(() => {
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const userId = params.get("user");
+  const layout = params.get("layout") || "horizontal";
+  const accent = params.get("color") || "#8B5CF6";
+
+  const fetchData = useCallback(async () => {
+    if (userId) {
+      const cloud = await cloudLoad(userId);
+      if (cloud) setData(cloud);
+    } else {
       setData(load());
-    }, 3000);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, userId ? 5000 : 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchData, userId]);
 
   useEffect(() => {
     document.body.style.background = "transparent";
@@ -40,10 +53,6 @@ export default function OverlayPage() {
   const dayStart = charPower.start || todayDaily.start || null;
   const dayEnd = charPower.end || todayDaily.end || null;
   const pwrDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
-
-  const params = new URLSearchParams(window.location.search);
-  const layout = params.get("layout") || "horizontal";
-  const accent = params.get("color") || "#8B5CF6";
 
   const winColor = "#22C55E";
   const loseColor = "#F43F5E";

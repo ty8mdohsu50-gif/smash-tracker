@@ -40,7 +40,7 @@ export function useNavigation({ showSettings, setShowSettings, aboutPage, setAbo
   }, [showSettings, aboutPage, legalPage, setShowSettings, setAboutPage, setLegalPage]);
 
   const ANALYSIS_MODES = ["myChar", "oppChar", "overall"];
-  const BATTLE_MODES = ["ranked", "free", "quick"];
+  const BATTLE_MODES = ["ranked", "free"];
 
   const onWheel = useCallback((e) => {
     if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
