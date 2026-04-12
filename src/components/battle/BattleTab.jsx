@@ -61,6 +61,17 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     focusStage: () => { stageRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); },
     focusMemo: () => { memoRef.current?.focus(); },
     selectRecentOpp: (c) => { state.setOppChar(c); },
+    openOppPicker: () => { state.setShowMyPicker(false); state.setShowOppPicker(true); },
+    openMyPicker: () => { state.setShowOppPicker(false); state.setShowMyPicker(true); },
+    selectStage: (stageId) => {
+      if (state.phase === "postMatch") {
+        state.saveStage(state.selectedStage === stageId ? null : stageId);
+      } else {
+        state.setSelectedStage(state.selectedStage === stageId ? null : stageId);
+      }
+    },
+    saveAndEnd: () => { state.saveEndSession(false); },
+    shareAndEnd: () => { state.saveEndSession(true); },
     closeConfirm: () => { state.setConfirmAction(null); },
     closeMyPicker: () => { state.setShowMyPicker(false); },
     closeOppPicker: () => { state.setShowOppPicker(false); state.setResult(null); },
@@ -71,7 +82,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     phase: state.phase,
     isPC,
     isActive,
-    battleMode: mode,
     result: state.result,
     oppChar: state.oppChar,
     myChar: state.myChar,

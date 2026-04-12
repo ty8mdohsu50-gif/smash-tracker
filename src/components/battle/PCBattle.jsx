@@ -294,7 +294,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                         <span style={{ fontSize: 15, fontWeight: 700, color: myChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{myChar ? fighterName(myChar, lang) : t("battle.notSelected")}</span>
                       </div>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        <button type="button" onClick={() => { setShowOppPicker(false); setShowMyPicker(true); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                        <button type="button" onClick={() => { setShowOppPicker(false); setShowMyPicker(true); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}<KeyHint keyLabel="9" T={T} /></button>
                         {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
                           <button type="button" key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.text }}>{fighterName(c, lang)}</button>
                         ))}
@@ -312,7 +312,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                         <span style={{ fontSize: 15, fontWeight: 700, color: oppChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{oppChar ? fighterName(oppChar, lang) : t("battle.notSelected")}</span>
                       </div>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        <button type="button" onClick={() => { setShowMyPicker(false); setShowOppPicker(true); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                        <button type="button" onClick={() => { setShowMyPicker(false); setShowOppPicker(true); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}<KeyHint keyLabel="0" T={T} /></button>
                         {recOpp.filter((c) => c !== oppChar).slice(0, 5).map((c, i) => (
                           <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: oppChar === c ? T.accentSoft : T.inp, color: oppChar === c ? T.accent : T.text, border: oppChar === c ? `1px solid ${T.accentBorder}` : "none" }}>{fighterName(c, lang)}<KeyHint keyLabel={String(i + 1)} T={T} /></button>
                         ))}
@@ -340,7 +340,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                   <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-                  {STAGES.map((s) => {
+                  {STAGES.map((s, stageIdx) => {
                     const active = selectedStage === s.id;
                     return (
                       <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
@@ -352,6 +352,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                         <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
                           {lang === "ja" ? s.jp : s.en}
                         </div>
+                        <KeyHint keyLabel={"\u21E7" + String(stageIdx + 1)} T={T} />
                       </button>
                     );
                   })}
@@ -398,7 +399,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                   <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-                  {STAGES.map((s) => {
+                  {STAGES.map((s, stageIdx) => {
                     const active = selectedStage === s.id;
                     return (
                     <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => saveStage(active ? null : s.id)} style={{
@@ -410,6 +411,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                       <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
                         {lang === "ja" ? s.jp : s.en}
                       </div>
+                      <KeyHint keyLabel={"\u21E7" + String(stageIdx + 1)} T={T} />
                     </button>
                   );
                 })}
@@ -501,8 +503,8 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                     style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-                  <button onClick={() => saveEndSession(false)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}</button>
-                  <button onClick={() => saveEndSession(true)} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Share2 size={14} /> {t("battle.share")}</button>
+                  <button onClick={() => saveEndSession(false)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}<KeyHint keyLabel="Enter" T={T} /></button>
+                  <button onClick={() => saveEndSession(true)} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Share2 size={14} /> {t("battle.share")}<KeyHint keyLabel="S" T={T} /></button>
                   <button onClick={async () => { const blob = await generateCard(); if (blob) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `smash-tracker-${today()}.png`; a.click(); URL.revokeObjectURL(url); } }} disabled={generating} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Camera size={14} /> {generating ? "..." : (lang === "ja" ? "カード保存" : "Card")}</button>
                   <button onClick={() => setPhase("battle")} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.backToBattle")}<KeyHint keyLabel="Esc" T={T} /></button>
                 </div>
