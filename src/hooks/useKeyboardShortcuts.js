@@ -14,14 +14,18 @@ export function useKeyboardShortcuts({
     if (!isPC || !isActive) return;
 
     const onKey = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      // Guard: text input
+      const tag = e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.target.isContentEditable) return;
+
+      // Guard: browser shortcuts (Ctrl/Cmd/Alt)
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-      const key = e.key.toLowerCase();
       const a = actionsRef.current;
 
-      // Esc: close modals first, then phase back
-      if (key === "escape") {
+      // Esc always works — close modals first, then phase back
+      if (e.key === "Escape") {
         if (confirmAction) { a.closeConfirm(); return; }
         if (showMyPicker) { a.closeMyPicker(); return; }
         if (showOppPicker) { a.closeOppPicker(); return; }
@@ -30,23 +34,34 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      // Shift+1~8: stage selection (battle & postMatch)
+      // When any picker/modal is open, block all other shortcuts
+      if (showMyPicker || showOppPicker || confirmAction || sharePopupText) return;
+
+      // Shift + Digit1~Digit8: stage selection (battle & postMatch)
+      // Use e.code (layout-independent) to avoid Shift producing symbols
       if (e.shiftKey && (phase === "battle" || phase === "postMatch")) {
-        const num = parseInt(e.key);
-        if (num >= 1 && num <= 8 && STAGES[num - 1]) {
-          e.preventDefault();
-          a.selectStage(STAGES[num - 1].id);
-          return;
+        const codeMatch = e.code.match(/^Digit([1-8])$/);
+        if (codeMatch) {
+          const idx = parseInt(codeMatch[1]) - 1;
+          if (STAGES[idx]) {
+            e.preventDefault();
+            a.selectStage(STAGES[idx].id);
+            return;
+          }
         }
       }
 
-      // Skip if shift is held for non-stage actions
+      // No other Shift combos
       if (e.shiftKey) return;
+
+      // Use e.code for number keys (layout-independent), e.key for letters
+      const code = e.code;
+      const key = e.key.toLowerCase();
 
       switch (phase) {
         case "setup":
           if (key === " ") { e.preventDefault(); a.startBattle(); }
-          else if (key === "9") a.openMyPicker();
+          else if (code === "Digit9") { e.preventDefault(); a.openMyPicker(); }
           else if (key === "p") { e.preventDefault(); a.focusPower(); }
           break;
 
@@ -55,11 +70,11 @@ export function useKeyboardShortcuts({
           else if (key === "l" && !result) a.selectRes("lose");
           else if (key === "e") a.endSession();
           else if (key === "s") { e.preventDefault(); a.focusStage(); }
-          else if (key === "0") a.openOppPicker();
-          else if (key === "9") a.openMyPicker();
-          else if (!oppChar && key >= "1" && key <= "5") {
-            const idx = parseInt(key) - 1;
-            if (recOpp[idx]) a.selectRecentOpp(recOpp[idx]);
+          else if (code === "Digit0") { e.preventDefault(); a.openOppPicker(); }
+          else if (code === "Digit9") { e.preventDefault(); a.openMyPicker(); }
+          else if (!oppChar && code >= "Digit1" && code <= "Digit5") {
+            const idx = parseInt(code.slice(-1)) - 1;
+            if (recOpp[idx]) { e.preventDefault(); a.selectRecentOpp(recOpp[idx]); }
           }
           break;
 
@@ -68,8 +83,8 @@ export function useKeyboardShortcuts({
           else if (key === "c") a.changeOpp();
           else if (key === "e") a.endSession();
           else if (key === "m") { e.preventDefault(); a.focusMemo(); }
-          else if (key === "0") a.changeOpp();
-          else if (key === "9") a.openMyPicker();
+          else if (code === "Digit0") { e.preventDefault(); a.changeOpp(); }
+          else if (code === "Digit9") { e.preventDefault(); a.openMyPicker(); }
           break;
 
         case "end":
