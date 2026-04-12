@@ -21,7 +21,7 @@ import {
 } from "../../utils/format";
 import { getCardStyle, getGoalInputStyle, getBtnR, PwrInput } from "./battleStyles";
 
-export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) {
+export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, powerRef }) {
   const {
     t, lang,
     phase, setPhase,
@@ -229,7 +229,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                     <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{t("battle.selectChar")}</div>
                     {myChar ? <div style={{ fontSize: 22, fontWeight: 800, color: T.text, marginBottom: 8 }}>{fighterName(myChar, lang)}</div> : <div style={{ fontSize: 15, color: T.dim, marginBottom: 8 }}>{t("battle.notSelected")}</div>}
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => setShowMyPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.change")}</button>
+                      <button onClick={() => setShowMyPicker(true)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.change")}<KeyHint keyLabel="9" T={T} /></button>
                       {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
                         <button key={c} onClick={() => { setMyChar(c); switchCharPower(c); }} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: T.inp, color: T.text, fontSize: 13, fontWeight: 600 }}>{fighterName(c, lang)}</button>
                       ))}
@@ -238,9 +238,12 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) 
                 )}
               </div>
               <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
-                <div style={{ fontSize: 13, color: T.sub, marginBottom: 8, fontWeight: 600 }}>{myChar ? `${fighterName(myChar, lang)}${t("battle.startPower")}` : t("battle.power")}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: T.sub, fontWeight: 600 }}>{myChar ? `${fighterName(myChar, lang)}${t("battle.startPower")}` : t("battle.power")}</span>
+                  <KeyHint keyLabel="P" T={T} />
+                </div>
                 {prevEnd && !todayDaily.start && <div style={{ fontSize: 11, color: T.dim, marginBottom: 6 }}>{t("battle.autoCarryOver")}</div>}
-                <PwrInput value={pStart} onChange={setPStart} placeholder="14,000,000" big T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} />
+                <PwrInput ref={powerRef} value={pStart} onChange={setPStart} placeholder="14,000,000" big T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} />
               </div>
             </div>
             <button onClick={startBattle} disabled={!pStart || !myChar} style={{ width: "100%", padding: 16, border: "none", borderRadius: 14, background: (!pStart || !myChar) ? T.inp : T.accentGrad, color: (!pStart || !myChar) ? T.dim : "#fff", fontSize: 17, fontWeight: 800, boxShadow: (!pStart || !myChar) ? "none" : T.accentGlow, transition: "all .2s ease", marginBottom: 12 }}>{t("battle.startBattle")}<KeyHint keyLabel="Space" T={T} /></button>

@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import {
   formatPower,
   rawPower,
@@ -53,9 +54,10 @@ export const getBtnR = () => ({
   fontFamily: "inherit",
 });
 
-export function PwrInput({ value, onChange, placeholder, big, T, pStart, pEnd, savePower }) {
+export const PwrInput = forwardRef(function PwrInput({ value, onChange, placeholder, big, T, pStart, pEnd, savePower }, ref) {
   return (
     <input
+      ref={ref}
       type="text"
       inputMode="numeric"
       autoComplete="off"
@@ -86,4 +88,4 @@ export function PwrInput({ value, onChange, placeholder, big, T, pStart, pEnd, s
       onBlur={(e) => { e.target.style.borderBottomColor = T.dimmer; if (!big) savePower(pStart, pEnd); }}
     />
   );
-}
+});

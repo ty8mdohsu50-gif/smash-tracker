@@ -13,6 +13,8 @@ export const TERMS_JA = [
 
 対戦記録には、任意でステージ（ステージ名および公式サイト上の素材を参照した画像表示）を紐づけて保存できます。
 
+PC版ではキーボードショートカットによる操作に対応しており、「配信モード」を有効にすることで、OBS等の配信ソフトと連携した戦績オーバーレイの表示やウィンドウキャプチャに適したUIを利用できます。また、対戦セッション終了時にSNS共有用のサマリーカード画像を生成する機能も備えています。
+
 本サービスは任天堂株式会社の公式サービスではなく、ファンが独立して開発した非公式ツールです。`,
   },
   {
@@ -57,6 +59,7 @@ export const TERMS_JA = [
 ・第三者による不正アクセスによる損害
 ・本サービスを通じて得た情報の利用に起因する損害
 ・シェア機能で生成される画像・テキストの内容や、外部SNS・OSの共有機能の動作
+・セッションサマリーカード（画像生成）の内容・画質・共有先での表示
 
 本サービスは予告なく内容を変更、または提供を終了する場合があります。サービス終了時には、可能な範囲で事前告知を行いますが、これを保証するものではありません。
 
@@ -103,6 +106,8 @@ Most statistics, charts, and match logs in the Analysis tab are calculated from 
 
 You may optionally attach a stage (stage name and thumbnail referenced from official site materials) to a match record.
 
+The PC version supports keyboard shortcuts. Enabling "Broadcast Mode" provides a live stats overlay compatible with OBS window capture and a streaming-optimized UI. The Service also generates a session summary card image for social sharing when you end a session.
+
 The Service is not affiliated with Nintendo Co., Ltd. and is an unofficial fan-made tool.`,
   },
   {
@@ -146,6 +151,7 @@ Nothing in this Article limits application of applicable provider-liability or d
 · Unauthorized access by third parties
 · Use of information obtained through the Service
 · Share images/text or behavior of external SNS/OS share features
+· Content, quality, or display of generated session summary card images
 
 We may change or discontinue the Service without notice. We will try to give advance notice of termination when feasible, but do not guarantee it.
 
@@ -257,7 +263,7 @@ export const PRIVACY_JA = [
     content: `本サービスでは、電気通信事業法に基づく外部送信規律に従い、以下のブラウザ機能を使用することをお知らせします。
 
 【ローカルストレージ】
-・保存される情報: ランク戦・フリー対戦の対戦データ、対策メモ・マッチアップノート等、設定情報（テーマカラー、ダークモード、目標設定、1日の区切り時刻、表示言語、分析画面の表示設定等）、オンボーディング状態、ログインをスキップした場合のフラグ等
+・保存される情報: ランク戦・フリー対戦の対戦データ、対策メモ・マッチアップノート等、設定情報（テーマカラー、ダークモード、目標設定、1日の区切り時刻、表示言語、分析画面の表示設定、配信モード設定等）、オンボーディング状態、ログインをスキップした場合のフラグ等
 ・目的: オフライン時のデータ保持、個人設定の保存
 ・送信先: 外部送信なし（端末内にのみ保存）
 
@@ -372,7 +378,7 @@ You are responsible for backups (CSV export is available). We are not liable for
   {
     title: "4. Local storage, cookies, and transmission",
     content: `【Local storage】
-· Stores ranked/free match data, notes, settings (theme, dark mode, goals, day boundary, language, analysis UI preferences, etc.), onboarding/skip-auth flags, and similar app state
+· Stores ranked/free match data, notes, settings (theme, dark mode, goals, day boundary, language, analysis UI preferences, broadcast mode preference, etc.), onboarding/skip-auth flags, and similar app state
 · Purpose: offline persistence and preferences
 · Stays on your device (no tracking transmission from this channel)
 

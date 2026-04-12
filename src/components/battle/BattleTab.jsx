@@ -17,6 +17,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const state = useBattleState({ data, onSave, T, isPC });
   const memoRef = useRef(null);
   const stageRef = useRef(null);
+  const powerRef = useRef(null);
 
   const isActive = tabIdx === 0 && !showSettings;
 
@@ -60,6 +61,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     },
     focusStage: () => { stageRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); },
     focusMemo: () => { memoRef.current?.focus(); },
+    focusPower: () => { powerRef.current?.focus(); },
     selectRecentOpp: (c) => { state.setOppChar(c); },
     openOppPicker: () => { state.setShowMyPicker(false); state.setShowOppPicker(true); },
     openMyPicker: () => { state.setShowOppPicker(false); state.setShowMyPicker(true); },
@@ -157,7 +159,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     <div>
       {modeToggle}
       {broadcastBar}
-      <PCBattle state={state} data={data} onSave={onSave} T={T} memoRef={memoRef} stageRef={stageRef} />
+      <PCBattle state={state} data={data} onSave={onSave} T={T} memoRef={memoRef} stageRef={stageRef} powerRef={powerRef} />
     </div>
   );
 }

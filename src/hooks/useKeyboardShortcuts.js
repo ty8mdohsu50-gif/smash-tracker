@@ -46,6 +46,8 @@ export function useKeyboardShortcuts({
       switch (phase) {
         case "setup":
           if (key === " ") { e.preventDefault(); a.startBattle(); }
+          else if (key === "9") a.openMyPicker();
+          else if (key === "p") { e.preventDefault(); a.focusPower(); }
           break;
 
         case "battle":

@@ -15,6 +15,7 @@ export default function MatchLogModal({ open, onClose, title, matches, T, t, lan
     let m = matches.map((row, i) => (typeof row.idx === "number" ? row : { ...row, idx: i }));
     if (filter === "win") m = m.filter((x) => x.result === "win");
     if (filter === "lose") m = m.filter((x) => x.result === "lose");
+    if (filter === "memo") m = m.filter((x) => x.memo && String(x.memo).trim());
     const mul = sort === "dateDesc" ? -1 : 1;
     m.sort((a, b) => mul * (new Date(a.time).getTime() - new Date(b.time).getTime()));
     return m.slice(0, MAX_ROWS);
@@ -39,7 +40,7 @@ export default function MatchLogModal({ open, onClose, title, matches, T, t, lan
 
         <div style={{ padding: "12px 18px", borderBottom: `1px solid ${T.inp}`, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: T.dim }}>{t("analysis.logFilter")}</span>
-          {[["all", t("analysis.logAll")], ["win", t("analysis.logWins")], ["lose", t("analysis.logLosses")]].map(([k, lab]) => (
+          {[["all", t("analysis.logAll")], ["win", t("analysis.logWins")], ["lose", t("analysis.logLosses")], ["memo", t("analysis.logMemo")]].map(([k, lab]) => (
             <button key={k} type="button" onClick={() => setFilter(k)} style={{ ...sel, fontWeight: filter === k ? 700 : 500, background: filter === k ? T.accentSoft : T.inp, borderColor: filter === k ? T.accentBorder : T.brd, color: filter === k ? T.accent : T.sub }}>
               {lab}
             </button>
