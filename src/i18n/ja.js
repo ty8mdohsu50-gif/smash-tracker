@@ -3,6 +3,9 @@ export default {
     tabs: { battle: "対戦", history: "履歴", analysis: "分析" },
     settings: "設定",
   },
+  broadcast: {
+    toggle: "配信",
+  },
   battle: {
     today: "TODAY",
     winLoss: "勝敗",

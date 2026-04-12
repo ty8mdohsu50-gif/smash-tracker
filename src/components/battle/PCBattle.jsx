@@ -1,6 +1,7 @@
 import { X, Zap, Share2, Camera } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
+import KeyHint from "../shared/KeyHint";
 import SharePopup from "../shared/SharePopup";
 import SessionCard from "../shared/SessionCard";
 import ConfirmDialog from "../shared/ConfirmDialog";
@@ -20,7 +21,7 @@ import {
 } from "../../utils/format";
 import { getCardStyle, getGoalInputStyle, getBtnR, PwrInput } from "./battleStyles";
 
-export default function PCBattle({ state, data, onSave, T }) {
+export default function PCBattle({ state, data, onSave, T, memoRef, stageRef }) {
   const {
     t, lang,
     phase, setPhase,
@@ -242,7 +243,7 @@ export default function PCBattle({ state, data, onSave, T }) {
                 <PwrInput value={pStart} onChange={setPStart} placeholder="14,000,000" big T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} />
               </div>
             </div>
-            <button onClick={startBattle} disabled={!pStart || !myChar} style={{ width: "100%", padding: 16, border: "none", borderRadius: 14, background: (!pStart || !myChar) ? T.inp : T.accentGrad, color: (!pStart || !myChar) ? T.dim : "#fff", fontSize: 17, fontWeight: 800, boxShadow: (!pStart || !myChar) ? "none" : T.accentGlow, transition: "all .2s ease", marginBottom: 12 }}>{t("battle.startBattle")}</button>
+            <button onClick={startBattle} disabled={!pStart || !myChar} style={{ width: "100%", padding: 16, border: "none", borderRadius: 14, background: (!pStart || !myChar) ? T.inp : T.accentGrad, color: (!pStart || !myChar) ? T.dim : "#fff", fontSize: 17, fontWeight: 800, boxShadow: (!pStart || !myChar) ? "none" : T.accentGlow, transition: "all .2s ease", marginBottom: 12 }}>{t("battle.startBattle")}<KeyHint keyLabel="Space" T={T} /></button>
           </div>
           {pcSidebar}
         </div>
@@ -312,8 +313,8 @@ export default function PCBattle({ state, data, onSave, T }) {
                       </div>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         <button type="button" onClick={() => { setShowMyPicker(false); setShowOppPicker(true); }} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: T.inp, color: T.sub, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
-                        {recOpp.filter((c) => c !== oppChar).slice(0, 5).map((c) => (
-                          <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: oppChar === c ? T.accentSoft : T.inp, color: oppChar === c ? T.accent : T.text, border: oppChar === c ? `1px solid ${T.accentBorder}` : "none" }}>{fighterName(c, lang)}</button>
+                        {recOpp.filter((c) => c !== oppChar).slice(0, 5).map((c, i) => (
+                          <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnR, padding: "8px 14px", fontSize: 12, background: oppChar === c ? T.accentSoft : T.inp, color: oppChar === c ? T.accent : T.text, border: oppChar === c ? `1px solid ${T.accentBorder}` : "none" }}>{fighterName(c, lang)}<KeyHint keyLabel={String(i + 1)} T={T} /></button>
                         ))}
                       </div>
                     </div>
@@ -323,17 +324,17 @@ export default function PCBattle({ state, data, onSave, T }) {
 
               {!result && (
                 <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-                  <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(34,197,94,.3)" }}>{t("battle.win")}</button>
-                  <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(244,63,94,.3)" }}>{t("battle.lose")}</button>
+                  <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(34,197,94,.3)" }}>{t("battle.win")}<KeyHint keyLabel="W" T={T} /></button>
+                  <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(244,63,94,.3)" }}>{t("battle.lose")}<KeyHint keyLabel="L" T={T} /></button>
                 </div>
               )}
 
               <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-                <button type="button" onClick={() => setPhase("end")} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 12, fontWeight: 600 }}>{t("battle.endSession")}</button>
-                <button type="button" onClick={() => { setPhase("setup"); setShowOppPicker(false); setShowMyPicker(false); setResult(null); }} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 12, fontWeight: 600 }}>{t("battle.changeChar")}</button>
+                <button type="button" onClick={() => setPhase("end")} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 12, fontWeight: 600 }}>{t("battle.endSession")}<KeyHint keyLabel="E" T={T} /></button>
+                <button type="button" onClick={() => { setPhase("setup"); setShowOppPicker(false); setShowMyPicker(false); setResult(null); }} style={{ flex: 1, padding: 10, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.dim, fontSize: 12, fontWeight: 600 }}>{t("battle.changeChar")}<KeyHint keyLabel="Esc" T={T} /></button>
               </div>
 
-              <div style={{ ...cd, padding: "10px 14px", marginBottom: 10 }}>
+              <div ref={stageRef} style={{ ...cd, padding: "10px 14px", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                   <span style={{ fontSize: 13 }}>{"\uD83D\uDDFA\uFE0F"}</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
@@ -386,7 +387,7 @@ export default function PCBattle({ state, data, onSave, T }) {
                 <div style={{ marginTop: 12 }}>
                   <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose, animation: "popIn .3s ease" }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
                 </div>
-                <textarea value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemoBlur} placeholder={t("battle.memo")} rows={1}
+                <textarea ref={memoRef} value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemoBlur} placeholder={t("battle.memo")} rows={1}
                   maxLength={500}
                   style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
@@ -420,10 +421,10 @@ export default function PCBattle({ state, data, onSave, T }) {
                 <div style={{ flex: 1 }}><PwrInput value={pEnd} onChange={setPEnd} placeholder={t("battle.powerPlaceholder")} big={false} T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} /></div>
               </div>
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => { saveMemo(); setSelectedStage(null); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: "16px 12px", border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, whiteSpace: "nowrap" }}>{t("battle.continueSame")}</button>
-                <button onClick={() => { saveMemo(); setSelectedStage(null); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.2, padding: "16px 12px", border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{t("battle.changeOpp")}</button>
+                <button onClick={() => { saveMemo(); setSelectedStage(null); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: "16px 12px", border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, whiteSpace: "nowrap" }}>{t("battle.continueSame")}<KeyHint keyLabel="N" T={T} /></button>
+                <button onClick={() => { saveMemo(); setSelectedStage(null); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.2, padding: "16px 12px", border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{t("battle.changeOpp")}<KeyHint keyLabel="C" T={T} /></button>
                 <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.changeChar")}</button>
-                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.endSession")}</button>
+                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.endSession")}<KeyHint keyLabel="E" T={T} /></button>
               </div>
             </div>
           )}
@@ -503,7 +504,7 @@ export default function PCBattle({ state, data, onSave, T }) {
                   <button onClick={() => saveEndSession(false)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}</button>
                   <button onClick={() => saveEndSession(true)} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Share2 size={14} /> {t("battle.share")}</button>
                   <button onClick={async () => { const blob = await generateCard(); if (blob) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `smash-tracker-${today()}.png`; a.click(); URL.revokeObjectURL(url); } }} disabled={generating} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Camera size={14} /> {generating ? "..." : (lang === "ja" ? "カード保存" : "Card")}</button>
-                  <button onClick={() => setPhase("battle")} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.backToBattle")}</button>
+                  <button onClick={() => setPhase("battle")} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.backToBattle")}<KeyHint keyLabel="Esc" T={T} /></button>
                 </div>
 
                 {/* Hidden session card for image generation */}

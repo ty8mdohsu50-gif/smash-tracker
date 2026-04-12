@@ -3,6 +3,9 @@ export default {
     tabs: { battle: "Battle", history: "History", analysis: "Analysis" },
     settings: "Settings",
   },
+  broadcast: {
+    toggle: "Live",
+  },
   battle: {
     today: "TODAY",
     winLoss: "W/L",

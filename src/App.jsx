@@ -29,6 +29,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const [aboutPage, setAboutPage] = useState(false);
+  const [broadcastMode, setBroadcastMode] = useState(false);
   const [showOnboard, setShowOnboard] = useState(() => {
     if (localStorage.getItem("smash-onboard-done") === "1") return false;
     const d = load();
@@ -226,7 +227,7 @@ export default function App() {
         </div>
         <div style={{ padding: isLandscape ? "8px 12px 20px" : "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} battleMode={battleMode} setBattleMode={setBattleMode} />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} showSettings={showSettings} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} />}
             {tabIdx === 1 && <AnalysisTab data={data} onSave={saveData} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>
@@ -392,7 +393,7 @@ export default function App() {
 
         <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} />}
+            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} showSettings={showSettings} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} />}
             {tabIdx === 1 && <AnalysisTab data={data} onSave={saveData} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />}
           </div>
         </div>

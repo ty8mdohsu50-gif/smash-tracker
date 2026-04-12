@@ -315,20 +315,6 @@ export function useBattleState({ data, onSave, T, isPC }) {
 
   const buildAndShare = () => doShare(buildShareText());
 
-  // Keyboard shortcuts: W/L keys during battle phase
-  const selectResRef = useRef(selectRes);
-  selectResRef.current = selectRes;
-  useEffect(() => {
-    const onKey = (e) => {
-      if (phase !== "battle" || result) return;
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-      if (e.key === "w" || e.key === "W") selectResRef.current("win");
-      if (e.key === "l" || e.key === "L") selectResRef.current("lose");
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [phase, result]);
-
   return {
     t, lang,
     // State
