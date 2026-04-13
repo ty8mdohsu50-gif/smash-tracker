@@ -42,13 +42,15 @@ export default function App() {
   const isLandscape = useIsLandscape();
   useThemeEffect(T);
 
+  const anyModalOpen = showSettings || !!legalPage || aboutPage || showShortcuts || showOnboard;
+
   const {
     tabIdx, setTabIdx,
     battleMode, setBattleMode,
     analysisMode, setAnalysisMode,
     mainRef,
     onTouchStart, onTouchMove, onTouchEnd,
-  } = useNavigation({ showSettings, setShowSettings, aboutPage, setAboutPage, legalPage, setLegalPage, isPC });
+  } = useNavigation({ showSettings, setShowSettings, aboutPage, setAboutPage, legalPage, setLegalPage, isPC, modalsBlocking: anyModalOpen });
 
   if (loading) {
     return (
@@ -72,8 +74,6 @@ export default function App() {
   if (!user && !skippedAuth) {
     return <AuthPage onSkip={handleSkip} />;
   }
-
-  const anyModalOpen = showSettings || !!legalPage || aboutPage || showShortcuts || showOnboard;
 
   const settingsModal = showSettings && (
     <Settings

@@ -1,14 +1,22 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 
-export function useNavigation({ showSettings, setShowSettings, aboutPage, setAboutPage, legalPage, setLegalPage, isPC }) {
+// Wheel/swipe tuning — keep responsive without accidental fires.
+const WHEEL_THRESHOLD = 60;       // px of accumulated deltaX required to switch
+const WHEEL_COOLDOWN_MS = 350;    // min gap between switches
+const WHEEL_DECAY_MS = 180;       // reset accumulator if no wheel event in this window
+const WHEEL_DOMINANCE = 1.2;      // |dx| must exceed |dy| * this ratio to count as horizontal
+
+export function useNavigation({ showSettings, setShowSettings, aboutPage, setAboutPage, legalPage, setLegalPage, isPC, modalsBlocking }) {
   const [tabIdx, setTabIdxRaw] = useState(0);
   const [battleMode, setBattleModeRaw] = useState("ranked");
   const [analysisMode, setAnalysisModeRaw] = useState("myChar");
 
   const navRef = useRef({ tabIdx: 0, battleMode: "ranked", analysisMode: "myChar" });
   const touchRef = useRef({ x: 0, y: 0, t: 0, sw: false });
-  const wheelRef = useRef({ acc: 0, cooldown: false });
+  const wheelRef = useRef({ acc: 0, cooldown: false, lastAt: 0 });
   const mainRef = useRef(null);
+  const blockingRef = useRef(false);
+  blockingRef.current = !!modalsBlocking;
 
   const setTabIdx = useCallback((v) => {
     const val = typeof v === "function" ? v(navRef.current.tabIdx) : v;
@@ -43,15 +51,27 @@ export function useNavigation({ showSettings, setShowSettings, aboutPage, setAbo
   const BATTLE_MODES = ["ranked", "free"];
 
   const onWheel = useCallback((e) => {
-    if (Math.abs(e.deltaX) < Math.abs(e.deltaY) * 1.5) return;
+    if (blockingRef.current) return;
+    const ax = Math.abs(e.deltaX);
+    const ay = Math.abs(e.deltaY);
+    // Not a horizontal gesture: let the browser do its normal scroll.
+    if (ax < ay * WHEEL_DOMINANCE || ax < 1) return;
     e.preventDefault();
     if (wheelRef.current.cooldown) return;
+
+    // Time-based decay: reset accumulator on stale residue from earlier gestures.
+    const now = Date.now();
+    if (now - wheelRef.current.lastAt > WHEEL_DECAY_MS) {
+      wheelRef.current.acc = 0;
+    }
+    wheelRef.current.lastAt = now;
     wheelRef.current.acc += e.deltaX;
-    if (Math.abs(wheelRef.current.acc) > 120) {
+
+    if (Math.abs(wheelRef.current.acc) > WHEEL_THRESHOLD) {
       const dir = wheelRef.current.acc > 0 ? 1 : -1;
       wheelRef.current.acc = 0;
       wheelRef.current.cooldown = true;
-      setTimeout(() => { wheelRef.current.cooldown = false; }, 500);
+      setTimeout(() => { wheelRef.current.cooldown = false; }, WHEEL_COOLDOWN_MS);
 
       const tab = navRef.current.tabIdx;
       const bm = navRef.current.battleMode;
@@ -73,10 +93,10 @@ export function useNavigation({ showSettings, setShowSettings, aboutPage, setAbo
 
   useEffect(() => {
     if (!isPC) return;
-    const el = mainRef.current;
-    if (!el) return;
-    el.addEventListener("wheel", onWheel, { passive: false, capture: true });
-    return () => el.removeEventListener("wheel", onWheel, { capture: true });
+    // Listen on window so horizontal wheel gestures are caught regardless of the
+    // pointer target (sidebar, content scroll container, fixed header, etc.).
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
   }, [isPC, onWheel]);
 
   const onTouchStart = (e) => {
