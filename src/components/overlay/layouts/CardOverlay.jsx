@@ -5,9 +5,8 @@ import { percentStr, numFormat } from "../../../utils/format";
 import {
   WIN_COLOR,
   LOSE_COLOR,
-  MUTED_TEXT,
-  DIM_TEXT,
   panelStyle,
+  paletteFor,
 } from "../overlayStyles";
 import { formatSessionTimer } from "../../../hooks/useOverlayData";
 
@@ -19,9 +18,10 @@ export default function CardOverlay({ data, lang }) {
     params, myChar, tW, tL, streak, pwrDelta, currentPower,
     recent, goal, flashState, sessionElapsedSec,
   } = data;
-  const { accent, bg, scale, modules } = params;
+  const { accent, bg, scale, modules, theme } = params;
   const total = tW + tL;
   const s = scale;
+  const pal = paletteFor(theme);
   const show = (id) => modules.has(id);
 
   const winRate = total > 0 ? Math.round((tW / total) * 100) : null;
@@ -29,7 +29,7 @@ export default function CardOverlay({ data, lang }) {
   return (
     <div
       style={{
-        ...panelStyle({ bg, accent, flashState, borderRadius: 16 * s }),
+        ...panelStyle({ bg, accent, flashState, borderRadius: 16 * s, theme }),
         padding: `${16 * s}px ${18 * s}px`,
         width: 320 * s,
         display: "flex",
@@ -45,7 +45,7 @@ export default function CardOverlay({ data, lang }) {
             alignItems: "center",
             gap: 10 * s,
             paddingBottom: 10 * s,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            borderBottom: `1px solid ${pal.innerBorder}`,
           }}
         >
           <FighterIcon name={myChar} size={Math.round(40 * s)} />
@@ -54,7 +54,7 @@ export default function CardOverlay({ data, lang }) {
               style={{
                 fontSize: 16 * s,
                 fontWeight: 800,
-                color: "#fff",
+                color: pal.text,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -65,7 +65,7 @@ export default function CardOverlay({ data, lang }) {
             <div
               style={{
                 fontSize: 10 * s,
-                color: DIM_TEXT,
+                color: pal.dim,
                 fontWeight: 600,
                 letterSpacing: 1,
               }}
@@ -105,7 +105,7 @@ export default function CardOverlay({ data, lang }) {
       <div style={{ display: "flex", gap: 14 * s, alignItems: "stretch" }}>
         {show("score") && (
           <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: 9 * s, color: DIM_TEXT, fontWeight: 700, letterSpacing: 1 }}>W / L</div>
+            <div style={{ fontSize: 9 * s, color: pal.dim, fontWeight: 700, letterSpacing: 1 }}>W / L</div>
             <div
               style={{
                 fontSize: 30 * s,
@@ -124,8 +124,8 @@ export default function CardOverlay({ data, lang }) {
         )}
 
         {show("rate") && winRate !== null && (
-          <div style={{ flex: 1, textAlign: "center", borderLeft: "1px solid rgba(255,255,255,0.08)" }}>
-            <div style={{ fontSize: 9 * s, color: DIM_TEXT, fontWeight: 700, letterSpacing: 1 }}>WIN%</div>
+          <div style={{ flex: 1, textAlign: "center", borderLeft: `1px solid ${pal.innerBorder}` }}>
+            <div style={{ fontSize: 9 * s, color: pal.dim, fontWeight: 700, letterSpacing: 1 }}>WIN%</div>
             <div
               style={{
                 fontSize: 30 * s,
@@ -151,7 +151,7 @@ export default function CardOverlay({ data, lang }) {
             gap: 10 * s,
             alignItems: "center",
             fontSize: 12 * s,
-            color: MUTED_TEXT,
+            color: pal.muted,
           }}
         >
           {show("streak") && streak && streak.count >= 2 && (
@@ -192,7 +192,7 @@ export default function CardOverlay({ data, lang }) {
               }}
             >
               {currentPower && (
-                <span style={{ fontSize: 14 * s, fontWeight: 800, color: "#fff" }}>
+                <span style={{ fontSize: 14 * s, fontWeight: 800, color: pal.text }}>
                   {numFormat(currentPower)}
                 </span>
               )}
@@ -221,21 +221,21 @@ export default function CardOverlay({ data, lang }) {
               display: "flex",
               justifyContent: "space-between",
               fontSize: 10 * s,
-              color: DIM_TEXT,
+              color: pal.dim,
               fontWeight: 700,
               letterSpacing: 0.5,
               marginBottom: 4 * s,
             }}
           >
             <span>TODAY GOAL</span>
-            <span style={{ color: "#fff" }}>
+            <span style={{ color: pal.text }}>
               {goal.totalToday} / {goal.games}
             </span>
           </div>
           <div
             style={{
               height: 6 * s,
-              background: "rgba(255,255,255,0.08)",
+              background: pal.innerBg,
               borderRadius: 3,
               overflow: "hidden",
             }}
@@ -256,7 +256,7 @@ export default function CardOverlay({ data, lang }) {
       {/* Recent result dots */}
       {show("recent") && recent.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: 8 * s }}>
-          <div style={{ fontSize: 9 * s, color: DIM_TEXT, fontWeight: 700, letterSpacing: 1 }}>
+          <div style={{ fontSize: 9 * s, color: pal.dim, fontWeight: 700, letterSpacing: 1 }}>
             RECENT
           </div>
           <div style={{ display: "flex", gap: 4 * s }}>
@@ -284,14 +284,14 @@ export default function CardOverlay({ data, lang }) {
             justifyContent: "space-between",
             alignItems: "center",
             fontSize: 11 * s,
-            color: DIM_TEXT,
-            borderTop: "1px solid rgba(255,255,255,0.08)",
+            color: pal.dim,
+            borderTop: `1px solid ${pal.innerBorder}`,
             paddingTop: 8 * s,
             fontFamily: "'Chakra Petch', monospace",
           }}
         >
           <span style={{ fontWeight: 700, letterSpacing: 0.5 }}>SESSION</span>
-          <span style={{ color: "#fff", fontWeight: 800 }}>
+          <span style={{ color: pal.text, fontWeight: 800 }}>
             {formatSessionTimer(sessionElapsedSec)}
           </span>
         </div>

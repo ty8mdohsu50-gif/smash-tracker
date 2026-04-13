@@ -5,9 +5,8 @@ import { percentStr, numFormat } from "../../../utils/format";
 import {
   WIN_COLOR,
   LOSE_COLOR,
-  MUTED_TEXT,
-  DIM_TEXT,
   panelStyle,
+  paletteFor,
 } from "../overlayStyles";
 import { formatSessionTimer } from "../../../hooks/useOverlayData";
 
@@ -19,16 +18,17 @@ export default function BarOverlay({ data, lang }) {
     params, myChar, tW, tL, streak, pwrDelta, currentPower,
     goal, flashState, sessionElapsedSec,
   } = data;
-  const { accent, bg, scale, modules } = params;
+  const { accent, bg, scale, modules, theme } = params;
   const total = tW + tL;
   const s = scale;
+  const pal = paletteFor(theme);
   const show = (id) => modules.has(id);
 
   const cellLabel = (text) => (
     <div
       style={{
         fontSize: 9 * s,
-        color: DIM_TEXT,
+        color: pal.dim,
         fontWeight: 700,
         letterSpacing: 1.2,
         textTransform: "uppercase",
@@ -39,13 +39,13 @@ export default function BarOverlay({ data, lang }) {
   );
 
   const divider = (
-    <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.1)" }} />
+    <div style={{ width: 1, alignSelf: "stretch", background: pal.divider }} />
   );
 
   return (
     <div
       style={{
-        ...panelStyle({ bg, accent, flashState, borderRadius: 14 * s }),
+        ...panelStyle({ bg, accent, flashState, borderRadius: 14 * s, theme }),
         padding: `${10 * s}px ${22 * s}px`,
         display: "flex",
         alignItems: "center",
@@ -61,7 +61,7 @@ export default function BarOverlay({ data, lang }) {
           alignItems: "center",
           gap: 6 * s,
           flexShrink: 0,
-          borderRight: "1px solid rgba(255,255,255,0.08)",
+          borderRight: `1px solid ${pal.innerBorder}`,
           paddingRight: 22 * s,
         }}
       >
@@ -80,7 +80,7 @@ export default function BarOverlay({ data, lang }) {
             fontSize: 11 * s,
             fontWeight: 900,
             letterSpacing: 2,
-            color: "#fff",
+            color: pal.text,
           }}
         >
           LIVE
@@ -98,7 +98,7 @@ export default function BarOverlay({ data, lang }) {
                 style={{
                   fontSize: 16 * s,
                   fontWeight: 800,
-                  color: "#fff",
+                  color: pal.text,
                   lineHeight: 1.1,
                 }}
               >
@@ -190,7 +190,7 @@ export default function BarOverlay({ data, lang }) {
               style={{
                 fontSize: 16 * s,
                 fontWeight: 800,
-                color: "#fff",
+                color: pal.text,
                 lineHeight: 1.1,
                 fontFamily: "'Chakra Petch', monospace",
               }}
@@ -222,7 +222,7 @@ export default function BarOverlay({ data, lang }) {
             <div
               style={{
                 height: 6 * s,
-                background: "rgba(255,255,255,0.1)",
+                background: pal.innerBg,
                 borderRadius: 3,
                 overflow: "hidden",
                 marginTop: 6 * s,

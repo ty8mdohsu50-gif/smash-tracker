@@ -5,8 +5,8 @@ import { percentStr, numFormat } from "../../../utils/format";
 import {
   WIN_COLOR,
   LOSE_COLOR,
-  MUTED_TEXT,
   panelStyle,
+  paletteFor,
 } from "../overlayStyles";
 
 // Compact corner pill — the smallest overlay. Fits either
@@ -14,10 +14,11 @@ import {
 // (narrow side column for mobile 9:16 streams).
 export default function PillOverlay({ data, lang }) {
   const { params, myChar, tW, tL, streak, pwrDelta, flashState } = data;
-  const { accent, bg, scale, orientation, modules } = params;
+  const { accent, bg, scale, orientation, modules, theme } = params;
   const total = tW + tL;
   const isV = orientation === "vertical";
   const s = scale;
+  const pal = paletteFor(theme);
 
   const show = (id) => modules.has(id);
 
@@ -25,7 +26,7 @@ export default function PillOverlay({ data, lang }) {
     <span
       style={{
         fontSize: fontSize * s,
-        color: MUTED_TEXT,
+        color: pal.muted,
         fontWeight: 600,
         letterSpacing: 0.4,
       }}
@@ -39,7 +40,7 @@ export default function PillOverlay({ data, lang }) {
       style={{
         width: isV ? "70%" : 1,
         height: isV ? 1 : 20 * s,
-        background: "rgba(255,255,255,0.12)",
+        background: pal.divider,
         flexShrink: 0,
       }}
     />
@@ -180,7 +181,7 @@ export default function PillOverlay({ data, lang }) {
   return (
     <div
       style={{
-        ...panelStyle({ bg, accent, flashState, borderRadius: 14 * s }),
+        ...panelStyle({ bg, accent, flashState, borderRadius: 14 * s, theme }),
         padding: isV ? `${14 * s}px ${16 * s}px` : `${10 * s}px ${18 * s}px`,
         display: "inline-flex",
         flexDirection: isV ? "column" : "row",

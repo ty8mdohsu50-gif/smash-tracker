@@ -24,6 +24,7 @@ export function parseOverlayParams(search) {
   const positionRaw = p.get("position") || "none";
   const validPositions = ["none", "tl", "tr", "bl", "br", "top", "bottom"];
   const position = validPositions.includes(positionRaw) ? positionRaw : "none";
+  const theme = p.get("theme") === "light" ? "light" : "dark";
 
   // Accept legacy `color` as alias of `accent`
   const accentRaw = p.get("accent") || p.get("color") || DEFAULT_ACCENT;
@@ -32,6 +33,8 @@ export function parseOverlayParams(search) {
     : DEFAULT_ACCENT;
 
   const bg = clampNum(p.get("bg"), 0, 100, 70);
+  // Scale kept for URL power users but no longer exposed in the UI —
+  // OBS itself can resize the browser source.
   const scale = clampNum(p.get("scale"), 0.5, 2, 1);
   const flash = p.get("flash") !== "0";
 
@@ -43,7 +46,7 @@ export function parseOverlayParams(search) {
   const pollOverride = p.get("poll");
   const poll = pollOverride ? clampNum(pollOverride, 1, 120, null) : null;
 
-  return { layout, orientation, position, accent, bg, scale, flash, modules, poll };
+  return { layout, orientation, position, accent, bg, scale, flash, modules, poll, theme };
 }
 
 export function useOverlayData() {

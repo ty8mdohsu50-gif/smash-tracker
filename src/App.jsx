@@ -8,6 +8,7 @@ import LegalPage from "./components/LegalPage";
 import AboutPage from "./components/AboutPage";
 import ShortcutsModal from "./components/shared/ShortcutsModal";
 import BroadcastHelpModal from "./components/shared/BroadcastHelpModal";
+import OverlayBuilderModal from "./components/shared/OverlayBuilderModal";
 import BattleTab from "./components/battle/BattleTab";
 import AnalysisTab from "./components/analysis/AnalysisTab";
 import { useI18n } from "./i18n/index.jsx";
@@ -39,6 +40,7 @@ export default function App() {
   const [broadcastMode, setBroadcastMode] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showBroadcastHelp, setShowBroadcastHelp] = useState(false);
+  const [showOverlayBuilder, setShowOverlayBuilder] = useState(false);
   const [showOnboard, setShowOnboard] = useState(() => {
     if (localStorage.getItem("smash-onboard-done") === "1") return false;
     const d = load();
@@ -49,7 +51,7 @@ export default function App() {
   const isLandscape = useIsLandscape();
   useThemeEffect(T);
 
-  const anyModalOpen = showSettings || !!legalPage || aboutPage || showShortcuts || showBroadcastHelp || showOnboard;
+  const anyModalOpen = showSettings || !!legalPage || aboutPage || showShortcuts || showBroadcastHelp || showOverlayBuilder || showOnboard;
 
   const {
     tabIdx, setTabIdx,
@@ -109,6 +111,15 @@ export default function App() {
 
   const broadcastHelpModal = showBroadcastHelp && (
     <BroadcastHelpModal T={T} onClose={() => setShowBroadcastHelp(false)} />
+  );
+
+  const overlayBuilderModal = showOverlayBuilder && (
+    <OverlayBuilderModal
+      T={T}
+      user={user}
+      onClose={() => setShowOverlayBuilder(false)}
+      onOpenHelp={() => setShowBroadcastHelp(true)}
+    />
   );
 
   const onboardModal = showOnboard && (
@@ -270,6 +281,7 @@ export default function App() {
       {aboutModal}
       {shortcutsModal}
       {broadcastHelpModal}
+      {overlayBuilderModal}
       {onboardModal}
 
       <nav
@@ -335,7 +347,7 @@ export default function App() {
 
         <div style={{ padding: "0 12px", borderTop: `1px solid ${T.brd}`, paddingTop: 16 }}>
           <button
-            onClick={() => setShowBroadcastHelp(true)}
+            onClick={() => setShowOverlayBuilder(true)}
             style={{
               display: "flex", alignItems: "center", gap: 14,
               padding: "12px 18px", background: "transparent", border: "none",
@@ -345,7 +357,7 @@ export default function App() {
             }}
           >
             <Radio size={20} strokeWidth={2} />
-            {t("broadcast.help.sidebarTitle")}
+            {t("broadcast.builder.title")}
           </button>
           <button
             onClick={() => setShowShortcuts(true)}

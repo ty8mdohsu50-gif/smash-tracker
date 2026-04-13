@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useI18n } from "../../i18n/index.jsx";
 import { useOverlayData } from "../../hooks/useOverlayData";
-import { OVERLAY_ANIMATIONS, positionStyle, OVERLAY_FONT } from "./overlayStyles";
+import { OVERLAY_ANIMATIONS, positionStyle, OVERLAY_FONT, paletteFor, bgColor } from "./overlayStyles";
 import PillOverlay from "./layouts/PillOverlay";
 import CardOverlay from "./layouts/CardOverlay";
 import BarOverlay from "./layouts/BarOverlay";
@@ -41,6 +41,7 @@ export default function OverlayPage() {
 
   // Waiting state — no match today yet.
   if (!hasData) {
+    const pal = paletteFor(params.theme);
     const waitingLabel = lang === "ja" ? "待機中..." : "Waiting...";
     const title = myChar ? fighterName(myChar, lang) : "SMASH TRACKER";
     return (
@@ -48,10 +49,10 @@ export default function OverlayPage() {
         <div
           style={{
             fontFamily: OVERLAY_FONT,
-            color: "#fff",
+            color: pal.text,
             fontSize: 13,
             padding: "10px 16px",
-            background: "rgba(12,12,24,0.65)",
+            background: bgColor(Math.max(params.bg, 50), params.theme),
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
             borderRadius: 12,
@@ -73,7 +74,7 @@ export default function OverlayPage() {
           />
           <span style={{ fontWeight: 700 }}>{title}</span>
           <span style={{ opacity: 0.6 }}>·</span>
-          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{waitingLabel}</span>
+          <span style={{ fontWeight: 600, color: pal.muted }}>{waitingLabel}</span>
         </div>
       </div>
     );

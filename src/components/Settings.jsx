@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { csvDownload } from "../utils/storage";
 import { THEME_KEYS, getThemeLabel } from "../styles/theme";
 import { useI18n } from "../i18n/index.jsx";
-import BroadcastHelpModal from "./shared/BroadcastHelpModal";
 import CloseButton from "./shared/CloseButton";
-import OverlayBuilder from "./shared/OverlayBuilder";
 import { Z_APP_MODAL } from "../constants/zIndex";
 
 const SWATCH_COLORS = {
@@ -26,7 +24,6 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
   const [showShare, setShowShare] = useState(false);
-  const [showBroadcastHelp, setShowBroadcastHelp] = useState(false);
   const [dayBoundary, setDayBoundary] = useState(
     () => localStorage.getItem("smash-day-boundary") || "5",
   );
@@ -52,7 +49,6 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
   };
 
   return (
-    <>
     <div
       onClick={handleClose}
       style={{
@@ -439,33 +435,6 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
             <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("settings.account")}</div>
               <div style={{ fontSize: 13, color: T.dim, marginBottom: 12, wordBreak: "break-all" }}>{user.email}</div>
-
-              {/* Stream Overlay Builder */}
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
-                    {t("broadcast.builder.title")}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowBroadcastHelp(true)}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 4,
-                      padding: "4px 8px", borderRadius: 6,
-                      border: `1px solid ${T.brd}`, background: "transparent",
-                      color: T.accent, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                    }}
-                  >
-                    <HelpCircle size={12} />
-                    {t("broadcast.help.openBtn")}
-                  </button>
-                </div>
-                <div style={{ fontSize: 10, color: T.dimmer, marginBottom: 10 }}>
-                  {t("settings.obsOverlayHint")}
-                </div>
-                <OverlayBuilder T={T} user={user} initialAccent={T.accent} />
-              </div>
-
               <button
                 onClick={() => { handleClose(); onLogout(); }}
                 style={{
@@ -518,9 +487,5 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
         </div>
       </div>
     </div>
-    {showBroadcastHelp && (
-      <BroadcastHelpModal onClose={() => setShowBroadcastHelp(false)} T={T} />
-    )}
-    </>
   );
 }
