@@ -14,16 +14,33 @@ export function useKeyboardShortcuts({
     if (!isPC || !isActive) return;
 
     const onKey = (e) => {
-      // Guard: IME composition (Japanese input, etc.)
-      if (e.isComposing || e.keyCode === 229) return;
+      // Guard: IME composition (Japanese input, etc.) — but allow Esc
+      // through so the user can always dismiss a picker / modal even
+      // while composing hiragana.
+      if ((e.isComposing || e.keyCode === 229) && e.key !== "Escape") return;
 
       // Guard: auto-repeat (holding a key) — prevents accidental spam
       if (e.repeat) return;
 
-      // Guard: text input
+      const a = actionsRef.current;
       const tag = e.target.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-      if (e.target.isContentEditable) return;
+      const inTextField = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable;
+
+      // Esc always works — even when a text input inside a picker/modal
+      // is focused — so that users can back out of the CharPicker's
+      // search input (and any other nested text input) via keyboard.
+      if (e.key === "Escape") {
+        if (confirmAction) { a.closeConfirm(); return; }
+        if (showMyPicker) { a.closeMyPicker(); return; }
+        if (showOppPicker) { a.closeOppPicker(); return; }
+        if (sharePopupText) { a.closeShare(); return; }
+        if (inTextField) return; // nothing to unwind; let browser handle blur
+        a.goBack();
+        return;
+      }
+
+      // All other shortcuts: skip when typing into a text field
+      if (inTextField) return;
 
       // Guard: focused button will already activate on Space/Enter —
       // skip the shortcut so the button click isn't duplicated.
@@ -31,18 +48,6 @@ export function useKeyboardShortcuts({
 
       // Guard: browser shortcuts (Ctrl/Cmd/Alt)
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-
-      const a = actionsRef.current;
-
-      // Esc always works — close modals first, then phase back
-      if (e.key === "Escape") {
-        if (confirmAction) { a.closeConfirm(); return; }
-        if (showMyPicker) { a.closeMyPicker(); return; }
-        if (showOppPicker) { a.closeOppPicker(); return; }
-        if (sharePopupText) { a.closeShare(); return; }
-        a.goBack();
-        return;
-      }
 
       // When any picker/modal is open, block all other shortcuts
       if (showMyPicker || showOppPicker || confirmAction || sharePopupText) return;

@@ -441,8 +441,23 @@ export default function MobileBattle({ state, data, onSave, T }) {
               style={{ width: "100%", marginTop: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
           </div>
 
-          {/* Stage selection (mobile) */}
-          <div style={{ ...cd, padding: "12px 16px", animation: "slideUp .2s ease .15s both" }}>
+          {/* Power update */}
+          <div style={{ ...cd, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
+            <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
+            <PwrInput value={pEnd} onChange={setPEnd} placeholder={t("battle.powerPlaceholder")} big={false} T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
+            <button onClick={() => { saveMemo(); setSelectedStage(null); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
+            <button onClick={() => { saveMemo(); setSelectedStage(null); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 15, fontWeight: 700, transition: "all .15s ease" }}>{t("battle.changeOpp")}</button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{t("battle.changeChar")}</button>
+              <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
+            </div>
+          </div>
+
+          {/* Stage selection (mobile) — placed after primary actions */}
+          <div style={{ ...cd, padding: "12px 16px", marginTop: 12, animation: "slideUp .2s ease .15s both" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
               <span style={{ fontSize: 13 }}>{"\uD83D\uDDFA\uFE0F"}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
@@ -463,21 +478,6 @@ export default function MobileBattle({ state, data, onSave, T }) {
                   </button>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Power update */}
-          <div style={{ ...cd, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
-            <PwrInput value={pEnd} onChange={setPEnd} placeholder={t("battle.powerPlaceholder")} big={false} T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
-            <button onClick={() => { saveMemo(); setSelectedStage(null); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
-            <button onClick={() => { saveMemo(); setSelectedStage(null); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 15, fontWeight: 700, transition: "all .15s ease" }}>{t("battle.changeOpp")}</button>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{t("battle.changeChar")}</button>
-              <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
             </div>
           </div>
         </div>

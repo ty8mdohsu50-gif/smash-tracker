@@ -395,7 +395,18 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                   maxLength={500}
                   style={{ width: "100%", marginTop: 16, padding: "12px 16px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 14, outline: "none", boxSizing: "border-box", textAlign: "center", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }} />
               </div>
-              {/* Stage selection (PC) */}
+              {/* Power update */}
+              <div style={{ ...cd, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>
+                <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
+                <div style={{ flex: 1 }}><PwrInput value={pEnd} onChange={setPEnd} placeholder={t("battle.powerPlaceholder")} big={false} T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} /></div>
+              </div>
+              <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                <button onClick={() => { saveMemo(); setSelectedStage(null); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: "16px 12px", border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, whiteSpace: "nowrap" }}>{t("battle.continueSame")}<KeyHint keyLabel="N" T={T} /></button>
+                <button onClick={() => { saveMemo(); setSelectedStage(null); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.2, padding: "16px 12px", border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{t("battle.changeOpp")}<KeyHint keyLabel="C" T={T} /></button>
+                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.changeChar")}</button>
+                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.endSession")}<KeyHint keyLabel="E" T={T} /></button>
+              </div>
+              {/* Stage selection (PC) — placed after primary actions so it doesn't push them below the fold */}
               <div style={{ ...cd, padding: "14px 20px", marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                   <span style={{ fontSize: 13 }}>{"\uD83D\uDDFA\uFE0F"}</span>
@@ -418,18 +429,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                     </button>
                   );
                 })}
-              </div>
-            </div>
-            {/* Power update */}
-              <div style={{ ...cd, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>
-                <span style={{ fontSize: 13, color: T.sub, fontWeight: 600, flexShrink: 0 }}>{t("battle.powerCurrent")}</span>
-                <div style={{ flex: 1 }}><PwrInput value={pEnd} onChange={setPEnd} placeholder={t("battle.powerPlaceholder")} big={false} T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} /></div>
-              </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => { saveMemo(); setSelectedStage(null); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ flex: 2, padding: "16px 12px", border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, whiteSpace: "nowrap" }}>{t("battle.continueSame")}<KeyHint keyLabel="N" T={T} /></button>
-                <button onClick={() => { saveMemo(); setSelectedStage(null); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ flex: 1.2, padding: "16px 12px", border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{t("battle.changeOpp")}<KeyHint keyLabel="C" T={T} /></button>
-                <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.changeChar")}</button>
-                <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.endSession")}<KeyHint keyLabel="E" T={T} /></button>
+                </div>
               </div>
             </div>
           )}
