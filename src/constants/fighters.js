@@ -265,5 +265,6 @@ const YOMIGANA = {
 
 export const getSearchText = (name) => {
   const extra = YOMIGANA[name] || "";
-  return name + " " + extra + " " + (ABBREV[name] || "");
+  const en = FIGHTER_NAMES_EN[name] || "";
+  return name + " " + extra + " " + (ABBREV[name] || "") + " " + en;
 };

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { FIGHTERS, getSearchText, fighterName } from "../../constants/fighters";
 import { useI18n } from "../../i18n/index.jsx";
 import { normalizeCharSearchInput } from "../../utils/format";
+import { parseSearchQuery, matchesFighterSearch } from "../../utils/romajiSearch";
 import FighterIcon from "./FighterIcon";
 import { Z_CHARPICKER } from "../../constants/zIndex";
 
@@ -45,15 +46,26 @@ export default function CharPicker({
       const seen = new Set(recent.filter((c) => FIGHTERS.includes(c)));
       return FIGHTERS.filter((c) => !seen.has(c));
     }
-    const lq = normalizeCharSearchInput(trimmed);
-    return FIGHTERS.filter((f) => normalizeCharSearchInput(getSearchText(f)).includes(lq))
-      .sort((a, b) => {
-        const ah = normalizeCharSearchInput(a);
-        const bh = normalizeCharSearchInput(b);
-        const aStart = ah.startsWith(lq) ? 0 : 1;
-        const bStart = bh.startsWith(lq) ? 0 : 1;
-        return aStart - bStart || ah.localeCompare(bh, "ja");
-      });
+    const literal = normalizeCharSearchInput(trimmed);
+    const { fixed, partial } = parseSearchQuery(trimmed);
+    // "effective prefix" used for start-of-name ranking below
+    const prefix = fixed || literal;
+    return FIGHTERS.filter((f) => matchesFighterSearch(
+      normalizeCharSearchInput(getSearchText(f)),
+      trimmed,
+      literal,
+    )).sort((a, b) => {
+      const ah = normalizeCharSearchInput(a);
+      const bh = normalizeCharSearchInput(b);
+      const aMatch = prefix && ah.startsWith(prefix);
+      const bMatch = prefix && bh.startsWith(prefix);
+      // Also consider partial expansion prefix match for tie-breaking
+      const aPartial = !aMatch && partial && partial.some((p) => ah.startsWith(fixed + p));
+      const bPartial = !bMatch && partial && partial.some((p) => bh.startsWith(fixed + p));
+      const aRank = aMatch ? 0 : aPartial ? 1 : 2;
+      const bRank = bMatch ? 0 : bPartial ? 1 : 2;
+      return aRank - bRank || ah.localeCompare(bh, "ja");
+    });
   }, [q, recent]);
 
   return (
