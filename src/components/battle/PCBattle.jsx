@@ -1,4 +1,4 @@
-import { X, Zap, Share2, Camera } from "lucide-react";
+import { X, Zap, Share2 } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import KeyHint from "../shared/KeyHint";
@@ -33,6 +33,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
     showMyPicker, setShowMyPicker,
     showOppPicker, setShowOppPicker,
     sharePopupText, setSharePopupText,
+    sharePopupImage, setSharePopupImage,
     toast, setToast,
     confirmAction, setConfirmAction,
     editingStageIdx, setEditingStageIdx,
@@ -250,7 +251,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
           </div>
           {pcSidebar}
         </div>
-        {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+        {sharePopupText && <SharePopup text={sharePopupText} imageBlob={sharePopupImage} onClose={() => { setSharePopupText(null); setSharePopupImage(null); }} T={T} />}
         {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
       </div>
     );
@@ -507,8 +508,16 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
                   <button onClick={() => saveEndSession(false)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}<KeyHint keyLabel="Enter" T={T} /></button>
-                  <button onClick={() => saveEndSession(true)} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Share2 size={14} /> {t("battle.share")}<KeyHint keyLabel="S" T={T} /></button>
-                  <button onClick={async () => { const blob = await generateCard(); if (blob) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `smash-tracker-${today()}.png`; a.click(); URL.revokeObjectURL(url); } }} disabled={generating} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Camera size={14} /> {generating ? "..." : (lang === "ja" ? "カード保存" : "Card")}</button>
+                  <button
+                    onClick={async () => {
+                      const blob = await generateCard();
+                      saveEndSession(true, blob);
+                    }}
+                    disabled={generating}
+                    style={{ flex: 1.4, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  >
+                    <Share2 size={14} /> {generating ? "..." : t("battle.share")}<KeyHint keyLabel="S" T={T} />
+                  </button>
                   <button onClick={() => setPhase("battle")} style={{ flex: 1, padding: 16, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.backToBattle")}<KeyHint keyLabel="Esc" T={T} /></button>
                 </div>
 
@@ -536,7 +545,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
         </div>
         {pcSidebar}
       </div>
-      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+      {sharePopupText && <SharePopup text={sharePopupText} imageBlob={sharePopupImage} onClose={() => { setSharePopupText(null); setSharePopupImage(null); }} T={T} />}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
       {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
     </div>

@@ -319,6 +319,10 @@ export default {
     stageLabel: "ステージ",
     remaining: "達成まであと{n}戦",
     goalWinRate: "勝率 {current}% / 目標{target}%",
+    includeImage: "画像を含める",
+    on: "ON",
+    off: "OFF",
+    externalHint: "X / LINE では画像は自動添付されません。先に画像を保存してから投稿に添付してください。",
   },
   free: {
     title: "フリー対戦",
@@ -376,6 +380,7 @@ export default {
     deleteConfirm: "この対戦記録を削除しますか？",
     saveImage: "画像を保存",
     shareWithImage: "画像付きでシェア",
+    shareText: "テキストだけシェア",
   },
   legal: {
     effectiveDate: "施行日: 2026年4月10日（2026年4月10日改定）",

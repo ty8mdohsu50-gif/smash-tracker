@@ -32,6 +32,7 @@ export function useBattleState({ data, onSave, T, isPC }) {
   const [showMyPicker, setShowMyPicker] = useState(false);
   const [showOppPicker, setShowOppPicker] = useState(false);
   const [sharePopupText, setSharePopupText] = useState(null);
+  const [sharePopupImage, setSharePopupImage] = useState(null);
   const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [editingStageIdx, setEditingStageIdx] = useState(null);
@@ -113,11 +114,13 @@ export function useBattleState({ data, onSave, T, isPC }) {
 
   // Actions
 
-  const doShare = async (text) => {
-    if (navigator.share) {
-      try { await navigator.share({ text }); return; } catch (_) { /* cancelled */ }
-    }
+  // Open the share popup. The popup itself handles whether to attach
+  // the image via the user-facing toggle, so we don't route through
+  // navigator.share here anymore — the popup offers it as one of the
+  // share options once the user has decided on image/no-image.
+  const doShare = (text, imageBlob = null) => {
     setSharePopupText(text);
+    setSharePopupImage(imageBlob || null);
   };
 
   const savePower = (s, e) => {
@@ -254,7 +257,7 @@ export function useBattleState({ data, onSave, T, isPC }) {
     if (!isPC) restoreScrollAfter(y);
   };
 
-  const saveEndSession = (andShare) => {
+  const saveEndSession = (andShare, imageBlob = null) => {
     const d = JSON.parse(JSON.stringify(data));
     if (!d.daily) d.daily = {};
     if (!d.daily[today()]) d.daily[today()] = {};
@@ -266,7 +269,7 @@ export function useBattleState({ data, onSave, T, isPC }) {
     if (pEnd) day.end = Number(pEnd);
     day.review = reviewText;
     onSave(d);
-    if (andShare) buildAndShare();
+    if (andShare) buildAndShare(imageBlob);
     else { setPhase("setup"); setShowOppPicker(false); }
   };
 
@@ -313,7 +316,7 @@ export function useBattleState({ data, onSave, T, isPC }) {
     return lines.join("\n");
   };
 
-  const buildAndShare = () => doShare(buildShareText());
+  const buildAndShare = (imageBlob) => doShare(buildShareText(), imageBlob);
 
   return {
     t, lang,
@@ -327,6 +330,7 @@ export function useBattleState({ data, onSave, T, isPC }) {
     showMyPicker, setShowMyPicker,
     showOppPicker, setShowOppPicker,
     sharePopupText, setSharePopupText,
+    sharePopupImage, setSharePopupImage,
     toast, setToast,
     confirmAction, setConfirmAction,
     editingStageIdx, setEditingStageIdx,

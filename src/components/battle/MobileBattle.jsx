@@ -1,4 +1,4 @@
-import { X, Zap, Share2, Camera } from "lucide-react";
+import { X, Zap, Share2 } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import SharePopup from "../shared/SharePopup";
@@ -33,6 +33,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
     showMyPicker, setShowMyPicker,
     showOppPicker, setShowOppPicker,
     sharePopupText, setSharePopupText,
+    sharePopupImage, setSharePopupImage,
     toast, setToast,
     confirmAction, setConfirmAction,
     editingStageIdx, setEditingStageIdx,
@@ -565,11 +566,15 @@ export default function MobileBattle({ state, data, onSave, T }) {
 
             {/* Actions */}
             <button onClick={() => saveEndSession(false)} style={{ width: "100%", padding: 16, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 16, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}</button>
-            <button onClick={() => saveEndSession(true)} style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.sub, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-              <Share2 size={14} /> {t("battle.share")}
-            </button>
-            <button onClick={async () => { const blob = await generateCard(); if (blob) { const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `smash-tracker-${today()}.png`; a.click(); URL.revokeObjectURL(url); } }} disabled={generating} style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-              <Camera size={14} /> {generating ? "..." : (lang === "ja" ? "サマリーカード保存" : "Save Summary Card")}
+            <button
+              onClick={async () => {
+                const blob = await generateCard();
+                saveEndSession(true, blob);
+              }}
+              disabled={generating}
+              style={{ width: "100%", padding: 14, marginTop: 8, border: `1px solid ${T.brd}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            >
+              <Share2 size={14} /> {generating ? "..." : t("battle.share")}
             </button>
             <button onClick={() => setPhase("battle")} style={{ width: "100%", padding: 12, marginTop: 8, border: "none", background: "transparent", color: T.dim, fontSize: 13 }}>{t("battle.backToBattle")}</button>
 
@@ -595,7 +600,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
         );
       })()}
 
-      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
+      {sharePopupText && <SharePopup text={sharePopupText} imageBlob={sharePopupImage} onClose={() => { setSharePopupText(null); setSharePopupImage(null); }} T={T} />}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
       {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
     </div>

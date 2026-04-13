@@ -80,7 +80,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     closeConfirm: () => { state.setConfirmAction(null); },
     closeMyPicker: () => { state.setShowMyPicker(false); },
     closeOppPicker: () => { state.setShowOppPicker(false); state.setResult(null); },
-    closeShare: () => { state.setSharePopupText(null); },
+    closeShare: () => { state.setSharePopupText(null); state.setSharePopupImage(null); },
   }), [state])();
 
   useKeyboardShortcuts({

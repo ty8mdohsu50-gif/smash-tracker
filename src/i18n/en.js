@@ -319,6 +319,10 @@ export default {
     stageLabel: "Stage",
     remaining: "{n} more to go",
     goalWinRate: "Win Rate {current}% / Goal {target}%",
+    includeImage: "Include image",
+    on: "ON",
+    off: "OFF",
+    externalHint: "X / LINE won't auto-attach the image. Save it first, then attach manually to your post.",
   },
   free: {
     title: "Free Battle",
@@ -376,6 +380,7 @@ export default {
     deleteConfirm: "Delete this match record?",
     saveImage: "Save Image",
     shareWithImage: "Share with Image",
+    shareText: "Share Text Only",
   },
   legal: {
     effectiveDate: "Effective: April 10, 2026 (revised April 10, 2026)",
