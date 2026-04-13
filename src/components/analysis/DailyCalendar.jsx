@@ -165,7 +165,7 @@ export default function DailyCalendar({
           <button onClick={(e) => { e.stopPropagation(); setEditingStageIdx(isEditing ? null : m.idx); }}
             style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "\u2713" : "\uD83D\uDDFA"}</button>
           <button onClick={(e) => { e.stopPropagation(); setConfirmAction({ idx: m.idx }); }}
-            style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}>\u00D7</button>
+            style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 16, cursor: "pointer", padding: "4px 6px", flexShrink: 0 }}>×</button>
         </div>
         {isEditing && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 4, marginBottom: 2, marginLeft: 36 }}>
@@ -365,7 +365,7 @@ export default function DailyCalendar({
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: `1px solid ${T.brd}`, display: "flex", alignItems: "center", gap: 12, background: T.card }}>
-          <button type="button" aria-label={t("common.close")} onClick={() => setDateDetailModal(null)} style={closeDailyFs}>\u00D7</button>
+          <button type="button" aria-label={t("common.close")} onClick={() => setDateDetailModal(null)} style={closeDailyFs}>×</button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div id="analysis-daily-detail-title" style={{ fontSize: isPC ? 17 : 16, fontWeight: 800, color: T.text, letterSpacing: "-0.02em" }}>{formatDate(detailDate)}</div>
           </div>

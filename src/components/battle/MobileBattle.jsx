@@ -76,7 +76,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
           {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
           <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
           <button onClick={() => setEditingStageIdx(isEditing ? null : matchIdx)} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "\u2713" : "\uD83D\uDDFA"}</button>
-          <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>\u00d7</button>
+          <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
         </div>
         {isEditing && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 6, marginBottom: 2 }}>
