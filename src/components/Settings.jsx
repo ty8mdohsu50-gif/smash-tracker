@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { X, ChevronDown, ChevronUp } from "lucide-react";
+import { X, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 import { csvDownload } from "../utils/storage";
 import { THEME_KEYS, getThemeLabel } from "../styles/theme";
 import { useI18n } from "../i18n/index.jsx";
+import BroadcastHelpModal from "./shared/BroadcastHelpModal";
 
 const SWATCH_COLORS = {
   purple: "#7C3AED",
@@ -22,6 +23,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showBroadcastHelp, setShowBroadcastHelp] = useState(false);
   const [dayBoundary, setDayBoundary] = useState(
     () => localStorage.getItem("smash-day-boundary") || "5",
   );
@@ -47,6 +49,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
   };
 
   return (
+    <>
     <div
       onClick={handleClose}
       style={{
@@ -445,8 +448,23 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
 
               {/* OBS Overlay URL */}
               <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: T.sub, marginBottom: 6 }}>
-                  {lang === "ja" ? "OBS オーバーレイURL" : "OBS Overlay URL"}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: T.sub }}>
+                    {lang === "ja" ? "OBS オーバーレイURL" : "OBS Overlay URL"}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowBroadcastHelp(true)}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 4,
+                      padding: "4px 8px", borderRadius: 6,
+                      border: `1px solid ${T.brd}`, background: "transparent",
+                      color: T.accent, fontSize: 11, fontWeight: 600, cursor: "pointer",
+                    }}
+                  >
+                    <HelpCircle size={12} />
+                    {t("broadcast.help.openBtn")}
+                  </button>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <input
@@ -532,5 +550,9 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
         </div>
       </div>
     </div>
+    {showBroadcastHelp && (
+      <BroadcastHelpModal onClose={() => setShowBroadcastHelp(false)} T={T} />
+    )}
+    </>
   );
 }
