@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { getShareLinks } from "../../utils/share";
 import { useI18n } from "../../i18n/index.jsx";
 import { Z_SHARE_POPUP } from "../../constants/zIndex";
@@ -36,7 +36,13 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const imageUrl = useMemo(() => imageBlob ? URL.createObjectURL(imageBlob) : null, [imageBlob]);
+  const [imageUrl, setImageUrl] = useState(null);
+  useEffect(() => {
+    if (!imageBlob) { setImageUrl(null); return; }
+    const url = URL.createObjectURL(imageBlob);
+    setImageUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageBlob]);
 
   const btnBase = {
     width: "100%", padding: "14px 18px", borderRadius: 12,

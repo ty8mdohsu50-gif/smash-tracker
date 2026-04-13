@@ -67,7 +67,7 @@ export default function DailyCalendar({
   const monthTotal = monthW + monthL;
   const monthR = monthTotal ? monthW / monthTotal : 0;
 
-  const dotColor = (r) => r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A";
+  const dotColor = (r) => r >= 0.6 ? T.win : r <= 0.4 ? T.lose : T.mid;
 
   const calTight = pcOverallRightColumn && isPC;
   const calendarGrid = (

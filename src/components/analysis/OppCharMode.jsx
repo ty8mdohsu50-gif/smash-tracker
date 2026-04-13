@@ -162,7 +162,7 @@ export default function OppCharMode({
                               <div style={{ fontSize: 9, color: T.dim }}>{w}W {l}L</div>
                             </>
                           ) : (
-                            <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>\u2014</div>
+                            <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>—</div>
                           )}
                         </div>
                       );

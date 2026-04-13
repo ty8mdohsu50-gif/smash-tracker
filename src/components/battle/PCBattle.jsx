@@ -94,7 +94,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
         {pastMemos.length > 0 ? (
           <div style={{ maxHeight: 200, overflowY: "auto" }}>
             {pastMemos.slice(0, 20).map((m, i, arr) => (
-              <div key={i} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
+              <div key={`${m.date}-${m.time}-${i}`} style={{ fontSize: 12, color: T.sub, lineHeight: 1.5, padding: "6px 0", borderBottom: i < arr.length - 1 ? `1px solid ${T.inp}` : "none" }}>
                 <span style={{ color: m.result === "win" ? T.win : T.lose, fontWeight: 800, fontSize: 10, marginRight: 6 }}>{m.result === "win" ? "W" : "L"}</span>
                 <span style={{ color: T.dim, fontSize: 10 }}>{formatDateShort(m.date)}</span>
                 <div style={{ marginTop: 4, whiteSpace: "pre-wrap" }}>{m.memo}</div>
@@ -213,10 +213,10 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
       <div>
         <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
           {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
-          {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? "#FF9F0A" : T.lose) : T.dim)}
+          {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? T.mid : T.lose) : T.dim)}
           {statCard(t("battle.matches"), `${tM.length}${t("battle.matches")}`)}
           {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
-          {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
+          {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : T.mid)}
         </div>
         <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -261,10 +261,10 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
     <div>
       <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
         {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
-        {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? "#FF9F0A" : T.lose) : T.dim)}
+        {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? T.mid : T.lose) : T.dim)}
         {statCard(t("battle.matches"), `${tM.length}${t("battle.matches")}`)}
         {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
-        {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : "#FF9F0A")}
+        {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : T.mid)}
       </div>
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -327,8 +327,8 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
 
               {!result && (
                 <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-                  <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(34,197,94,.3)" }}>{t("battle.win")}<KeyHint keyLabel="W" T={T} /></button>
-                  <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 4px 12px rgba(244,63,94,.3)" }}>{t("battle.lose")}<KeyHint keyLabel="L" T={T} /></button>
+                  <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: T.winGrad, color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: T.winGlow }}>{t("battle.win")}<KeyHint keyLabel="W" T={T} /></button>
+                  <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: T.loseGrad, color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: T.loseGlow }}>{t("battle.lose")}<KeyHint keyLabel="L" T={T} /></button>
                 </div>
               )}
 
@@ -473,13 +473,13 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                       <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{t("battle.power")}</span>
                       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayStart)}</span>
-                        {dayEnd && (<><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{"\u2192"}</span><span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayEnd)}</span>{pDelta !== null && <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? "#4ade80" : "#f87171", marginLeft: 4 }}>({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})</span>}</>)}
+                        {dayEnd && (<><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{"\u2192"}</span><span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayEnd)}</span>{pDelta !== null && <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? T.winBright : T.loseBright, marginLeft: 4 }}>({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})</span>}</>)}
                       </div>
                     </div>
                   )}
                   {streak.count >= 2 && (
                     <div style={{ marginTop: 12, background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
-                      <Zap size={16} color={streak.type === "win" ? "#4ade80" : "#f87171"} fill={streak.type === "win" ? "#4ade80" : "#f87171"} />
+                      <Zap size={16} color={streak.type === "win" ? T.winBright : T.loseBright} fill={streak.type === "win" ? T.winBright : T.loseBright} />
                       <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{streak.count}{streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose")}</span>
                     </div>
                   )}

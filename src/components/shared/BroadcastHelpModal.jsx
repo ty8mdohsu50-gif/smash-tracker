@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useI18n } from "../../i18n/index.jsx";
+import { Z_APP_MODAL_NESTED } from "../../constants/zIndex";
+import CloseButton from "./CloseButton";
 
 export default function BroadcastHelpModal({ onClose, T }) {
   const { t } = useI18n();
@@ -59,12 +61,15 @@ export default function BroadcastHelpModal({ onClose, T }) {
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 210,
+        position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: Z_APP_MODAL_NESTED,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn .15s ease",
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="broadcast-help-modal-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.card, borderRadius: 16, width: "100%", maxWidth: 560,
@@ -79,19 +84,10 @@ export default function BroadcastHelpModal({ onClose, T }) {
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>
+          <div id="broadcast-help-modal-title" style={{ fontSize: 16, fontWeight: 800, color: T.text }}>
             {t("broadcast.help.title")}
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              border: "none", background: T.inp, borderRadius: 8,
-              width: 32, height: 32, display: "flex", alignItems: "center",
-              justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18,
-            }}
-          >
-            x
-          </button>
+          <CloseButton onClick={onClose} T={T} ariaLabel={t("common.close")} />
         </div>
 
         <div style={{ padding: "18px 22px 24px", overflowY: "auto", flex: 1 }}>

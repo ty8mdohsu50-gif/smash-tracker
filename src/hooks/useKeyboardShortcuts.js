@@ -106,6 +106,10 @@ export function useKeyboardShortcuts({
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isPC, isActive, phase, result, oppChar, myChar, pStart, recOpp,
+    // Dependencies intentionally limited: `actions` is read through
+    // actionsRef (always fresh), and the rest are values the handler
+    // branches on. Adding every watched state variable would cause
+    // redundant listener resubscription on each battle update.
+  }, [isPC, isActive, phase, result, oppChar, recOpp,
       showMyPicker, showOppPicker, sharePopupText, confirmAction]);
 }

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useI18n } from "../i18n/index.jsx";
 import { TERMS_JA, TERMS_EN, PRIVACY_JA, PRIVACY_EN } from "../legal/legalDocs";
+import { Z_APP_MODAL } from "../constants/zIndex";
+import CloseButton from "./shared/CloseButton";
 
 function SectionBlock({ title, content, T }) {
   return (
@@ -62,7 +64,7 @@ export default function LegalPage({ T, onClose, page }) {
         right: 0,
         bottom: 0,
         background: "rgba(0,0,0,.7)",
-        zIndex: 200,
+        zIndex: Z_APP_MODAL,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -71,6 +73,9 @@ export default function LegalPage({ T, onClose, page }) {
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="legal-modal-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.card,
@@ -101,6 +106,7 @@ export default function LegalPage({ T, onClose, page }) {
           >
             <div>
               <div
+                id="legal-modal-title"
                 style={{
                   fontSize: 18,
                   fontWeight: 800,
@@ -119,28 +125,7 @@ export default function LegalPage({ T, onClose, page }) {
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                border: `1px solid ${T.brd}`,
-                background: T.inp,
-                color: T.sub,
-                fontSize: 18,
-                lineHeight: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                marginLeft: 12,
-              }}
-              aria-label={t("legal.close")}
-            >
-              ×
-            </button>
+            <CloseButton onClick={onClose} T={T} ariaLabel={t("legal.close")} size="sm" style={{ marginLeft: 12 }} />
           </div>
         </div>
 

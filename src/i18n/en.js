@@ -3,6 +3,8 @@ export default {
     tabs: { battle: "Battle", history: "History", analysis: "Analysis" },
     settings: "Settings",
     shortcuts: "Shortcuts",
+    shortcutsTitle: "Keyboard Shortcuts",
+    shortcutsFooterNote: "Disabled during text input or with Ctrl/Cmd/Alt",
   },
   broadcast: {
     toggle: "Live",
@@ -242,6 +244,9 @@ export default {
     next: "Next",
     deleteConfirm: "Delete",
     account: "Account",
+    obsOverlayUrl: "OBS Overlay URL",
+    obsOverlayHint: "Paste this URL into OBS Browser Source",
+    copy: "Copy",
     logout: "Log Out",
     loginPrompt: "Log in to save your data to the cloud and access it from any device",
     loginButton: "Log In / Create Account",

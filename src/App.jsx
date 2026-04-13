@@ -17,6 +17,11 @@ import { useAuth } from "./hooks/useAuth";
 import { useCloudSync } from "./hooks/useCloudSync";
 import { useThemeEffect } from "./hooks/useThemeEffect";
 import { useNavigation } from "./hooks/useNavigation";
+import {
+  Z_ONBOARDING,
+  Z_MOBILE_STICKY_HEADER,
+  Z_PC_STICKY_HEADER,
+} from "./constants/zIndex";
 
 const TAB_ICONS = [Swords, BarChart3];
 
@@ -107,7 +112,7 @@ export default function App() {
   );
 
   const onboardModal = showOnboard && (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", padding: 20 }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: Z_ONBOARDING, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", padding: 20 }}>
       <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 380, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
         <div style={{ background: T.accent, padding: "28px 24px 22px", textAlign: "center" }}>
           <div style={{ fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: 2, fontFamily: "'Chakra Petch', sans-serif" }}>SMASH TRACKER</div>
@@ -156,7 +161,7 @@ export default function App() {
             paddingTop: "env(safe-area-inset-top, 8px)",
             position: "sticky",
             top: 0,
-            zIndex: 50,
+            zIndex: Z_MOBILE_STICKY_HEADER,
             borderBottom: `1px solid ${T.brd}`,
           }}
         >
@@ -397,7 +402,7 @@ export default function App() {
             justifyContent: "space-between",
             position: "sticky",
             top: 0,
-            zIndex: 10,
+            zIndex: Z_PC_STICKY_HEADER,
           }}
         >
           <div style={{ fontSize: 22, fontWeight: 800, color: T.text, display: "flex", alignItems: "center", gap: 12 }}>

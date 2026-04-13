@@ -37,8 +37,8 @@ export function renderBar(r, T) {
 
 export function renderLabel(r, T, t) {
   const label = r >= 0.6 ? t("analysis.winning") : r >= 0.4 ? t("analysis.even") : t("analysis.losing");
-  const bg = r >= 0.6 ? T.winBg : r >= 0.4 ? "rgba(255,159,10,.15)" : T.loseBg;
-  const color = r >= 0.6 ? T.win : r >= 0.4 ? "#a16207" : T.lose;
+  const bg = r >= 0.6 ? T.winBg : r >= 0.4 ? T.midBg : T.loseBg;
+  const color = r >= 0.6 ? T.win : r >= 0.4 ? T.mid : T.lose;
   return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: bg, color }}>{label}</span>;
 }
 
@@ -53,7 +53,7 @@ export function charRow({ s, onClick, showReviewBadge, data, T, lang, t, isPC })
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <span style={{ fontSize: 15, fontWeight: 700, color: T.text, display: "flex", alignItems: "center", gap: 8 }}>
           <FighterIcon name={s.c} size={28} />{fighterName(s.c, lang)}
-          {review && <span style={{ fontSize: 9, fontWeight: 700, color: "#FF9F0A", background: "#FF9F0A18", padding: "2px 6px", borderRadius: 6 }}>{t("matchupNotes.reviewNeeded")}</span>}
+          {review && <span style={{ fontSize: 9, fontWeight: 700, color: T.mid, background: T.midBg, padding: "2px 6px", borderRadius: 6 }}>{t("matchupNotes.reviewNeeded")}</span>}
         </span>
         <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
           <span style={{ fontSize: 11, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</span>
@@ -73,7 +73,7 @@ export function matchupCell({ s, parentChar, popupOverride, setOppDetail, setOpp
   const r = s.t ? s.w / s.t : 0;
   const fought = s.t > 0;
   const iconSize = isPC ? 36 : 28;
-  const bgColor = !fought ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
+  const bgColor = !fought ? "transparent" : r >= 0.6 ? T.winBg : r <= 0.4 ? T.loseBg : T.midBg;
   const handleClick = () => {
     if (popupOverride?.isOppMode) {
       setOppDetail(s.c); setOppSubTab("myChars"); setExpandedItem(null); setDateDetailModal(null);

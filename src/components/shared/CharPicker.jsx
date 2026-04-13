@@ -3,6 +3,7 @@ import { FIGHTERS, getSearchText, fighterName } from "../../constants/fighters";
 import { useI18n } from "../../i18n/index.jsx";
 import { normalizeCharSearchInput } from "../../utils/format";
 import FighterIcon from "./FighterIcon";
+import { Z_CHARPICKER } from "../../constants/zIndex";
 
 export default function CharPicker({
   value,
@@ -97,7 +98,7 @@ export default function CharPicker({
             top: "100%",
             left: 0,
             right: 0,
-            zIndex: 100,
+            zIndex: Z_CHARPICKER,
             background: T.card,
             border: `2px solid ${T.dimmer}`,
             borderRadius: 14,

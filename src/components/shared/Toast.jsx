@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Z_TOAST } from "../../constants/zIndex";
 
 export default function Toast({ message, type = "success", onDone }) {
   const [visible, setVisible] = useState(true);
@@ -20,7 +21,7 @@ export default function Toast({ message, type = "success", onDone }) {
         top: 24,
         left: "50%",
         transform: `translateX(-50%) translateY(${visible ? 0 : -20}px)`,
-        zIndex: 9999,
+        zIndex: Z_TOAST,
         background: bg,
         color: "#fff",
         padding: "10px 24px",

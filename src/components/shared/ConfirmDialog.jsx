@@ -1,15 +1,19 @@
+import { Z_CONFIRM_DIALOG } from "../../constants/zIndex";
+
 export default function ConfirmDialog({ message, onConfirm, onCancel, T, confirmLabel, cancelLabel }) {
   return (
     <div
       onClick={onCancel}
       style={{
         position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0,0,0,.5)", zIndex: 400,
+        background: "rgba(0,0,0,.5)", zIndex: Z_CONFIRM_DIALOG,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn .15s ease",
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.card, borderRadius: 20, padding: "28px 24px",
@@ -37,7 +41,7 @@ export default function ConfirmDialog({ message, onConfirm, onCancel, T, confirm
             onClick={onConfirm}
             style={{
               flex: 1, padding: "12px 0", borderRadius: 12,
-              border: "none", background: "linear-gradient(135deg, #F87171, #EF4444)",
+              border: "none", background: T.loseGrad,
               color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
             }}
           >

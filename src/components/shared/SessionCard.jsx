@@ -73,9 +73,9 @@ const SessionCard = forwardRef(function SessionCard(
         {/* W-L */}
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 64, fontWeight: 900, lineHeight: 1 }}>
-            <span style={{ color: "#22C55E" }}>{tW}</span>
+            <span style={{ color: T.winBright }}>{tW}</span>
             <span style={{ fontSize: 32, opacity: 0.5, margin: "0 8px" }}>:</span>
-            <span style={{ color: "#F43F5E" }}>{tL}</span>
+            <span style={{ color: T.loseBright }}>{tL}</span>
           </div>
           <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>
             {total} {lang === "ja" ? "戦" : "games"}
@@ -95,7 +95,7 @@ const SessionCard = forwardRef(function SessionCard(
         {/* Power delta */}
         {pwrDelta !== null && (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 36, fontWeight: 900, color: pwrDelta >= 0 ? "#22C55E" : "#F43F5E", lineHeight: 1 }}>
+            <div style={{ fontSize: 36, fontWeight: 900, color: pwrDelta >= 0 ? T.winBright : T.loseBright, lineHeight: 1 }}>
               {pwrDelta >= 0 ? "+" : ""}{numFormat(pwrDelta)}
             </div>
             <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>
@@ -107,7 +107,7 @@ const SessionCard = forwardRef(function SessionCard(
         {/* Streak */}
         {streak && streak.count >= 2 && (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 36, fontWeight: 900, color: streak.type === "win" ? "#22C55E" : "#F43F5E", lineHeight: 1 }}>
+            <div style={{ fontSize: 36, fontWeight: 900, color: streak.type === "win" ? T.winBright : T.loseBright, lineHeight: 1 }}>
               {streak.count}
             </div>
             <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>

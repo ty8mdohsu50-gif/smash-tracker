@@ -55,7 +55,7 @@ export default function OpponentList({
                     {total > 0 ? (
                       <div style={{ fontSize: 12, color: T.sub, marginTop: 2 }}>
                         <span style={{ color: T.win, fontWeight: 700 }}>{w}{t("free.winLabel")}</span>{" : "}<span style={{ color: T.lose, fontWeight: 700 }}>{l}{t("free.loseLabel")}</span>{"  "}
-                        <span style={{ color: rate >= 60 ? T.win : rate >= 40 ? "#FF9F0A" : T.lose, fontWeight: 700 }}>{rate}%</span>
+                        <span style={{ color: rate >= 60 ? T.win : rate >= 40 ? T.mid : T.lose, fontWeight: 700 }}>{rate}%</span>
                       </div>
                     ) : <div style={{ fontSize: 12, color: T.dim, marginTop: 2 }}>—</div>}
                   </div>

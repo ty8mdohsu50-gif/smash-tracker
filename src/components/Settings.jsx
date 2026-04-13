@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { X, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 import { csvDownload } from "../utils/storage";
 import { THEME_KEYS, getThemeLabel } from "../styles/theme";
 import { useI18n } from "../i18n/index.jsx";
 import BroadcastHelpModal from "./shared/BroadcastHelpModal";
+import CloseButton from "./shared/CloseButton";
+import { Z_APP_MODAL } from "../constants/zIndex";
 
 const SWATCH_COLORS = {
   purple: "#7C3AED",
@@ -59,7 +61,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
         right: 0,
         bottom: 0,
         background: "rgba(0,0,0,.7)",
-        zIndex: 200,
+        zIndex: Z_APP_MODAL,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -93,17 +95,8 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{t("settings.title")}</div>
-          <button
-            onClick={handleClose}
-            style={{
-              width: 36, height: 36, borderRadius: 10,
-              border: `1px solid ${T.brd}`, background: T.inp,
-              color: T.sub, display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            <X size={18} />
-          </button>
+          <div id="settings-modal-title" style={{ fontSize: 18, fontWeight: 800, color: T.text }}>{t("settings.title")}</div>
+          <CloseButton onClick={handleClose} T={T} ariaLabel={t("common.close")} />
         </div>
 
         {/* Scrollable content */}
@@ -450,7 +443,7 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
               <div style={{ marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: T.sub }}>
-                    {lang === "ja" ? "OBS オーバーレイURL" : "OBS Overlay URL"}
+                    {t("settings.obsOverlayUrl")}
                   </div>
                   <button
                     type="button"
@@ -488,13 +481,11 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
                       cursor: "pointer", flexShrink: 0,
                     }}
                   >
-                    {lang === "ja" ? "コピー" : "Copy"}
+                    {t("settings.copy")}
                   </button>
                 </div>
                 <div style={{ fontSize: 10, color: T.dimmer, marginTop: 4 }}>
-                  {lang === "ja"
-                    ? "OBSの「ブラウザソース」にこのURLを貼り付けてください"
-                    : "Paste this URL into OBS Browser Source"}
+                  {t("settings.obsOverlayHint")}
                 </div>
               </div>
 

@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useI18n } from "../../i18n/index.jsx";
+import { Z_APP_MODAL } from "../../constants/zIndex";
+import CloseButton from "./CloseButton";
 
 const SECTIONS = (t, lang) => {
   const ja = lang === "ja";
@@ -89,12 +91,15 @@ export default function ShortcutsModal({ onClose, T }) {
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 200,
+        position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: Z_APP_MODAL,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn .15s ease",
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shortcuts-modal-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.card, borderRadius: 16, width: "100%", maxWidth: 520,
@@ -103,10 +108,10 @@ export default function ShortcutsModal({ onClose, T }) {
         }}
       >
         <div style={{ padding: "18px 22px 14px", borderBottom: `1px solid ${T.brd}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>
-            {lang === "ja" ? "キーボードショートカット" : "Keyboard Shortcuts"}
+          <div id="shortcuts-modal-title" style={{ fontSize: 16, fontWeight: 800, color: T.text }}>
+            {t("app.shortcutsTitle")}
           </div>
-          <button onClick={onClose} style={{ border: "none", background: T.inp, borderRadius: 8, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: T.sub, fontSize: 18 }}>x</button>
+          <CloseButton onClick={onClose} T={T} ariaLabel={t("common.close")} />
         </div>
 
         <div style={{ padding: "16px 22px 24px", overflowY: "auto", flex: 1 }}>
@@ -122,9 +127,7 @@ export default function ShortcutsModal({ onClose, T }) {
             </div>
           ))}
           <div style={{ fontSize: 11, color: T.dimmer, marginTop: 8 }}>
-            {lang === "ja"
-              ? "テキスト入力中・Ctrl/Cmd/Alt押下時は無効です"
-              : "Disabled during text input or with Ctrl/Cmd/Alt"}
+            {t("app.shortcutsFooterNote")}
           </div>
         </div>
       </div>

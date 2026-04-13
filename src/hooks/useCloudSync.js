@@ -46,7 +46,10 @@ export function useCloudSync(user) {
     save(d);
 
     if (userRef.current) {
-      cloudSave(userRef.current.id, d);
+      cloudSave(userRef.current.id, d).catch(() => {
+        // Network or Supabase failure — local save already persisted,
+        // next saveData call will retry naturally.
+      });
     }
   }, []);
 

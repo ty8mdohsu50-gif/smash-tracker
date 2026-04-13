@@ -5,8 +5,8 @@ import { percentStr, numFormat } from "../../utils/format";
 
 export default function BroadcastBar({ myChar, tW, tL, winRate, streak, pwrDelta, T, isPC, lang }) {
   const total = tW + tL;
-  const winColor = "#22C55E";
-  const loseColor = "#F43F5E";
+  const winColor = T.winBright;
+  const loseColor = T.loseBright;
 
   return (
     <div style={{

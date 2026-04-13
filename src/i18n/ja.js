@@ -3,6 +3,8 @@ export default {
     tabs: { battle: "対戦", history: "履歴", analysis: "分析" },
     settings: "設定",
     shortcuts: "ショートカット",
+    shortcutsTitle: "キーボードショートカット",
+    shortcutsFooterNote: "テキスト入力中・Ctrl/Cmd/Alt押下時は無効です",
   },
   broadcast: {
     toggle: "配信",
@@ -242,6 +244,9 @@ export default {
     next: "次へ",
     deleteConfirm: "削除する",
     account: "アカウント",
+    obsOverlayUrl: "OBS オーバーレイURL",
+    obsOverlayHint: "OBSの「ブラウザソース」にこのURLを貼り付けてください",
+    copy: "コピー",
     logout: "ログアウト",
     loginPrompt: "ログインするとデータがクラウドに保存され、他の端末でも利用できます",
     loginButton: "ログイン / アカウント作成",

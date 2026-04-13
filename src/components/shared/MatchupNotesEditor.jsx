@@ -163,7 +163,7 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
                   )}
                   <div style={{ padding: "3px 4px", textAlign: "center", background: T.inp }}>
                     <div style={{ fontSize: 9, fontWeight: 600, color: T.text, lineHeight: 1.2 }}>{stageName(st.id, lang)}</div>
-                    {stats && <div style={{ fontSize: 8, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A" }}>{Math.round(r * 100)}% ({stats.w}W{stats.l}L)</div>}
+                    {stats && <div style={{ fontSize: 8, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : T.mid }}>{Math.round(r * 100)}% ({stats.w}W{stats.l}L)</div>}
                   </div>
                 </div>
               );
@@ -296,7 +296,7 @@ export function BattleNotes({ noteKey, data, T, onSave, sections }) {
                 )}
                 <div style={{ padding: "2px 3px", textAlign: "center", background: T.inp }}>
                   <div style={{ fontSize: 8, fontWeight: 600, color: T.text, lineHeight: 1.2 }}>{stageName(st.id, lang)}</div>
-                  {stats && <div style={{ fontSize: 7, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : "#FF9F0A" }}>{Math.round(r * 100)}%</div>}
+                  {stats && <div style={{ fontSize: 7, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : T.mid }}>{Math.round(r * 100)}%</div>}
                 </div>
               </div>
             );

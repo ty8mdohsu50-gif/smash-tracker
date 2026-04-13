@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Share2 } from "lucide-react";
 import SharePopup from "./shared/SharePopup";
 import { useI18n } from "../i18n/index.jsx";
+import { Z_APP_MODAL } from "../constants/zIndex";
+import CloseButton from "./shared/CloseButton";
 
 export default function AboutPage({ T, onClose, onOpenLegal }) {
   const { t } = useI18n();
@@ -49,12 +51,15 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
       onClick={onClose}
       style={{
         position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0,0,0,.7)", zIndex: 200,
+        background: "rgba(0,0,0,.7)", zIndex: Z_APP_MODAL,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "20px 16px", animation: "fadeIn .15s ease",
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="about-modal-title"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.card, borderRadius: 16, width: "100%", maxWidth: 640,
@@ -69,20 +74,11 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <img src="/icon.png" alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "contain" }} />
               <div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: T.text }}>SMASH TRACKER</div>
+                <div id="about-modal-title" style={{ fontSize: 18, fontWeight: 800, color: T.text }}>SMASH TRACKER</div>
                 <div style={{ fontSize: 11, color: T.dim }}>v1.2.0</div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              style={{
-                width: 32, height: 32, borderRadius: 8, border: `1px solid ${T.brd}`,
-                background: T.inp, color: T.sub, fontSize: 18, lineHeight: 1,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              x
-            </button>
+            <CloseButton onClick={onClose} T={T} ariaLabel={t("common.close")} size="sm" />
           </div>
         </div>
 

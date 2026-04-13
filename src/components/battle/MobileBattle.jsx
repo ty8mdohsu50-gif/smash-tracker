@@ -358,8 +358,8 @@ export default function MobileBattle({ state, data, onSave, T }) {
           {!result && (
             <div style={{ marginTop: 14 }}>
               <div style={{ display: "flex", gap: 12 }}>
-                <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: "0 4px 16px rgba(34,197,94,.3)" }}>{t("battle.win")}</button>
-                <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: "linear-gradient(135deg, #E11D48, #F43F5E)", color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: "0 4px 16px rgba(244,63,94,.3)" }}>{t("battle.lose")}</button>
+                <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: T.winGrad, color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: T.winGlow }}>{t("battle.win")}</button>
+                <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: T.loseGrad, color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: T.loseGlow }}>{t("battle.lose")}</button>
               </div>
             </div>
           )}
@@ -524,13 +524,13 @@ export default function MobileBattle({ state, data, onSave, T }) {
                   <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayStart)}</span>
                     {dayEnd && (<><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{"\u2192"}</span><span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{numFormat(dayEnd)}</span>
-                      {pDelta !== null && <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? "#4ade80" : "#f87171", marginLeft: 4 }}>({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})</span>}</>)}
+                      {pDelta !== null && <span style={{ fontSize: 13, fontWeight: 800, color: pDelta >= 0 ? T.winBright : T.loseBright, marginLeft: 4 }}>({pDelta >= 0 ? "+" : ""}{numFormat(pDelta)})</span>}</>)}
                   </div>
                 </div>
               )}
               {streak.count >= 2 && (
                 <div style={{ marginTop: 12, background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <Zap size={16} color={streak.type === "win" ? "#4ade80" : "#f87171"} fill={streak.type === "win" ? "#4ade80" : "#f87171"} />
+                  <Zap size={16} color={streak.type === "win" ? T.winBright : T.loseBright} fill={streak.type === "win" ? T.winBright : T.loseBright} />
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{streak.count}{streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose")}</span>
                 </div>
               )}
