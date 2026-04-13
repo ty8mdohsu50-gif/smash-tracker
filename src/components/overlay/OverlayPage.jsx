@@ -1,157 +1,99 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { Zap } from "lucide-react";
-import FighterIcon from "../shared/FighterIcon";
-import { fighterName } from "../../constants/fighters";
-import { load, cloudLoad } from "../../utils/storage";
+import { useEffect } from "react";
 import { useI18n } from "../../i18n/index.jsx";
-import {
-  today,
-  percentStr,
-  getStreak,
-  numFormat,
-} from "../../utils/format";
+import { useOverlayData } from "../../hooks/useOverlayData";
+import { OVERLAY_ANIMATIONS, positionStyle, OVERLAY_FONT } from "./overlayStyles";
+import PillOverlay from "./layouts/PillOverlay";
+import CardOverlay from "./layouts/CardOverlay";
+import BarOverlay from "./layouts/BarOverlay";
+import { fighterName } from "../../constants/fighters";
 
 export default function OverlayPage() {
   const { lang } = useI18n();
-  const [data, setData] = useState(() => load());
+  const data = useOverlayData();
+  const { params, myChar, total, hasData } = data;
 
-  const params = useMemo(() => new URLSearchParams(window.location.search), []);
-  const userId = params.get("user");
-  const layout = params.get("layout") || "horizontal";
-  const accent = params.get("color") || "#8B5CF6";
-
-  const fetchData = useCallback(async () => {
-    if (userId) {
-      const cloud = await cloudLoad(userId);
-      if (cloud) setData(cloud);
-    } else {
-      setData(load());
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, userId ? 5000 : 3000);
-    return () => clearInterval(interval);
-  }, [fetchData, userId]);
-
+  // Ensure the root is always transparent for OBS browser source compositing.
   useEffect(() => {
     document.body.style.background = "transparent";
-    document.getElementById("root").style.background = "transparent";
+    document.body.style.margin = "0";
+    const root = document.getElementById("root");
+    if (root) {
+      root.style.background = "transparent";
+    }
   }, []);
 
-  const myChar = data.settings?.myChar || "";
-  const tM = useMemo(
-    () => (data.matches || []).filter((m) => m.date === today()),
-    [data],
-  );
-  const tW = tM.filter((m) => m.result === "win").length;
-  const tL = tM.length - tW;
-  const streak = useMemo(() => getStreak(data.matches || []), [data]);
-  const todayDaily = data.daily?.[today()] || {};
-  const charPower = todayDaily.chars?.[myChar] || {};
-  const dayStart = charPower.start || todayDaily.start || null;
-  const dayEnd = charPower.end || todayDaily.end || null;
-  const pwrDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
+  // Inject keyframes once — they aren't in index.css so the overlay
+  // route stays self-contained.
+  useEffect(() => {
+    const id = "overlay-keyframes";
+    if (document.getElementById(id)) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = OVERLAY_ANIMATIONS;
+    document.head.appendChild(style);
+    return () => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    };
+  }, []);
 
-  const winColor = "#22C55E";
-  const loseColor = "#F43F5E";
+  const wrapperStyle = positionStyle(params.position);
 
-  if (!myChar || tM.length === 0) {
+  // Waiting state — no match today yet.
+  if (!hasData) {
+    const waitingLabel = lang === "ja" ? "待機中..." : "Waiting...";
+    const title = myChar ? fighterName(myChar, lang) : "SMASH TRACKER";
     return (
-      <div style={{
-        fontFamily: "'Chakra Petch', sans-serif",
-        color: "#fff",
-        fontSize: 14,
-        padding: 12,
-        background: "rgba(0,0,0,0.6)",
-        borderRadius: 12,
-        display: "inline-block",
-      }}>
-        {myChar ? fighterName(myChar, lang) : "SMASH TRACKER"} - {lang === "ja" ? "待機中..." : "Waiting..."}
+      <div style={wrapperStyle}>
+        <div
+          style={{
+            fontFamily: OVERLAY_FONT,
+            color: "#fff",
+            fontSize: 13,
+            padding: "10px 16px",
+            background: "rgba(12,12,24,0.65)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            borderRadius: 12,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            border: `1px solid ${params.accent}33`,
+            animation: "overlayFadeIn 0.3s ease",
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: params.accent,
+              animation: "overlayLivePulse 2s infinite",
+            }}
+          />
+          <span style={{ fontWeight: 700 }}>{title}</span>
+          <span style={{ opacity: 0.6 }}>·</span>
+          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{waitingLabel}</span>
+        </div>
       </div>
     );
   }
 
-  if (layout === "vertical") {
-    return (
-      <div style={{
-        fontFamily: "'Chakra Petch', sans-serif",
-        color: "#fff",
-        background: "rgba(0,0,0,0.7)",
-        borderRadius: 16,
-        padding: "16px 20px",
-        display: "inline-flex",
-        flexDirection: "column",
-        gap: 8,
-        alignItems: "center",
-        backdropFilter: "blur(8px)",
-        border: `1px solid ${accent}44`,
-        minWidth: 140,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <FighterIcon name={myChar} size={28} />
-          <span style={{ fontSize: 14, fontWeight: 700 }}>{fighterName(myChar, lang)}</span>
-        </div>
-        <div style={{ fontSize: 32, fontWeight: 900, letterSpacing: -1 }}>
-          <span style={{ color: winColor }}>{tW}</span>
-          <span style={{ opacity: 0.5, fontSize: 18, margin: "0 4px" }}>:</span>
-          <span style={{ color: loseColor }}>{tL}</span>
-        </div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: accent }}>
-          {percentStr(tW, tM.length)}
-        </div>
-        {streak.count >= 2 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <Zap size={14} fill={streak.type === "win" ? winColor : loseColor} color={streak.type === "win" ? winColor : loseColor} />
-            <span style={{ fontSize: 16, fontWeight: 800, color: streak.type === "win" ? winColor : loseColor }}>{streak.count}</span>
-          </div>
-        )}
-        {pwrDelta !== null && (
-          <div style={{ fontSize: 14, fontWeight: 700, color: pwrDelta >= 0 ? winColor : loseColor }}>
-            {pwrDelta >= 0 ? "+" : ""}{numFormat(pwrDelta)}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const Layout =
+    params.layout === "card" ? CardOverlay
+    : params.layout === "bar" ? BarOverlay
+    : PillOverlay;
 
+  // Bar layout naturally spans full width if position is top/bottom;
+  // otherwise it still sits in its corner wrapper.
   return (
-    <div style={{
-      fontFamily: "'Chakra Petch', sans-serif",
-      color: "#fff",
-      background: "rgba(0,0,0,0.7)",
-      borderRadius: 14,
-      padding: "10px 20px",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 16,
-      backdropFilter: "blur(8px)",
-      border: `1px solid ${accent}44`,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <FighterIcon name={myChar} size={28} />
-        <span style={{ fontSize: 14, fontWeight: 700 }}>{fighterName(myChar, lang)}</span>
-      </div>
-      <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: -1 }}>
-        <span style={{ color: winColor }}>{tW}</span>
-        <span style={{ opacity: 0.5, fontSize: 14, margin: "0 3px" }}>:</span>
-        <span style={{ color: loseColor }}>{tL}</span>
-      </div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: accent }}>
-        {percentStr(tW, tM.length)}
-      </div>
-      {streak.count >= 2 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Zap size={14} fill={streak.type === "win" ? winColor : loseColor} color={streak.type === "win" ? winColor : loseColor} />
-          <span style={{ fontSize: 18, fontWeight: 800, color: streak.type === "win" ? winColor : loseColor }}>{streak.count}</span>
-        </div>
-      )}
-      {pwrDelta !== null && (
-        <div style={{ fontSize: 15, fontWeight: 700, color: pwrDelta >= 0 ? winColor : loseColor }}>
-          {pwrDelta >= 0 ? "+" : ""}{numFormat(pwrDelta)}
-        </div>
-      )}
+    <div style={wrapperStyle}>
+      <Layout data={data} lang={lang} />
+      {/* Invisible tap-to-count element — helps OBS developers notice the
+          overlay is live even when stats are all zero. */}
+      <span style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>
+        {total}
+      </span>
     </div>
   );
 }

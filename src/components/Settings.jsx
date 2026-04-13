@@ -5,6 +5,7 @@ import { THEME_KEYS, getThemeLabel } from "../styles/theme";
 import { useI18n } from "../i18n/index.jsx";
 import BroadcastHelpModal from "./shared/BroadcastHelpModal";
 import CloseButton from "./shared/CloseButton";
+import OverlayBuilder from "./shared/OverlayBuilder";
 import { Z_APP_MODAL } from "../constants/zIndex";
 
 const SWATCH_COLORS = {
@@ -439,11 +440,11 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 8 }}>{t("settings.account")}</div>
               <div style={{ fontSize: 13, color: T.dim, marginBottom: 12, wordBreak: "break-all" }}>{user.email}</div>
 
-              {/* OBS Overlay URL */}
+              {/* Stream Overlay Builder */}
               <div style={{ marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: T.sub }}>
-                    {t("settings.obsOverlayUrl")}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
+                    {t("broadcast.builder.title")}
                   </div>
                   <button
                     type="button"
@@ -459,34 +460,10 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
                     {t("broadcast.help.openBtn")}
                   </button>
                 </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <input
-                    type="text"
-                    readOnly
-                    value={`${window.location.origin}/overlay?user=${user.id}`}
-                    style={{
-                      flex: 1, padding: "8px 10px", background: T.inp, border: `1px solid ${T.brd}`,
-                      borderRadius: 8, color: T.text, fontSize: 11, outline: "none", boxSizing: "border-box",
-                      fontFamily: "'Chakra Petch', monospace",
-                    }}
-                    onClick={(e) => e.target.select()}
-                  />
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/overlay?user=${user.id}`);
-                    }}
-                    style={{
-                      padding: "8px 14px", border: `1px solid ${T.brd}`, borderRadius: 8,
-                      background: T.card, color: T.accent, fontSize: 12, fontWeight: 600,
-                      cursor: "pointer", flexShrink: 0,
-                    }}
-                  >
-                    {t("settings.copy")}
-                  </button>
-                </div>
-                <div style={{ fontSize: 10, color: T.dimmer, marginTop: 4 }}>
+                <div style={{ fontSize: 10, color: T.dimmer, marginBottom: 10 }}>
                   {t("settings.obsOverlayHint")}
                 </div>
+                <OverlayBuilder T={T} user={user} initialAccent={T.accent} />
               </div>
 
               <button

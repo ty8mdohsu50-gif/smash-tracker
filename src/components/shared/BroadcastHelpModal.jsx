@@ -116,19 +116,46 @@ export default function BroadcastHelpModal({ onClose, T }) {
           </div>
 
           <div style={section}>
+            <div style={h2}>{t("broadcast.help.presetsTitle")}</div>
+            <ul style={{ margin: 0, paddingLeft: 18, color: T.sub, fontSize: 13, lineHeight: 1.7 }}>
+              <li>{t("broadcast.help.presetPill")}</li>
+              <li>{t("broadcast.help.presetCard")}</li>
+              <li>{t("broadcast.help.presetBar")}</li>
+            </ul>
+          </div>
+
+          <div style={section}>
             <div style={h2}>{t("broadcast.help.urlParamsTitle")}</div>
             <ul style={{ margin: 0, paddingLeft: 18, color: T.sub, fontSize: 13, lineHeight: 1.7 }}>
               <li>
-                <span style={codeChip}>layout=horizontal</span>
-                {" / "}
-                <span style={codeChip}>vertical</span>
+                <span style={codeChip}>layout=pill|card|bar</span>
                 {" — "}
                 {t("broadcast.help.urlParamLayout")}
               </li>
               <li>
-                <span style={codeChip}>color=HEX</span>
+                <span style={codeChip}>position=tl|tr|bl|br|top|bottom</span>
+                {" — "}
+                {t("broadcast.help.urlParamPosition")}
+              </li>
+              <li>
+                <span style={codeChip}>modules=fighter,score,rate,...</span>
+                {" — "}
+                {t("broadcast.help.urlParamModules")}
+              </li>
+              <li>
+                <span style={codeChip}>accent=HEX</span>
                 {" — "}
                 {t("broadcast.help.urlParamColor")}
+              </li>
+              <li>
+                <span style={codeChip}>bg=0-100</span>
+                {" — "}
+                {t("broadcast.help.urlParamBg")}
+              </li>
+              <li>
+                <span style={codeChip}>scale=0.6-1.8</span>
+                {" — "}
+                {t("broadcast.help.urlParamScale")}
               </li>
             </ul>
           </div>
