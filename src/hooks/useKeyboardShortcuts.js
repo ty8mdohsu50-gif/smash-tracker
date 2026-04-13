@@ -14,10 +14,20 @@ export function useKeyboardShortcuts({
     if (!isPC || !isActive) return;
 
     const onKey = (e) => {
+      // Guard: IME composition (Japanese input, etc.)
+      if (e.isComposing || e.keyCode === 229) return;
+
+      // Guard: auto-repeat (holding a key) — prevents accidental spam
+      if (e.repeat) return;
+
       // Guard: text input
       const tag = e.target.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (e.target.isContentEditable) return;
+
+      // Guard: focused button will already activate on Space/Enter —
+      // skip the shortcut so the button click isn't duplicated.
+      if (tag === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
 
       // Guard: browser shortcuts (Ctrl/Cmd/Alt)
       if (e.metaKey || e.ctrlKey || e.altKey) return;

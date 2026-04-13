@@ -21,7 +21,7 @@ const SECTIONS = (t, lang) => {
         { key: "0", desc: ja ? "相手キャラ変更" : "Change opponent" },
         { key: "9", desc: ja ? "自キャラ変更" : "Change my fighter" },
         { key: "S", desc: ja ? "ステージ選択へスクロール" : "Scroll to stages" },
-        { key: "⇧1-8", desc: ja ? "ステージ直接選択" : "Select stage directly" },
+        { key: "Shift + 1-8", desc: ja ? "ステージ直接選択" : "Select stage directly" },
         { key: "E", desc: ja ? "セッション終了" : "End session" },
       ],
     },
@@ -31,7 +31,7 @@ const SECTIONS = (t, lang) => {
         { key: "N", desc: ja ? "同じ相手で続行" : "Continue same opponent" },
         { key: "C", desc: ja ? "相手キャラ変更" : "Change opponent" },
         { key: "M", desc: ja ? "メモにフォーカス" : "Focus memo" },
-        { key: "⇧1-8", desc: ja ? "ステージ直接選択" : "Select stage directly" },
+        { key: "Shift + 1-8", desc: ja ? "ステージ直接選択" : "Select stage directly" },
         { key: "E", desc: ja ? "セッション終了" : "End session" },
       ],
     },
@@ -55,9 +55,14 @@ export default function ShortcutsModal({ onClose, T }) {
   const { t, lang } = useI18n();
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        e.stopImmediatePropagation();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
   const sections = SECTIONS(t, lang);

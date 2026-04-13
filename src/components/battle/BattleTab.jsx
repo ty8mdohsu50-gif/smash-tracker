@@ -8,7 +8,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { useI18n } from "../../i18n/index.jsx";
 import { Monitor } from "lucide-react";
 
-export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattleMode, tabIdx, showSettings, broadcastMode, setBroadcastMode }) {
+export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattleMode, tabIdx, modalsOpen, broadcastMode, setBroadcastMode }) {
   const { t } = useI18n();
 
   const mode = battleMode || "ranked";
@@ -19,7 +19,10 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const stageRef = useRef(null);
   const powerRef = useRef(null);
 
-  const isActive = tabIdx === 0 && !showSettings;
+  // Shortcuts fire only when: on the battle tab, no modal is open, and ranked mode.
+  // Free mode shares state.phase internally but its UI is different, so ranked shortcuts
+  // must never leak into the free flow.
+  const isActive = tabIdx === 0 && !modalsOpen && mode === "ranked";
 
   const actions = useCallback(() => ({
     selectRes: state.selectRes,

@@ -355,7 +355,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                         <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
                           {lang === "ja" ? s.jp : s.en}
                         </div>
-                        <KeyHint keyLabel={"\u21E7" + String(stageIdx + 1)} T={T} />
+                        <KeyHint keyLabel={"Shift+" + String(stageIdx + 1)} T={T} />
                       </button>
                     );
                   })}
@@ -414,7 +414,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                       <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
                         {lang === "ja" ? s.jp : s.en}
                       </div>
-                      <KeyHint keyLabel={"\u21E7" + String(stageIdx + 1)} T={T} />
+                      <KeyHint keyLabel={"Shift+" + String(stageIdx + 1)} T={T} />
                     </button>
                   );
                 })}
