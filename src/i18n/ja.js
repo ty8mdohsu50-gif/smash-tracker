@@ -8,6 +8,7 @@ export default {
     toggle: "配信",
     help: {
       openBtn: "使い方",
+      sidebarTitle: "配信機能について",
       title: "配信機能の使い方",
       intro: "OBS などの配信ソフトでスマトラの戦績を視聴者に見せるための機能です。用途に応じて2通りの方法が使えます。",
       method1Title: "方法1：オーバーレイURL（おすすめ）",

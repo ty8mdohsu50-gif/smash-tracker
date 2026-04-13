@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Swords, BarChart3, Settings as SettingsIcon, Keyboard } from "lucide-react";
+import { Swords, BarChart3, Settings as SettingsIcon, Keyboard, Radio } from "lucide-react";
 import { getTheme } from "./styles/theme";
 import { load } from "./utils/storage";
 import AuthPage from "./components/AuthPage";
@@ -7,6 +7,7 @@ import Settings from "./components/Settings";
 import LegalPage from "./components/LegalPage";
 import AboutPage from "./components/AboutPage";
 import ShortcutsModal from "./components/shared/ShortcutsModal";
+import BroadcastHelpModal from "./components/shared/BroadcastHelpModal";
 import BattleTab from "./components/battle/BattleTab";
 import AnalysisTab from "./components/analysis/AnalysisTab";
 import { useI18n } from "./i18n/index.jsx";
@@ -32,6 +33,7 @@ export default function App() {
   const [aboutPage, setAboutPage] = useState(false);
   const [broadcastMode, setBroadcastMode] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showBroadcastHelp, setShowBroadcastHelp] = useState(false);
   const [showOnboard, setShowOnboard] = useState(() => {
     if (localStorage.getItem("smash-onboard-done") === "1") return false;
     const d = load();
@@ -42,7 +44,7 @@ export default function App() {
   const isLandscape = useIsLandscape();
   useThemeEffect(T);
 
-  const anyModalOpen = showSettings || !!legalPage || aboutPage || showShortcuts || showOnboard;
+  const anyModalOpen = showSettings || !!legalPage || aboutPage || showShortcuts || showBroadcastHelp || showOnboard;
 
   const {
     tabIdx, setTabIdx,
@@ -98,6 +100,10 @@ export default function App() {
 
   const shortcutsModal = showShortcuts && (
     <ShortcutsModal T={T} onClose={() => setShowShortcuts(false)} />
+  );
+
+  const broadcastHelpModal = showBroadcastHelp && (
+    <BroadcastHelpModal T={T} onClose={() => setShowBroadcastHelp(false)} />
   );
 
   const onboardModal = showOnboard && (
@@ -258,6 +264,7 @@ export default function App() {
       {legalModal}
       {aboutModal}
       {shortcutsModal}
+      {broadcastHelpModal}
       {onboardModal}
 
       <nav
@@ -322,6 +329,19 @@ export default function App() {
         <div style={{ flex: 1 }} />
 
         <div style={{ padding: "0 12px", borderTop: `1px solid ${T.brd}`, paddingTop: 16 }}>
+          <button
+            onClick={() => setShowBroadcastHelp(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 14,
+              padding: "12px 18px", background: "transparent", border: "none",
+              borderRadius: 12, fontSize: 14, fontWeight: 500, color: T.sub,
+              width: "100%", textAlign: "left",
+              transition: "all .15s ease",
+            }}
+          >
+            <Radio size={20} strokeWidth={2} />
+            {t("broadcast.help.sidebarTitle")}
+          </button>
           <button
             onClick={() => setShowShortcuts(true)}
             style={{

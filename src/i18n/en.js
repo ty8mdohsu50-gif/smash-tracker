@@ -8,6 +8,7 @@ export default {
     toggle: "Live",
     help: {
       openBtn: "How to use",
+      sidebarTitle: "About broadcasting",
       title: "Broadcasting Guide",
       intro: "Display your live stats in OBS and other streaming software. There are two ways to use this feature depending on your setup.",
       method1Title: "Option 1: Overlay URL (recommended)",
