@@ -343,6 +343,8 @@ export default {
     battle: "対戦",
     analysis: "分析",
     winRateTrend: "勝率推移",
+    trendOverall: "全体",
+    trendNotEnough: "このキャラの試合数が足りません",
     matchupStats: "マッチアップ",
     rollingWinRate: "ローリング勝率（直近10戦）",
     viewAnalysis: "↓ 分析を見る",

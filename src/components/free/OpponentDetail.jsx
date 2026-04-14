@@ -1,4 +1,4 @@
-import { useRef, useMemo, useCallback } from "react";
+import { useRef, useMemo, useCallback, useState } from "react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import FighterIcon from "../shared/FighterIcon";
@@ -115,24 +115,47 @@ export default function OpponentDetail({
     });
   }, [oppMs]);
 
+  // Per-character trend filter. null = overall, otherwise a myChar
+  // string. Eligible chars are those with enough matches against
+  // this opponent for a meaningful rolling window.
+  const [trendFilter, setTrendFilter] = useState(null);
+
+  const trendChars = useMemo(() => {
+    const counts = {};
+    for (const m of oppMs) {
+      counts[m.myChar] = (counts[m.myChar] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .filter(([, n]) => n >= 5)
+      .sort((a, b) => b[1] - a[1])
+      .map(([c]) => c);
+  }, [oppMs]);
+
+  // Drop the saved filter if the matches that made it eligible go
+  // away (e.g. user deletes them).
+  if (trendFilter && !trendChars.includes(trendFilter)) {
+    setTrendFilter(null);
+  }
+
   // Rolling 10-match win-rate trend. We deliberately skip the first
   // few matches: a window of 1 or 2 matches produces wild 0%/50%/100%
   // swings that look like dramatic crashes on the chart but are just
-  // small-sample noise. Wait until we have at least 5 matches to
-  // include in the window.
+  // small-sample noise. Wait until we have at least 5 matches in the
+  // window.
   const winRatePoints = useMemo(() => {
-    if (oppMs.length < 5) return [];
+    const source = trendFilter ? oppMs.filter((m) => m.myChar === trendFilter) : oppMs;
+    if (source.length < 5) return [];
     const pts = [];
     const WINDOW = 10;
     const MIN_SAMPLE = 5;
-    for (let i = MIN_SAMPLE - 1; i < oppMs.length; i++) {
+    for (let i = MIN_SAMPLE - 1; i < source.length; i++) {
       const start = Math.max(0, i - (WINDOW - 1));
-      const slice = oppMs.slice(start, i + 1);
+      const slice = source.slice(start, i + 1);
       const w = slice.filter((m) => m.result === "win").length;
       pts.push({ date: `#${i + 1}`, value: Math.round((w / slice.length) * 100) });
     }
     return pts;
-  }, [oppMs]);
+  }, [oppMs, trendFilter]);
 
   const freeDailyMap = useMemo(() => {
     const map = {};
@@ -342,17 +365,63 @@ export default function OpponentDetail({
         <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div><div style={{ fontSize: 20, fontWeight: 900, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}><span style={{ color: T.win }}>{totalW}</span><span style={{ color: T.dimmer, fontSize: 12, margin: "0 2px" }}>:</span><span style={{ color: T.lose }}>{totalL}</span></div></div>
       </div>
       {/* Win rate trend */}
-      {winRatePoints.length > 1 && (
+      {(winRatePoints.length > 1 || trendChars.length > 0) && (
         <div style={{ ...cd, padding: "14px 16px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("free.winRateTrend")}</div>
-          <Chart
-            points={winRatePoints}
-            T={T}
-            yMin={0}
-            yMax={100}
-            yStep={25}
-            yFormat={(v) => `${Math.round(v)}%`}
-          />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("free.winRateTrend")}</div>
+            {trendChars.length > 0 && (
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setTrendFilter(null)}
+                  style={{
+                    border: trendFilter === null ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                    background: trendFilter === null ? T.accentSoft : T.inp,
+                    color: trendFilter === null ? T.accent : T.sub,
+                    fontSize: 10, fontWeight: 700,
+                    padding: "4px 10px", borderRadius: 8, cursor: "pointer",
+                  }}
+                >
+                  {t("free.trendOverall")}
+                </button>
+                {trendChars.map((c) => {
+                  const active = trendFilter === c;
+                  return (
+                    <button
+                      type="button"
+                      key={c}
+                      onClick={() => setTrendFilter(c)}
+                      style={{
+                        border: active ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                        background: active ? T.accentSoft : T.inp,
+                        color: active ? T.accent : T.sub,
+                        fontSize: 10, fontWeight: 700,
+                        padding: "3px 8px 3px 4px", borderRadius: 8, cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 4,
+                      }}
+                    >
+                      <FighterIcon name={c} size={16} />
+                      {shortName(c, lang)}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {winRatePoints.length > 1 ? (
+            <Chart
+              points={winRatePoints}
+              T={T}
+              yMin={0}
+              yMax={100}
+              yStep={25}
+              yFormat={(v) => `${Math.round(v)}%`}
+            />
+          ) : (
+            <div style={{ textAlign: "center", padding: "20px 0", fontSize: 11, color: T.dim }}>
+              {t("free.trendNotEnough")}
+            </div>
+          )}
         </div>
       )}
 

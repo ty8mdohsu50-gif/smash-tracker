@@ -343,6 +343,8 @@ export default {
     battle: "Battle",
     analysis: "Analysis",
     winRateTrend: "Win Rate Trend",
+    trendOverall: "Overall",
+    trendNotEnough: "Not enough matches with this fighter",
     matchupStats: "Matchups",
     rollingWinRate: "Rolling Win Rate (last 10)",
     viewAnalysis: "↓ View Analysis",
