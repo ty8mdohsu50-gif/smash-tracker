@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import FighterIcon from "../shared/FighterIcon";
+import KeyHint from "../shared/KeyHint";
 import Chart from "../shared/Chart";
 import { fighterName, shortName, FIGHTERS } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
@@ -252,7 +253,10 @@ export default function OpponentDetail({
                       <span style={{ fontSize: 14, fontWeight: 700, color: myChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{myChar ? fighterName(myChar, lang) : t("battle.notSelected")}</span>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      <button type="button" onClick={() => setShowMyPicker(true)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.sub, fontSize: 11, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
+                      <button type="button" onClick={() => setShowMyPicker(true)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.sub, fontSize: 11, border: `1px solid ${T.brd}` }}>
+                        {t("battle.change")}
+                        {isPC && <KeyHint keyLabel="9" T={T} />}
+                      </button>
                       {recMy.filter((c) => c !== myChar).slice(0, 3).map((c) => (
                         <button type="button" key={c} onClick={() => setMyChar(c)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.text, fontSize: 11 }}>{fighterName(c, lang)}</button>
                       ))}
@@ -267,9 +271,15 @@ export default function OpponentDetail({
                       <span style={{ fontSize: 14, fontWeight: 700, color: oppChar ? T.text : T.dim, lineHeight: 1.35, wordBreak: "break-word" }}>{oppChar ? fighterName(oppChar, lang) : t("battle.notSelected")}</span>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      <button type="button" onClick={() => setShowOppPicker(true)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.sub, fontSize: 11, border: `1px solid ${T.brd}` }}>{t("battle.change")}</button>
-                      {recOpp.filter((c) => c !== oppChar).slice(0, 3).map((c) => (
-                        <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.text, fontSize: 11 }}>{fighterName(c, lang)}</button>
+                      <button type="button" onClick={() => setShowOppPicker(true)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.sub, fontSize: 11, border: `1px solid ${T.brd}` }}>
+                        {t("battle.change")}
+                        {isPC && <KeyHint keyLabel="0" T={T} />}
+                      </button>
+                      {recOpp.filter((c) => c !== oppChar).slice(0, 5).map((c, i) => (
+                        <button type="button" key={c} onClick={() => setOppChar(c)} style={{ ...btnBase, padding: "6px 11px", background: T.inp, color: T.text, fontSize: 11 }}>
+                          {fighterName(c, lang)}
+                          {isPC && !oppChar && <KeyHint keyLabel={String(i + 1)} T={T} />}
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -278,17 +288,24 @@ export default function OpponentDetail({
             )}
           </div>
           <div style={{ display: "flex", gap: 12, marginBottom: 10 }}>
-            <button type="button" onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? T.winGrad : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? T.winGlow : "none" }}>{t("battle.win")}</button>
-            <button type="button" onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? T.loseGrad : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? T.loseGlow : "none" }}>{t("battle.lose")}</button>
+            <button type="button" onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? T.winGrad : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? T.winGlow : "none" }}>
+              {t("battle.win")}
+              {isPC && <KeyHint keyLabel="W" T={T} />}
+            </button>
+            <button type="button" onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? T.loseGrad : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? T.loseGlow : "none" }}>
+              {t("battle.lose")}
+              {isPC && <KeyHint keyLabel="L" T={T} />}
+            </button>
           </div>
           <div style={{ ...cd, padding: "12px 16px" }}>
             <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 8 }}>{t("stages.selectStage")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-              {STAGES.map((st) => (
+              {STAGES.map((st, stageIdx) => (
                 <div key={st.id} onClick={() => setSelectedStage(selectedStage === st.id ? null : st.id)}
-                  style={{ textAlign: "center", cursor: "pointer", borderRadius: 8, border: selectedStage === st.id ? `2px solid ${T.accent}` : `1.5px solid ${T.brd}`, padding: 3, opacity: selectedStage === st.id ? 1 : 0.55, transition: "all .15s" }}>
+                  style={{ textAlign: "center", cursor: "pointer", borderRadius: 8, border: selectedStage === st.id ? `2px solid ${T.accent}` : `1.5px solid ${T.brd}`, padding: 3, opacity: selectedStage === st.id ? 1 : 0.55, transition: "all .15s", position: "relative" }}>
                   <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 32, objectFit: "cover", borderRadius: 5 }} />
                   <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 2 }}>{stageName(st.id, lang)}</div>
+                  {isPC && <KeyHint keyLabel={"Shift+" + String(stageIdx + 1)} T={T} />}
                 </div>
               ))}
             </div>
@@ -334,19 +351,32 @@ export default function OpponentDetail({
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif", color: lastResult === "win" ? T.win : T.lose, marginBottom: 12 }}>{lastResult === "win" ? "WIN" : "LOSE"}</div>
           </div>
-          <textarea
-            ref={memoRef}
-            value={freeMemo}
-            onChange={(e) => { setFreeMemo(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = `${Math.max(44, el.scrollHeight)}px`; }}
-            onBlur={saveFreeMemo}
-            placeholder={t("battle.memo")}
-            rows={1}
-            maxLength={500}
-            style={{ width: "100%", marginBottom: 12, padding: "10px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }}
-          />
+          <div style={{ position: "relative" }}>
+            <textarea
+              ref={memoRef}
+              value={freeMemo}
+              onChange={(e) => { setFreeMemo(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = `${Math.max(44, el.scrollHeight)}px`; }}
+              onBlur={saveFreeMemo}
+              placeholder={t("battle.memo")}
+              rows={1}
+              maxLength={500}
+              style={{ width: "100%", marginBottom: 12, padding: "10px 12px", paddingRight: isPC ? 36 : 12, background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }}
+            />
+            {isPC && (
+              <span style={{ position: "absolute", top: 8, right: 10 }}>
+                <KeyHint keyLabel="M" T={T} />
+              </span>
+            )}
+          </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...btnBase, flex: 2, padding: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("free.rematch")}</button>
-            <button onClick={() => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); }} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>{t("free.changeChar")}</button>
+            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...btnBase, flex: 2, padding: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>
+              {t("free.rematch")}
+              {isPC && <KeyHint keyLabel="N" T={T} />}
+            </button>
+            <button onClick={() => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); }} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>
+              {t("free.changeChar")}
+              {isPC && <KeyHint keyLabel="C" T={T} />}
+            </button>
           </div>
         </div>
       )}
