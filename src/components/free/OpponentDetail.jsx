@@ -116,20 +116,25 @@ export default function OpponentDetail({
   }, [oppMs]);
 
   // Per-character trend filter. null = overall, otherwise a myChar
-  // string. Eligible chars are those with enough matches against
-  // this opponent for a meaningful rolling window.
+  // string. We list every fighter the user has ever brought to this
+  // opponent — even ones with only a couple of matches — so they
+  // can always see how each pick performs. The trend *line* itself
+  // still needs a minimum sample, so low-volume picks fall back to
+  // a static W/L card below.
   const [trendFilter, setTrendFilter] = useState(null);
 
-  const trendChars = useMemo(() => {
-    const counts = {};
+  const trendCharStats = useMemo(() => {
+    const map = {};
     for (const m of oppMs) {
-      counts[m.myChar] = (counts[m.myChar] || 0) + 1;
+      if (!map[m.myChar]) map[m.myChar] = { char: m.myChar, w: 0, l: 0 };
+      m.result === "win" ? map[m.myChar].w++ : map[m.myChar].l++;
     }
-    return Object.entries(counts)
-      .filter(([, n]) => n >= 5)
-      .sort((a, b) => b[1] - a[1])
-      .map(([c]) => c);
+    return Object.values(map).sort((a, b) => (b.w + b.l) - (a.w + a.l));
   }, [oppMs]);
+
+  const trendChars = trendCharStats.map((s) => s.char);
+
+  const trendFilterStat = trendFilter ? trendCharStats.find((s) => s.char === trendFilter) : null;
 
   // Drop the saved filter if the matches that made it eligible go
   // away (e.g. user deletes them).
@@ -417,6 +422,24 @@ export default function OpponentDetail({
               yStep={25}
               yFormat={(v) => `${Math.round(v)}%`}
             />
+          ) : trendFilterStat ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, padding: "16px 0" }}>
+              <FighterIcon name={trendFilterStat.char} size={28} />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{shortName(trendFilterStat.char, lang)}</span>
+                <span style={{ fontSize: 11, color: T.dim, marginTop: 2 }}>{t("free.trendNotEnough")}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 4 }}>
+                <span style={{ fontSize: 18, fontWeight: 800, fontFamily: "'Chakra Petch', sans-serif" }}>
+                  <span style={{ color: T.win }}>{trendFilterStat.w}</span>
+                  <span style={{ color: T.dimmer, fontSize: 12, margin: "0 3px" }}>:</span>
+                  <span style={{ color: T.lose }}>{trendFilterStat.l}</span>
+                </span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: barColor((trendFilterStat.w) / Math.max(1, trendFilterStat.w + trendFilterStat.l)), fontFamily: "'Chakra Petch', sans-serif" }}>
+                  {percentStr(trendFilterStat.w, trendFilterStat.w + trendFilterStat.l)}
+                </span>
+              </div>
+            </div>
           ) : (
             <div style={{ textAlign: "center", padding: "20px 0", fontSize: 11, color: T.dim }}>
               {t("free.trendNotEnough")}
