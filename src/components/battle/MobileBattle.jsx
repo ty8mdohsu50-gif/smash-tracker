@@ -1,11 +1,10 @@
 import { X, Zap, Share2 } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
-import SharePopup from "../shared/SharePopup";
 import SessionCard from "../shared/SessionCard";
-import Toast from "../shared/Toast";
-import ConfirmDialog from "../shared/ConfirmDialog";
 import FighterIcon from "../shared/FighterIcon";
+import RecentMatchList from "./RecentMatchList";
+import BattleOverlays from "./BattleOverlays";
 import { fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useSessionCard } from "../../hooks/useSessionCard";
@@ -65,34 +64,20 @@ export default function MobileBattle({ state, data, onSave, T }) {
   // Recent match list
   const recentMatchList = tM.length === 0
     ? <div style={{ textAlign: "center", padding: "32px 0", color: T.dim, fontSize: 13 }}>{t("battle.startMatching")}</div>
-    : tM.slice().reverse().slice(0, 10).map((m, i) => {
-      const matchIdx = data.matches.indexOf(m);
-      const isEditing = editingStageIdx === matchIdx;
-      return (
-      <div key={i} style={{ padding: "6px 0", borderBottom: `1px solid ${T.inp}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-          <FighterIcon name={m.oppChar} size={22} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>{fighterName(m.oppChar, lang)}</span>
-          {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-          <span style={{ fontSize: 11, color: T.dim, flexShrink: 0 }}>{formatTime(m.time)}</span>
-          <button onClick={() => setEditingStageIdx(isEditing ? null : matchIdx)} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "\u2713" : "\uD83D\uDDFA"}</button>
-          <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
-        </div>
-        {isEditing && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 6, marginBottom: 2 }}>
-            {STAGES.map((st) => (
-              <div key={st.id} onClick={() => updateMatchStage(matchIdx, m.stage === st.id ? null : st.id)}
-                style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
-                <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 24, objectFit: "cover", borderRadius: 4 }} />
-                <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      );
-    });
+    : (
+      <RecentMatchList
+        matches={tM}
+        allMatches={data.matches}
+        editingStageIdx={editingStageIdx}
+        setEditingStageIdx={setEditingStageIdx}
+        deleteMatch={deleteMatch}
+        updateMatchStage={updateMatchStage}
+        T={T}
+        lang={lang}
+        size="comfortable"
+        maxItems={10}
+      />
+    );
 
   // Today summary card
   const todaySummaryCard = tM.length > 0 && (
@@ -600,9 +585,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
         );
       })()}
 
-      {sharePopupText && <SharePopup text={sharePopupText} imageBlob={sharePopupImage} onClose={() => { setSharePopupText(null); setSharePopupImage(null); }} T={T} />}
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
-      {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
+      <BattleOverlays state={state} T={T} />
     </div>
   );
 }

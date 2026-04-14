@@ -2,11 +2,10 @@ import { X, Zap, Share2 } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import KeyHint from "../shared/KeyHint";
-import SharePopup from "../shared/SharePopup";
 import SessionCard from "../shared/SessionCard";
-import ConfirmDialog from "../shared/ConfirmDialog";
-import Toast from "../shared/Toast";
 import FighterIcon from "../shared/FighterIcon";
+import RecentMatchList from "./RecentMatchList";
+import BattleOverlays from "./BattleOverlays";
 import { fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useSessionCard } from "../../hooks/useSessionCard";
@@ -172,35 +171,18 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
           <div style={{ padding: "12px 24px 24px" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, marginBottom: 8 }}>{t("battle.recent")}</div>
             <div style={{ maxHeight: 300, overflowY: "auto" }}>
-              {tM.slice().reverse().map((m, i) => {
-                const matchIdx = data.matches.indexOf(m);
-                const isEditing = editingStageIdx === matchIdx;
-                return (
-                <div key={i} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5, fontSize: 10, fontWeight: 800, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                    <FighterIcon name={m.oppChar} size={18} />
-                    <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{fighterName(m.oppChar, lang)}</span>
-                    {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3 }}>{stageName(m.stage, lang)}</span>}
-                    <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
-                    <button onClick={() => setEditingStageIdx(isEditing ? null : matchIdx)} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "\u2713" : "\uD83D\uDDFA"}</button>
-                    <button onClick={() => deleteMatch(matchIdx)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>{"\u00d7"}</button>
-                  </div>
-                  {isEditing && (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 4, marginBottom: 2 }}>
-                      {STAGES.map((st) => (
-                        <div key={st.id} onClick={() => updateMatchStage(matchIdx, m.stage === st.id ? null : st.id)}
-                          style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
-                          <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 22, objectFit: "cover", borderRadius: 4 }} />
-                          <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {m.memo && <div style={{ fontSize: 11, color: T.sub, marginTop: 2, paddingLeft: 42 }}>{m.memo}</div>}
-                </div>
-                );
-              })}
+              <RecentMatchList
+                matches={tM}
+                allMatches={data.matches}
+                editingStageIdx={editingStageIdx}
+                setEditingStageIdx={setEditingStageIdx}
+                deleteMatch={deleteMatch}
+                updateMatchStage={updateMatchStage}
+                T={T}
+                lang={lang}
+                size="compact"
+                showMemo
+              />
             </div>
           </div>
         )}
@@ -251,8 +233,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
           </div>
           {pcSidebar}
         </div>
-        {sharePopupText && <SharePopup text={sharePopupText} imageBlob={sharePopupImage} onClose={() => { setSharePopupText(null); setSharePopupImage(null); }} T={T} />}
-        {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
+        <BattleOverlays state={state} T={T} />
       </div>
     );
   }
@@ -545,9 +526,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
         </div>
         {pcSidebar}
       </div>
-      {sharePopupText && <SharePopup text={sharePopupText} imageBlob={sharePopupImage} onClose={() => { setSharePopupText(null); setSharePopupImage(null); }} T={T} />}
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
-      {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
+      <BattleOverlays state={state} T={T} />
     </div>
   );
 }
