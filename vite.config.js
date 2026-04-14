@@ -9,7 +9,12 @@ export default defineConfig({
     host: true,
   },
   test: {
-    environment: "node",
+    // jsdom is required for hook + component tests that touch DOM
+    // APIs (matchMedia, localStorage, navigator). Pure utility tests
+    // still run fine under it.
+    environment: "jsdom",
     include: ["src/**/*.test.{js,jsx}"],
+    globals: true,
+    setupFiles: ["./src/test/setup.js"],
   },
 });
