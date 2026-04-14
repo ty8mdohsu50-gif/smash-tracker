@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import Chart from "../shared/Chart";
+import SectionTitle from "../shared/SectionTitle";
 import { useI18n } from "../../i18n/index.jsx";
 import { percentStr, barColor } from "../../utils/format";
 
@@ -49,19 +50,23 @@ export default function WeeklyProgress({ matches, T }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("free.weeklyProgress")}</span>
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 800,
-            color: delta >= 0 ? T.win : T.lose,
-            fontFamily: "'Chakra Petch', sans-serif",
-          }}
-        >
-          {delta >= 0 ? "+" : ""}{delta}%
-        </span>
-      </div>
+      <SectionTitle
+        T={T}
+        right={
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              color: delta >= 0 ? T.win : T.lose,
+              fontFamily: "'Chakra Petch', sans-serif",
+            }}
+          >
+            {delta >= 0 ? "+" : ""}{delta}%
+          </span>
+        }
+      >
+        {t("free.weeklyProgress")}
+      </SectionTitle>
       <Chart
         points={points}
         T={T}

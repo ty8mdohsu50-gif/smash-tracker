@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import FighterIcon from "../shared/FighterIcon";
+import ResultBadge from "../shared/ResultBadge";
+import SectionTitle from "../shared/SectionTitle";
 import { shortName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
@@ -31,7 +33,7 @@ export default function MatchupGrid({
 
   return (
     <div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("free.matchupStats")}</div>
+      <SectionTitle T={T}>{t("free.matchupStats")}</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
         {matchups.map((mu) => {
           const r = mu.w / (mu.w + mu.l);
@@ -116,9 +118,7 @@ export default function MatchupGrid({
                 const isEditing = editingStageMatch && editingStageMatch.time === m.time && editingStageMatch.date === m.date;
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 0", borderBottom: `1px solid ${T.inp}`, flexWrap: isEditing ? "wrap" : "nowrap" }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 30 }}>
-                      {m.result === "win" ? "WIN" : "LOSE"}
-                    </span>
+                    <ResultBadge result={m.result} size="inline" T={T} style={{ minWidth: 30 }} />
                     <span style={{ fontSize: 10, color: T.dim }}>{formatDate(m.date)}</span>
                     {m.stage && !isEditing && (
                       <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>

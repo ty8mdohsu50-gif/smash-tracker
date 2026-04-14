@@ -7,6 +7,7 @@ import FighterIcon from "../shared/FighterIcon";
 import RecentMatchList from "./RecentMatchList";
 import BattleOverlays from "./BattleOverlays";
 import StageSelector from "./StageSelector";
+import ResultBadge from "../shared/ResultBadge";
 import { fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useSessionCard } from "../../hooks/useSessionCard";
@@ -19,7 +20,7 @@ import {
   barColor,
   formatTime,
 } from "../../utils/format";
-import { getCardStyle, getGoalInputStyle, getBtnR, PwrInput } from "./battleStyles";
+import { getCardStyle, getGoalInputStyle, getBtnR, getPrimaryBtn, PwrInput } from "./battleStyles";
 
 export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, powerRef }) {
   const {
@@ -310,8 +311,8 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
 
               {!result && (
                 <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-                  <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: T.winGrad, color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: T.winGlow }}>{t("battle.win")}<KeyHint keyLabel="W" T={T} /></button>
-                  <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "18px 0", border: "none", borderRadius: 14, background: T.loseGrad, color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: T.loseGlow }}>{t("battle.lose")}<KeyHint keyLabel="L" T={T} /></button>
+                  <button type="button" onClick={() => selectRes("win")} style={{ ...getPrimaryBtn(T, { variant: "win" }), flex: 1, padding: "18px 0", fontSize: 18 }}>{t("battle.win")}<KeyHint keyLabel="W" T={T} /></button>
+                  <button type="button" onClick={() => selectRes("lose")} style={{ ...getPrimaryBtn(T, { variant: "lose" }), flex: 1, padding: "18px 0", fontSize: 18 }}>{t("battle.lose")}<KeyHint keyLabel="L" T={T} /></button>
                 </div>
               )}
 
@@ -356,7 +357,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                   <span style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{fighterName(oppChar, lang)}</span>
                 </div>
                 <div style={{ marginTop: 12 }}>
-                  <span style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 16, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose, animation: "popIn .3s ease" }}>{lastRes === "win" ? "WIN" : "LOSE"}</span>
+                  <ResultBadge result={lastRes} size="hero" T={T} style={{ animation: "popIn .3s ease" }} />
                 </div>
                 <textarea ref={memoRef} value={memo} onChange={(e) => { setMemo(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} onBlur={saveMemoBlur} placeholder={t("battle.memo")} rows={1}
                   maxLength={500}
@@ -368,7 +369,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 <div style={{ flex: 1 }}><PwrInput value={pEnd} onChange={setPEnd} placeholder={t("battle.powerPlaceholder")} big={false} T={T} pStart={pStart} pEnd={pEnd} savePower={savePower} /></div>
               </div>
               <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                <button onClick={continueSame} style={{ flex: 2, padding: "16px 12px", border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow, whiteSpace: "nowrap" }}>{t("battle.continueSame")}<KeyHint keyLabel="N" T={T} /></button>
+                <button onClick={continueSame} style={{ ...getPrimaryBtn(T), flex: 2, padding: "16px 12px", fontSize: 15, whiteSpace: "nowrap" }}>{t("battle.continueSame")}<KeyHint keyLabel="N" T={T} /></button>
                 <button onClick={changeOpp} style={{ flex: 1.2, padding: "16px 12px", border: `2px solid ${T.accent}`, borderRadius: 14, background: T.card, color: T.accent, fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{t("battle.changeOpp")}<KeyHint keyLabel="C" T={T} /></button>
                 <button onClick={changeChar} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.changeChar")}<KeyHint keyLabel="9" T={T} /></button>
                 <button onClick={endSession} style={{ flex: 1, padding: "16px 12px", border: `1px solid ${T.brd}`, borderRadius: 14, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>{t("battle.endSession")}<KeyHint keyLabel="E" T={T} /></button>
@@ -457,7 +458,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                     style={{ width: "100%", padding: "8px 12px", background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 12, outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-                  <button onClick={() => saveEndSession(false)} style={{ flex: 2, padding: 16, border: "none", borderRadius: 12, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}<KeyHint keyLabel="Enter" T={T} /></button>
+                  <button onClick={() => saveEndSession(false)} style={{ ...getPrimaryBtn(T), flex: 2, padding: 16, fontSize: 15 }}>{t("battle.saveAndEnd")}<KeyHint keyLabel="Enter" T={T} /></button>
                   <button
                     onClick={async () => {
                       const blob = await generateCard();

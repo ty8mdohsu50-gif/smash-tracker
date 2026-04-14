@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FighterIcon from "../shared/FighterIcon";
+import ResultBadge from "../shared/ResultBadge";
 import { shortName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
@@ -140,7 +141,7 @@ export default function OpponentCalendar({
               return (
                 <div key={i} style={{ paddingBottom: 4 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 32 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+                    <ResultBadge result={m.result} size="inline" T={T} style={{ minWidth: 32 }} />
                     <FighterIcon name={m.myChar} size={18} />
                     <span style={{ fontSize: 11, color: T.sub }}>{shortName(m.myChar, lang)}</span>
                     <span style={{ fontSize: 10, color: T.dim }}>vs</span>

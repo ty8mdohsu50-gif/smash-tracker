@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import FighterIcon from "../shared/FighterIcon";
+import ResultBadge from "../shared/ResultBadge";
 import { shortName, fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import {
@@ -152,9 +153,7 @@ export default function DailyCalendar({
     return (
       <div key={i} style={{ paddingBottom: 6 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 36 }}>
-            {m.result === "win" ? "WIN" : "LOSE"}
-          </span>
+          <ResultBadge result={m.result} size="inline" T={T} style={{ minWidth: 36, fontSize: 12 }} />
           <FighterIcon name={m.myChar} size={20} />
           <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(m.myChar, lang)}</span>
           <span style={{ fontSize: 11, color: T.dim }}>vs</span>

@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import ConfirmDialog from "../shared/ConfirmDialog";
+import { getTextInputStyle, getPrimaryBtn, getSecondaryBtn } from "../battle/battleStyles";
 import { useI18n } from "../../i18n/index.jsx";
 
 export default function OpponentList({
@@ -29,9 +30,9 @@ export default function OpponentList({
             <input type="text" value={newOpponentName} onChange={(e) => setNewOpponentName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") addOpponent(); if (e.key === "Escape") { setShowAddInput(false); setNewOpponentName(""); } }}
               placeholder={t("free.opponentName")} autoFocus maxLength={50}
-              style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${T.accent}`, background: T.inp, color: T.text, fontSize: 14, outline: "none", fontFamily: "inherit" }} />
-            <button onClick={addOpponent} disabled={!newOpponentName.trim()} style={{ ...btnBase, padding: "10px 18px", background: newOpponentName.trim() ? T.accentGrad : T.inp, color: newOpponentName.trim() ? "#fff" : T.dim, fontSize: 13, boxShadow: newOpponentName.trim() ? T.accentGlow : "none" }}>{t("free.add")}</button>
-            <button onClick={() => { setShowAddInput(false); setNewOpponentName(""); }} style={{ ...btnBase, padding: "10px 14px", background: T.inp, color: T.sub, fontSize: 13 }}>×</button>
+              style={{ ...getTextInputStyle(T, { size: "lg" }), flex: 1, border: `1.5px solid ${T.accent}` }} />
+            <button onClick={addOpponent} disabled={!newOpponentName.trim()} style={{ ...getPrimaryBtn(T, { disabled: !newOpponentName.trim() }), padding: "10px 18px", fontSize: 13 }}>{t("free.add")}</button>
+            <button onClick={() => { setShowAddInput(false); setNewOpponentName(""); }} style={getSecondaryBtn(T, { size: "md" })}>×</button>
           </div>
         ) : (
           <button onClick={() => setShowAddInput(true)} style={{ ...btnBase, width: "100%", background: T.accentSoft, color: T.accent, border: `1.5px dashed ${T.accentBorder}`, fontSize: 14 }}>+ {t("free.addOpponent")}</button>

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import SectionTitle from "../shared/SectionTitle";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
 import { percentStr, barColor } from "../../utils/format";
@@ -23,9 +24,7 @@ export default function StageStatsGrid({ matches, T }) {
 
   return (
     <div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 10 }}>
-        {t("free.stageMatrix")}
-      </div>
+      <SectionTitle T={T}>{t("free.stageMatrix")}</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
         {stageStats.map((s) => {
           const total = s.w + s.l;

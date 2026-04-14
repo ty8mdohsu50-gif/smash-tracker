@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Z_MATCH_LOG_MODAL } from "../../constants/zIndex";
 import FighterIcon from "./FighterIcon";
+import ResultBadge from "./ResultBadge";
 import { shortName } from "../../constants/fighters";
 import { stageName } from "../../constants/stages";
 import { formatDate, formatTime } from "../../utils/format";
@@ -72,7 +73,7 @@ export default function MatchLogModal({ open, onClose, title, matches, T, t, lan
               <div key={`${m.time}-${m.date}-${i}`} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < rows.length - 1 ? `1px solid ${T.inp}` : "none" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
                   <span style={{ fontSize: 12, color: T.dim }}>{formatDate(m.date)}</span>
-                  <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+                  <ResultBadge result={m.result} size="chip" T={T} style={{ fontSize: 11 }} />
                   <FighterIcon name={m.myChar} size={22} />
                   <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>{shortName(m.myChar, lang)}</span>
                   <span style={{ fontSize: 11, color: T.dim }}>vs</span>

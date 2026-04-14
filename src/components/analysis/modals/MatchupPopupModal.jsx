@@ -1,5 +1,6 @@
 import { Share2 } from "lucide-react";
 import FighterIcon from "../../shared/FighterIcon";
+import ResultBadge from "../../shared/ResultBadge";
 import MatchupNotesEditor from "../../shared/MatchupNotesEditor";
 import { fighterName } from "../../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../../constants/stages";
@@ -137,9 +138,7 @@ export default function MatchupPopupModal({
                       <div key={`${m.date}-${m.time}-${i}`} style={{ padding: "5px 0", borderBottom: `1px solid ${T.inp}` }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ fontSize: 11, color: T.dim, flexShrink: 0, minWidth: isPC ? 68 : 56 }}>{formatDate(m.date)}</span>
-                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: m.result === "win" ? T.winBg : T.loseBg, color: m.result === "win" ? T.win : T.lose, flexShrink: 0 }}>
-                            {m.result === "win" ? "WIN" : "LOSE"}
-                          </span>
+                          <ResultBadge result={m.result} size="chip" T={T} style={{ width: 30, fontSize: 10 }} />
                           {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
                           {m.time && <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>}
                           <button onClick={(e) => { e.stopPropagation(); setEditingStageIdx(isEditing ? null : m.idx); }}

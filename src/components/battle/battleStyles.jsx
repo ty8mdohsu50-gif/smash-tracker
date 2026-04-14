@@ -43,6 +43,88 @@ export const getActiveBtn = (T, disabled) => ({
   marginBottom: 12,
 });
 
+// Primary call-to-action button. Variants:
+//   - "accent" (default): the app accent gradient — used for 連戦,
+//     対戦開始, 保存して終了, etc.
+//   - "win" / "lose": result-colored gradients for WIN / LOSE picks.
+// Pass disabled=true to render the muted version.
+export const getPrimaryBtn = (T, { variant = "accent", disabled = false } = {}) => {
+  const grad = disabled
+    ? T.inp
+    : variant === "win"
+      ? T.winGrad
+      : variant === "lose"
+        ? T.loseGrad
+        : T.accentGrad;
+  const glow = disabled
+    ? "none"
+    : variant === "win"
+      ? T.winGlow
+      : variant === "lose"
+        ? T.loseGlow
+        : T.accentGlow;
+  return {
+    border: "none",
+    borderRadius: 14,
+    padding: "16px 18px",
+    background: grad,
+    color: disabled ? T.dim : "#fff",
+    fontSize: 17,
+    fontWeight: 800,
+    boxShadow: glow,
+    transition: "all .2s ease",
+    cursor: disabled ? "default" : "pointer",
+    fontFamily: "inherit",
+  };
+};
+
+// Secondary / tertiary button used for 戻る, キャンセル, 変更, etc.
+// Three sizes — sm/md/lg — keep the visual hierarchy consistent
+// across every screen. The "ghost" prop swaps the filled background
+// for a translucent overlay (used inside dark hero headers).
+export const getSecondaryBtn = (T, { size = "md", ghost = false } = {}) => {
+  const sizes = {
+    sm: { padding: "5px 10px", fontSize: 11, borderRadius: 8 },
+    md: { padding: "8px 14px", fontSize: 12, borderRadius: 10 },
+    lg: { padding: "12px 18px", fontSize: 13, borderRadius: 12 },
+  };
+  const s = sizes[size] || sizes.md;
+  return {
+    ...s,
+    border: ghost ? "none" : `1px solid ${T.brd}`,
+    background: ghost ? "rgba(255,255,255,0.15)" : T.inp,
+    color: ghost ? "rgba(255,255,255,0.85)" : T.sub,
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all .15s ease",
+    fontFamily: "inherit",
+  };
+};
+
+// Single-line text input style used by memo input, opponent name
+// input, etc. Kept intentionally minimal so callers can spread it
+// and override individual fields when needed.
+export const getTextInputStyle = (T, { size = "md" } = {}) => {
+  const sizes = {
+    sm: { padding: "8px 10px", fontSize: 12 },
+    md: { padding: "10px 12px", fontSize: 13 },
+    lg: { padding: "12px 16px", fontSize: 14 },
+  };
+  const s = sizes[size] || sizes.md;
+  return {
+    ...s,
+    width: "100%",
+    background: T.inp,
+    border: "none",
+    borderRadius: 10,
+    color: T.text,
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: "inherit",
+    lineHeight: 1.5,
+  };
+};
+
 export const getBtnR = () => ({
   border: "none",
   borderRadius: 10,

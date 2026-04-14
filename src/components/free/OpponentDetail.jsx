@@ -8,6 +8,9 @@ import OpponentCalendar from "./OpponentCalendar";
 import MatchupGrid from "./MatchupGrid";
 import StageStatsGrid from "./StageStatsGrid";
 import WeeklyProgress from "./WeeklyProgress";
+import ResultBadge from "../shared/ResultBadge";
+import SectionTitle from "../shared/SectionTitle";
+import { getSecondaryBtn, getPrimaryBtn, getTextInputStyle } from "../battle/battleStyles";
 import { fighterName, shortName, FIGHTERS } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
@@ -241,11 +244,11 @@ export default function OpponentDetail({
             )}
           </div>
           <div style={{ display: "flex", gap: 12, marginBottom: 10 }}>
-            <button type="button" onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? T.winGrad : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? T.winGlow : "none" }}>
+            <button type="button" onClick={() => recordMatch("win")} disabled={!myChar || !oppChar} style={{ ...getPrimaryBtn(T, { variant: "win", disabled: !(myChar && oppChar) }), flex: 1, padding: 16, fontSize: 18 }}>
               {t("battle.win")}
               {isPC && <KeyHint keyLabel="W" T={T} />}
             </button>
-            <button type="button" onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...btnBase, flex: 1, padding: 16, fontSize: 18, background: myChar && oppChar ? T.loseGrad : T.inp, color: myChar && oppChar ? "#fff" : T.dim, boxShadow: myChar && oppChar ? T.loseGlow : "none" }}>
+            <button type="button" onClick={() => recordMatch("lose")} disabled={!myChar || !oppChar} style={{ ...getPrimaryBtn(T, { variant: "lose", disabled: !(myChar && oppChar) }), flex: 1, padding: 16, fontSize: 18 }}>
               {t("battle.lose")}
               {isPC && <KeyHint keyLabel="L" T={T} />}
             </button>
@@ -301,10 +304,10 @@ export default function OpponentDetail({
         </>
       ) : (
         <div style={{ ...cd, padding: "16px 18px" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif", color: lastResult === "win" ? T.win : T.lose, marginBottom: 12 }}>{lastResult === "win" ? "WIN" : "LOSE"}</div>
+          <div style={{ textAlign: "center", marginBottom: 12 }}>
+            <ResultBadge result={lastResult} size="hero" T={T} />
           </div>
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", marginBottom: 12 }}>
             <textarea
               ref={memoRef}
               value={freeMemo}
@@ -313,7 +316,7 @@ export default function OpponentDetail({
               placeholder={t("battle.memo")}
               rows={1}
               maxLength={500}
-              style={{ width: "100%", marginBottom: 12, padding: "10px 12px", paddingRight: isPC ? 36 : 12, background: T.inp, border: "none", borderRadius: 10, color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", resize: "none", overflow: "hidden", fontFamily: "inherit", lineHeight: 1.5 }}
+              style={{ ...getTextInputStyle(T, { size: "md" }), paddingRight: isPC ? 36 : 12, resize: "none", overflow: "hidden" }}
             />
             {isPC && (
               <span style={{ position: "absolute", top: 8, right: 10 }}>
@@ -322,7 +325,7 @@ export default function OpponentDetail({
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...btnBase, padding: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>
+            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...getPrimaryBtn(T), padding: 14, fontSize: 15 }}>
               {t("free.rematch")}
               {isPC && <KeyHint keyLabel="N" T={T} />}
             </button>
@@ -343,12 +346,10 @@ export default function OpponentDetail({
       {/* Today's log */}
       {todayMs.length > 0 && (
         <div style={{ ...cd, padding: "12px 16px" }}>
-          <div style={{ marginBottom: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t("free.todayRecord")}</span>
-          </div>
+          <SectionTitle T={T} style={{ marginBottom: 8, color: T.text }}>{t("free.todayRecord")}</SectionTitle>
           {todayMs.slice().reverse().map((m, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 32 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
+              <ResultBadge result={m.result} size="inline" T={T} style={{ minWidth: 32 }} />
               <FighterIcon name={m.myChar} size={18} /><span style={{ fontSize: 11, color: T.sub }}>{shortName(m.myChar, lang)}</span>
               <span style={{ fontSize: 10, color: T.dim }}>vs</span>
               <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
@@ -365,8 +366,8 @@ export default function OpponentDetail({
   // Analysis area
   const analysisArea = (
     <div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: T.text, padding: "12px 0 8px", borderTop: `1px solid ${T.brd}`, marginTop: 8 }}>
-        {t("free.analysis")}
+      <div style={{ padding: "12px 0 8px", borderTop: `1px solid ${T.brd}`, marginTop: 8 }}>
+        <SectionTitle variant="large" T={T} style={{ marginBottom: 0 }}>{t("free.analysis")}</SectionTitle>
       </div>
 
       {/* Summary */}
@@ -420,9 +421,7 @@ export default function OpponentDetail({
       {/* Win rate trend */}
       {(winRatePoints.length > 1 || trendChars.length > 0) && (
         <div style={{ ...cd, padding: "14px 16px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>
-            {t("free.winRateTrend")}
-          </div>
+          <SectionTitle T={T} style={{ marginBottom: 8 }}>{t("free.winRateTrend")}</SectionTitle>
           {trendChars.length > 0 && (
             <div
               style={{
@@ -563,7 +562,7 @@ export default function OpponentDetail({
       <div style={{ animation: "fadeUp .2s ease" }}>
         {/* Header */}
         <div style={{ background: T.tBg, borderRadius: 16, padding: "14px 18px", marginBottom: 12, boxShadow: T.sh, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={{ ...btnBase, padding: "8px 14px", background: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.8)", fontSize: 13 }}>{t("free.back")}</button>
+          <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={getSecondaryBtn(T, { size: "md", ghost: true })}>{t("free.back")}</button>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "2px solid rgba(255,255,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#fff" }}>{selectedOpponent[0]}</div>
             <div>
@@ -587,7 +586,7 @@ export default function OpponentDetail({
     <div style={{ animation: "fadeUp .2s ease" }}>
       {/* Header */}
       <div style={{ background: T.tBg, borderRadius: 16, padding: "14px 16px", marginBottom: 10, boxShadow: T.sh, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={{ ...btnBase, padding: "6px 12px", background: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.8)", fontSize: 12 }}>{t("free.back")}</button>
+        <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={getSecondaryBtn(T, { size: "sm", ghost: true })}>{t("free.back")}</button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "2px solid rgba(255,255,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "#fff" }}>{selectedOpponent[0]}</div>
           <div>

@@ -6,6 +6,7 @@ import FighterIcon from "../shared/FighterIcon";
 import RecentMatchList from "./RecentMatchList";
 import BattleOverlays from "./BattleOverlays";
 import StageSelector from "./StageSelector";
+import ResultBadge from "../shared/ResultBadge";
 import { fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useSessionCard } from "../../hooks/useSessionCard";
@@ -19,7 +20,7 @@ import {
   formatDateShort,
   formatTime,
 } from "../../utils/format";
-import { getCardStyle, getActiveBtn, getBtnR, PwrInput } from "./battleStyles";
+import { getCardStyle, getActiveBtn, getBtnR, getPrimaryBtn, PwrInput } from "./battleStyles";
 
 export default function MobileBattle({ state, data, onSave, T }) {
   const {
@@ -345,8 +346,8 @@ export default function MobileBattle({ state, data, onSave, T }) {
           {!result && (
             <div style={{ marginTop: 14 }}>
               <div style={{ display: "flex", gap: 12 }}>
-                <button type="button" onClick={() => selectRes("win")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: T.winGrad, color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: T.winGlow }}>{t("battle.win")}</button>
-                <button type="button" onClick={() => selectRes("lose")} style={{ flex: 1, padding: "26px 0", border: "none", borderRadius: 16, background: T.loseGrad, color: "#fff", fontSize: 22, fontWeight: 900, boxShadow: T.loseGlow }}>{t("battle.lose")}</button>
+                <button type="button" onClick={() => selectRes("win")} style={{ ...getPrimaryBtn(T, { variant: "win" }), flex: 1, padding: "26px 0", fontSize: 22, fontWeight: 900 }}>{t("battle.win")}</button>
+                <button type="button" onClick={() => selectRes("lose")} style={{ ...getPrimaryBtn(T, { variant: "lose" }), flex: 1, padding: "26px 0", fontSize: 22, fontWeight: 900 }}>{t("battle.lose")}</button>
               </div>
             </div>
           )}
@@ -397,9 +398,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
         <div style={{ animation: "fadeUp .2s ease" }}>
           <div style={{ ...cd, textAlign: "center", padding: "20px 18px" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: T.dim, letterSpacing: 1.5, fontFamily: "'Chakra Petch', sans-serif", marginBottom: 8 }}>{t("battle.recorded")}</div>
-            <div style={{ display: "inline-block", padding: "6px 24px", borderRadius: 10, fontSize: 18, fontWeight: 800, background: lastRes === "win" ? T.winBg : T.loseBg, color: lastRes === "win" ? T.win : T.lose, animation: "popIn .3s ease" }}>
-              {lastRes === "win" ? "WIN" : "LOSE"}
-            </div>
+            <ResultBadge result={lastRes} size="hero" T={T} style={{ animation: "popIn .3s ease" }} />
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 10, marginTop: 12, animation: "slideUp .3s ease .1s both" }}>
               <FighterIcon name={myChar} size={32} />
               <span style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{fighterName(myChar, lang)}</span>
@@ -419,7 +418,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
-            <button onClick={continueSame} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
+            <button onClick={continueSame} style={{ ...getPrimaryBtn(T), width: "100%", padding: 20 }}>{t("battle.continueSame")}</button>
             <button onClick={changeOpp} style={{ width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 15, fontWeight: 700, transition: "all .15s ease" }}>{t("battle.changeOpp")}</button>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={changeChar} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{t("battle.changeChar")}</button>
@@ -519,7 +518,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             </div>
 
             {/* Actions */}
-            <button onClick={() => saveEndSession(false)} style={{ width: "100%", padding: 16, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 16, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.saveAndEnd")}</button>
+            <button onClick={() => saveEndSession(false)} style={{ ...getPrimaryBtn(T), width: "100%", padding: 16, fontSize: 16 }}>{t("battle.saveAndEnd")}</button>
             <button
               onClick={async () => {
                 const blob = await generateCard();

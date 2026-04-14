@@ -1,4 +1,5 @@
 import FighterIcon from "../shared/FighterIcon";
+import ResultBadge from "../shared/ResultBadge";
 import { fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { formatTime } from "../../utils/format";
@@ -54,24 +55,13 @@ export default function RecentMatchList({
       {visible.map((m) => {
         const matchIdx = allMatches.indexOf(m);
         const isEditing = editingStageIdx === matchIdx;
-        const isWin = m.result === "win";
         return (
           <div
             key={`${m.date}-${m.time}-${matchIdx}`}
             style={{ padding: s.rowPadding, borderBottom: `1px solid ${T.inp}` }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: s.rowGap }}>
-              <span
-                style={{
-                  width: 36, textAlign: "center", padding: "2px 0", borderRadius: 5,
-                  fontSize: s.badgeFs, fontWeight: 800,
-                  background: isWin ? T.winBg : T.loseBg,
-                  color: isWin ? T.win : T.lose,
-                  flexShrink: 0,
-                }}
-              >
-                {isWin ? "WIN" : "LOSE"}
-              </span>
+              <ResultBadge result={m.result} size="chip" T={T} />
               <FighterIcon name={m.oppChar} size={s.iconSize} />
               <span style={{ fontSize: s.nameFs, fontWeight: 600, color: T.text, flex: size === "comfortable" ? 1 : undefined }}>
                 {fighterName(m.oppChar, lang)}
