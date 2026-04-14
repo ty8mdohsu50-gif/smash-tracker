@@ -188,6 +188,8 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack, tabIdx, mo
       isPC={isPC}
       tabIdx={tabIdx}
       modalsOpen={modalsOpen}
+      confirmAction={confirmAction}
+      setConfirmAction={setConfirmAction}
       T={T}
       cd={cd}
       btnBase={btnBase}

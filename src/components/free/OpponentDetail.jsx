@@ -49,6 +49,8 @@ export default function OpponentDetail({
   isPC,
   tabIdx,
   modalsOpen,
+  confirmAction,
+  setConfirmAction,
   T,
   cd,
   btnBase,
@@ -58,6 +60,13 @@ export default function OpponentDetail({
   const analysisRef = useRef(null);
   const memoRef = useRef(null);
 
+  const changeMyCharFromPost = useCallback(() => {
+    saveFreeMemo();
+    setShowOppPicker(false);
+    setShowMyPicker(true);
+    setPostRecord(false);
+  }, [saveFreeMemo, setShowOppPicker, setShowMyPicker, setPostRecord]);
+
   const freeShortcutActions = useMemo(() => ({
     recordWin: () => recordMatch("win"),
     recordLose: () => recordMatch("lose"),
@@ -65,13 +74,15 @@ export default function OpponentDetail({
     openOppPicker: () => { setShowMyPicker(false); setShowOppPicker(true); },
     closeMyPicker: () => setShowMyPicker(false),
     closeOppPicker: () => setShowOppPicker(false),
+    closeConfirm: () => setConfirmAction && setConfirmAction(null),
     selectRecentOpp: (c) => setOppChar(c),
     selectStage: (id) => setSelectedStage(selectedStage === id ? null : id),
     rematch: () => { saveFreeMemo(); setPostRecord(false); },
     changeOpp: () => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); },
+    changeMyChar: changeMyCharFromPost,
     focusMemo: () => { memoRef.current?.focus(); },
     goBack: () => { setSelectedOpponent(null); setPostRecord(false); },
-  }), [recordMatch, setShowMyPicker, setShowOppPicker, setOppChar, setSelectedStage, selectedStage, saveFreeMemo, setPostRecord, setSelectedOpponent]);
+  }), [recordMatch, setShowMyPicker, setShowOppPicker, setOppChar, setSelectedStage, selectedStage, saveFreeMemo, setPostRecord, setSelectedOpponent, setConfirmAction, changeMyCharFromPost]);
 
   useFreeKeyboardShortcuts({
     isPC,
@@ -81,6 +92,7 @@ export default function OpponentDetail({
     oppChar,
     showMyPicker,
     showOppPicker,
+    confirmAction,
     recOpp,
     actions: freeShortcutActions,
   });
@@ -376,6 +388,10 @@ export default function OpponentDetail({
             <button onClick={() => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); }} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>
               {t("free.changeChar")}
               {isPC && <KeyHint keyLabel="C" T={T} />}
+            </button>
+            <button onClick={changeMyCharFromPost} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>
+              {t("battle.changeChar")}
+              {isPC && <KeyHint keyLabel="9" T={T} />}
             </button>
           </div>
         </div>

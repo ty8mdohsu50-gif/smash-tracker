@@ -9,6 +9,7 @@ export function useFreeKeyboardShortcuts({
   oppChar,
   showMyPicker,
   showOppPicker,
+  confirmAction,
   recOpp,
   actions,
 }) {
@@ -28,6 +29,7 @@ export function useFreeKeyboardShortcuts({
         tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || e.target.isContentEditable;
 
       if (e.key === "Escape") {
+        if (confirmAction) { a.closeConfirm(); return; }
         if (showMyPicker) { a.closeMyPicker(); return; }
         if (showOppPicker) { a.closeOppPicker(); return; }
         if (inTextField) return;
@@ -38,7 +40,8 @@ export function useFreeKeyboardShortcuts({
       if (inTextField) return;
       if (tag === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (showMyPicker || showOppPicker) return;
+      // Block all other shortcuts while a picker or confirm dialog is open
+      if (showMyPicker || showOppPicker || confirmAction) return;
 
       if (e.shiftKey && !postRecord) {
         const codeMatch = e.code.match(/^Digit([1-8])$/);
@@ -60,6 +63,7 @@ export function useFreeKeyboardShortcuts({
         if (key === "n") { e.preventDefault(); a.rematch(); }
         else if (key === "c") { e.preventDefault(); a.changeOpp(); }
         else if (key === "m") { e.preventDefault(); a.focusMemo(); }
+        else if (code === "Digit9") { e.preventDefault(); a.changeMyChar(); }
       } else {
         if (key === "w" && myChar && oppChar) { a.recordWin(); }
         else if (key === "l" && myChar && oppChar) { a.recordLose(); }
@@ -78,5 +82,5 @@ export function useFreeKeyboardShortcuts({
     // current) so we don't resubscribe the listener on every render
     // when the parent passes a fresh action object.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPC, isActive, postRecord, myChar, oppChar, showMyPicker, showOppPicker, recOpp]);
+  }, [isPC, isActive, postRecord, myChar, oppChar, showMyPicker, showOppPicker, confirmAction, recOpp]);
 }

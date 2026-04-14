@@ -99,7 +99,12 @@ export function useKeyboardShortcuts({
           else if (key === "e") a.endSession();
           else if (key === "m") { e.preventDefault(); a.focusMemo(); }
           else if (code === "Digit0") { e.preventDefault(); a.changeOpp(); }
-          else if (code === "Digit9") { e.preventDefault(); a.openMyPicker(); }
+          // Digit9 transitions back to setup (same as the existing
+          // "自キャラを変える" button). Previously it called
+          // openMyPicker, but the CharPicker is not rendered in
+          // postMatch JSX — the state flipped silently with no
+          // visible effect.
+          else if (code === "Digit9") { e.preventDefault(); a.changeChar(); }
           break;
 
         case "end":

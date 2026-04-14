@@ -42,6 +42,13 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       state.setPhase("battle");
       state.setResult(null);
     },
+    changeChar: () => {
+      state.saveMemo();
+      state.setOppChar("");
+      state.setShowOppPicker(false);
+      state.setPhase("setup");
+      state.setResult(null);
+    },
     endSession: () => {
       if (state.phase === "postMatch") state.saveMemo();
       state.setPhase("end");

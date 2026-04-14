@@ -32,6 +32,7 @@ const SECTIONS = (t, lang) => {
       keys: [
         { key: "N", desc: ja ? "同じ相手で続行" : "Continue same opponent" },
         { key: "C", desc: ja ? "相手キャラ変更" : "Change opponent" },
+        { key: "9", desc: ja ? "自キャラ変更（セットアップへ戻る）" : "Change my fighter (back to setup)" },
         { key: "M", desc: ja ? "メモにフォーカス" : "Focus memo" },
         { key: "Shift + 1-8", desc: ja ? "ステージ直接選択" : "Select stage directly" },
         { key: "E", desc: ja ? "セッション終了" : "End session" },
@@ -61,8 +62,9 @@ const SECTIONS = (t, lang) => {
         { key: "Shift + 1-8", desc: ja ? "ステージ直接選択" : "Select stage directly" },
         { key: "N", desc: ja ? "記録後：連戦" : "After record: rematch" },
         { key: "C", desc: ja ? "記録後：相手キャラ変更" : "After record: change opponent" },
+        { key: "9", desc: ja ? "記録後：自キャラ変更" : "After record: change my fighter" },
         { key: "M", desc: ja ? "記録後：メモにフォーカス" : "After record: focus memo" },
-        { key: "Esc", desc: ja ? "ピッカーを閉じる / 相手リストに戻る" : "Close picker / back to opponent list" },
+        { key: "Esc", desc: ja ? "確認ダイアログ / ピッカーを閉じる / 相手リストに戻る" : "Close confirm / picker / back to opponent list" },
       ],
     },
   ];
