@@ -33,7 +33,6 @@ export default function MobileBattle({ state, data, onSave, T }) {
     showOppPicker, setShowOppPicker,
     sharePopupText, setSharePopupText,
     sharePopupImage, setSharePopupImage,
-    toast, setToast,
     confirmAction, setConfirmAction,
     editingStageIdx, setEditingStageIdx,
     gGames, setGG,

@@ -1,13 +1,14 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import Toast from "../shared/Toast";
 import ConfirmDialog from "../shared/ConfirmDialog";
 import { useI18n } from "../../i18n/index.jsx";
+import { useToast } from "../../contexts/ToastContext";
 import { today, percentStr, recentChars } from "../../utils/format";
 import OpponentList from "./OpponentList";
 import OpponentDetail from "./OpponentDetail";
 
 export default function FreeMatchTab({ data, onSave, T, isPC, onBack, tabIdx, modalsOpen }) {
   const { t, lang } = useI18n();
+  const toast = useToast();
 
   const [selectedOpponent, setSelectedOpponentRaw] = useState(null);
   const setSelectedOpponent = (v) => {
@@ -32,7 +33,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack, tabIdx, mo
   const [lastResult, setLastResult] = useState(null);
   const [postRecord, setPostRecord] = useState(false);
   const [freeMemo, setFreeMemo] = useState("");
-  const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [expandedMatchup, setExpandedMatchup] = useState(null);
   const [editingStageMatch, setEditingStageMatch] = useState(null);
@@ -102,7 +102,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack, tabIdx, mo
     if (selectedStage) entry.stage = selectedStage;
     onSave({ ...data, freeMatches: [...freeMatches, entry] });
     setFreeMemo("");
-    setLastResult(result); setPostRecord(true); setToast(t("battle.toastRecorded"));
+    setLastResult(result); setPostRecord(true); toast.success(t("battle.toastRecorded"));
   };
 
   const updateFreeMatchStage = (match, newStage) => {
@@ -122,7 +122,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack, tabIdx, mo
 
   const overlays = (
     <>
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
       {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
     </>
   );

@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { fighterName } from "../constants/fighters";
 import { STAGES, stageName, stageImg } from "../constants/stages";
 import { useI18n } from "../i18n/index.jsx";
+import { useToast } from "../contexts/ToastContext";
 import {
   today,
   formatDateWithDay,
@@ -21,6 +22,7 @@ import {
 
 export function useBattleState({ data, onSave, T, isPC }) {
   const { t, lang } = useI18n();
+  const toast = useToast();
 
   // Phase: setup -> battle -> postMatch -> end
   const [phase, setPhase] = useState("setup");
@@ -33,7 +35,6 @@ export function useBattleState({ data, onSave, T, isPC }) {
   const [showOppPicker, setShowOppPicker] = useState(false);
   const [sharePopupText, setSharePopupText] = useState(null);
   const [sharePopupImage, setSharePopupImage] = useState(null);
-  const [toast, setToast] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [editingStageIdx, setEditingStageIdx] = useState(null);
 
@@ -208,7 +209,7 @@ export function useBattleState({ data, onSave, T, isPC }) {
 
     setLastRes(r);
     setMemo("");
-    setToast(t("battle.toastRecorded"));
+    toast.success(t("battle.toastRecorded"));
     setPhase("postMatch");
   };
 
@@ -331,7 +332,6 @@ export function useBattleState({ data, onSave, T, isPC }) {
     showOppPicker, setShowOppPicker,
     sharePopupText, setSharePopupText,
     sharePopupImage, setSharePopupImage,
-    toast, setToast,
     confirmAction, setConfirmAction,
     editingStageIdx, setEditingStageIdx,
     gGames, setGG,

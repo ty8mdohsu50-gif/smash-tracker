@@ -107,12 +107,38 @@ export function useCloudSync(user) {
     const onUnload = () => {
       if (localTimerRef.current) {
         clearTimeout(localTimerRef.current);
+        localTimerRef.current = null;
         flushLocal();
       }
+      if (cloudTimerRef.current) {
+        clearTimeout(cloudTimerRef.current);
+        cloudTimerRef.current = null;
+        flushCloud();
+      }
     };
+    // pagehide is the reliable signal on mobile Safari (and BFCache);
+    // beforeunload is desktop-only in practice. Listen to both so a
+    // pending debounce never strands user data on either platform.
+    window.addEventListener("pagehide", onUnload);
     window.addEventListener("beforeunload", onUnload);
-    return () => window.removeEventListener("beforeunload", onUnload);
-  }, [flushLocal]);
+    return () => {
+      window.removeEventListener("pagehide", onUnload);
+      window.removeEventListener("beforeunload", onUnload);
+    };
+  }, [flushLocal, flushCloud]);
+
+  useEffect(() => {
+    return () => {
+      if (localTimerRef.current) {
+        clearTimeout(localTimerRef.current);
+        flushLocal();
+      }
+      if (cloudTimerRef.current) {
+        clearTimeout(cloudTimerRef.current);
+        flushCloud();
+      }
+    };
+  }, [flushLocal, flushCloud]);
 
   return { data, saveData };
 }

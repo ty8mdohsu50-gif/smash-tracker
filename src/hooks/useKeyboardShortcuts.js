@@ -115,6 +115,7 @@ export function useKeyboardShortcuts({
     // actionsRef (always fresh), and the rest are values the handler
     // branches on. Adding every watched state variable would cause
     // redundant listener resubscription on each battle update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPC, isActive, phase, result, oppChar, recOpp,
       showMyPicker, showOppPicker, sharePopupText, confirmAction]);
 }

@@ -51,12 +51,15 @@ export default function RecentMatchList({
 
   return (
     <>
-      {visible.map((m, i) => {
+      {visible.map((m) => {
         const matchIdx = allMatches.indexOf(m);
         const isEditing = editingStageIdx === matchIdx;
         const isWin = m.result === "win";
         return (
-          <div key={i} style={{ padding: s.rowPadding, borderBottom: `1px solid ${T.inp}` }}>
+          <div
+            key={`${m.date}-${m.time}-${matchIdx}`}
+            style={{ padding: s.rowPadding, borderBottom: `1px solid ${T.inp}` }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: s.rowGap }}>
               <span
                 style={{

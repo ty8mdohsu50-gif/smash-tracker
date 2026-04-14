@@ -74,5 +74,9 @@ export function useFreeKeyboardShortcuts({
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // `actions` is intentionally read through actionsRef (always
+    // current) so we don't resubscribe the listener on every render
+    // when the parent passes a fresh action object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPC, isActive, postRecord, myChar, oppChar, showMyPicker, showOppPicker, recOpp]);
 }

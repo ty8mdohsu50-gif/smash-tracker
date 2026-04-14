@@ -33,7 +33,6 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
     showOppPicker, setShowOppPicker,
     sharePopupText, setSharePopupText,
     sharePopupImage, setSharePopupImage,
-    toast, setToast,
     confirmAction, setConfirmAction,
     editingStageIdx, setEditingStageIdx,
     gGames, setGG,

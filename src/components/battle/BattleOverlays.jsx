@@ -1,5 +1,4 @@
 import SharePopup from "../shared/SharePopup";
-import Toast from "../shared/Toast";
 import ConfirmDialog from "../shared/ConfirmDialog";
 import { useI18n } from "../../i18n/index.jsx";
 
@@ -8,7 +7,6 @@ export default function BattleOverlays({ state, T }) {
   const {
     sharePopupText, setSharePopupText,
     sharePopupImage, setSharePopupImage,
-    toast, setToast,
     confirmAction, setConfirmAction,
   } = state;
 
@@ -22,7 +20,6 @@ export default function BattleOverlays({ state, T }) {
           T={T}
         />
       )}
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
       {confirmAction && (
         <ConfirmDialog
           message={confirmAction.message}
