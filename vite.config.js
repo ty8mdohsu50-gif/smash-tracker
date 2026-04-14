@@ -8,4 +8,8 @@ export default defineConfig({
     open: true,
     host: true,
   },
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.{js,jsx}"],
+  },
 });
