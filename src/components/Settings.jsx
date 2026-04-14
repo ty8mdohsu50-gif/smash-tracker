@@ -310,18 +310,18 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
               }}
             >
               {[
-                { label: "日本 (JST)", tz: "Asia/Tokyo" },
-                { label: "韓国 (KST)", tz: "Asia/Seoul" },
-                { label: "中国/台湾/香港 (CST)", tz: "Asia/Shanghai" },
-                { label: "東南アジア (SGT)", tz: "Asia/Singapore" },
-                { label: "オーストラリア東部 (AEST)", tz: "Australia/Sydney" },
-                { label: "西ヨーロッパ (WET)", tz: "Europe/London" },
-                { label: "中央ヨーロッパ (CET)", tz: "Europe/Paris" },
-                { label: "米国東部 (EST)", tz: "America/New_York" },
-                { label: "米国中部 (CST)", tz: "America/Chicago" },
-                { label: "米国西部 (PST)", tz: "America/Los_Angeles" },
-                { label: "メキシコ (CDT)", tz: "America/Mexico_City" },
-                { label: "ブラジル (BRT)", tz: "America/Sao_Paulo" },
+                { label: t("common.timezones.tokyo"), tz: "Asia/Tokyo" },
+                { label: t("common.timezones.seoul"), tz: "Asia/Seoul" },
+                { label: t("common.timezones.shanghai"), tz: "Asia/Shanghai" },
+                { label: t("common.timezones.singapore"), tz: "Asia/Singapore" },
+                { label: t("common.timezones.sydney"), tz: "Australia/Sydney" },
+                { label: t("common.timezones.london"), tz: "Europe/London" },
+                { label: t("common.timezones.paris"), tz: "Europe/Paris" },
+                { label: t("common.timezones.newYork"), tz: "America/New_York" },
+                { label: t("common.timezones.chicago"), tz: "America/Chicago" },
+                { label: t("common.timezones.losAngeles"), tz: "America/Los_Angeles" },
+                { label: t("common.timezones.mexicoCity"), tz: "America/Mexico_City" },
+                { label: t("common.timezones.saoPaulo"), tz: "America/Sao_Paulo" },
               ].map(({ label, tz }) => (
                 <option key={tz} value={tz}>{label}</option>
               ))}
