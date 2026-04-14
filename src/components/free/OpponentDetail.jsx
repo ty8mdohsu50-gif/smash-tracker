@@ -1,5 +1,5 @@
 import { useRef, useMemo } from "react";
-import { Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import FighterIcon from "../shared/FighterIcon";
@@ -44,8 +44,6 @@ export default function OpponentDetail({
   deleteFreeMatch,
   saveFreeMemo,
   updateFreeMatchStage,
-  buildShareText,
-  doShare,
   isPC,
   T,
   cd,
@@ -324,9 +322,8 @@ export default function OpponentDetail({
       {/* Today's log */}
       {todayMs.length > 0 && (
         <div style={{ ...cd, padding: "12px 16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <div style={{ marginBottom: 8 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{t("free.todayRecord")}</span>
-            <button onClick={() => doShare(buildShareText(selectedOpponent, todayMs))} style={{ border: "none", background: T.inp, borderRadius: 8, padding: "3px 8px", fontSize: 11, fontWeight: 600, color: T.sub, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}><Share2 size={11} />{t("free.share")}</button>
           </div>
           {todayMs.slice().reverse().map((m, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 4 }}>
@@ -452,7 +449,6 @@ export default function OpponentDetail({
               {oppMs.length > 0 && <div style={{ fontSize: 12, color: "rgba(255,255,255,.7)" }}>{oppMs.length}{t("analysis.battles")} {totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
             </div>
           </div>
-          {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ ...btnBase, padding: "6px 14px", background: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.8)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}><Share2 size={12} />{t("free.share")}</button>}
         </div>
 
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -477,7 +473,6 @@ export default function OpponentDetail({
             {oppMs.length > 0 && <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)" }}>{oppMs.length}{t("analysis.battles")} {totalW}W {totalL}L ({percentStr(totalW, oppMs.length)})</div>}
           </div>
         </div>
-        {oppMs.length > 0 && <button onClick={() => doShare(buildShareText(selectedOpponent, oppMs))} style={{ border: "none", background: "rgba(255,255,255,.15)", borderRadius: 8, padding: "4px 8px", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}><Share2 size={10} />{t("free.share")}</button>}
       </div>
 
       {battleArea}

@@ -35,9 +35,6 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
   const links = getShareLinks(text);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
-  // Default on when the caller provides an image. Stays enabled
-  // across renders unless the user explicitly turns it off.
-  const [includeImage, setIncludeImage] = useState(Boolean(imageBlob));
 
   const [imageUrl, setImageUrl] = useState(null);
   useEffect(() => {
@@ -65,21 +62,11 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
   };
 
   const nativeShareCapable = typeof navigator !== "undefined" && typeof navigator.share === "function";
-  const canShareWithImage = imageBlob && typeof navigator !== "undefined" && typeof navigator.canShare === "function" && (() => {
-    try {
-      const file = new File([imageBlob], "test.png", { type: "image/png" });
-      return navigator.canShare({ files: [file] });
-    } catch (_) { return false; }
-  })();
 
   const nativeShare = async () => {
+    if (!nativeShareCapable) return;
     try {
-      if (includeImage && canShareWithImage && imageBlob) {
-        const file = new File([imageBlob], "smash-tracker.png", { type: "image/png" });
-        await navigator.share({ files: [file], text });
-      } else if (nativeShareCapable) {
-        await navigator.share({ text });
-      }
+      await navigator.share({ text });
     } catch (_) {
       /* cancelled */
     }
@@ -112,53 +99,21 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
           {t("common.share")}
         </div>
 
-        {/* Image preview + include toggle */}
-        {imageBlob && (
-          <div style={{ marginBottom: 14 }}>
-            <div
-              style={{
-                borderRadius: 12,
-                overflow: "hidden",
-                border: `1px solid ${T.brd}`,
-                opacity: includeImage ? 1 : 0.4,
-                transition: "opacity .15s ease",
-                position: "relative",
-              }}
-            >
-              {imageUrl && <img src={imageUrl} alt="" style={{ width: "100%", display: "block" }} />}
-            </div>
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                marginTop: 10,
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: T.inp,
-                border: `1px solid ${includeImage ? T.accentBorder : T.brd}`,
-                cursor: "pointer",
-                userSelect: "none",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={includeImage}
-                onChange={(e) => setIncludeImage(e.target.checked)}
-                style={{ width: 16, height: 16, accentColor: T.accent, cursor: "pointer" }}
-              />
-              <span style={{ fontSize: 13, fontWeight: 700, color: T.text, flex: 1 }}>
-                {t("share.includeImage")}
-              </span>
-              <span style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>
-                {includeImage ? t("share.on") : t("share.off")}
-              </span>
-            </label>
+        {imageBlob && imageUrl && (
+          <div
+            style={{
+              borderRadius: 12,
+              overflow: "hidden",
+              border: `1px solid ${T.brd}`,
+              marginBottom: 14,
+            }}
+          >
+            <img src={imageUrl} alt="" style={{ width: "100%", display: "block" }} />
           </div>
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
-          {imageBlob && includeImage && (
+          {imageBlob && (
             <button onClick={downloadImage} style={{ ...btnBase, background: T.accent, color: "#fff" }}>
               <DownloadIcon />
               {saved ? t("battle.copied") : t("common.saveImage")}
@@ -171,9 +126,7 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
               style={{ ...btnBase, background: "#5856D6", color: "#fff" }}
             >
               <ShareDeviceIcon />
-              {includeImage && canShareWithImage
-                ? t("common.shareWithImage")
-                : t("common.shareText")}
+              {t("common.shareText")}
             </button>
           )}
 
@@ -199,15 +152,6 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
             {copied ? t("battle.copied") : t("battle.copyText")}
           </button>
         </div>
-
-        {/* Hint about X/LINE and image attachment — URL params don't
-            carry files, so the user needs to manually attach the
-            saved image if they want it on these networks. */}
-        {imageBlob && includeImage && (
-          <div style={{ fontSize: 10, color: T.dim, textAlign: "center", marginBottom: 4 }}>
-            {t("share.externalHint")}
-          </div>
-        )}
 
         <button
           onClick={onClose}

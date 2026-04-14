@@ -1,5 +1,4 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import SharePopup from "../shared/SharePopup";
 import Toast from "../shared/Toast";
 import ConfirmDialog from "../shared/ConfirmDialog";
 import { useI18n } from "../../i18n/index.jsx";
@@ -29,7 +28,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
   const [showMyPicker, setShowMyPicker] = useState(false);
   const [showOppPicker, setShowOppPicker] = useState(false);
   const [newOpponentName, setNewOpponentName] = useState("");
-  const [sharePopupText, setSharePopupText] = useState(null);
   const [showAddInput, setShowAddInput] = useState(false);
   const [lastResult, setLastResult] = useState(null);
   const [postRecord, setPostRecord] = useState(false);
@@ -118,27 +116,12 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
     setEditingStageMatch(null);
   };
 
-  const buildShareText = (opp, matchList) => {
-    const w = matchList.filter((m) => m.result === "win").length;
-    const l = matchList.length - w;
-    const rate = matchList.length > 0 ? Math.round((w / matchList.length) * 100) : 0;
-    const lines = [`【SMASH TRACKER】${t("free.freeMatch")} vs ${opp}`, `${w}W ${l}L（${t("battle.winRate")} ${rate}%）`];
-    lines.push("", "#スマブラ #SmashTracker", "https://smash-tracker.pages.dev/");
-    return lines.join("\n");
-  };
-
-  const doShare = async (text) => {
-    if (navigator.share) { try { await navigator.share({ text }); return; } catch (_) { /* */ } }
-    setSharePopupText(text);
-  };
-
   // UI helpers
   const cd = { background: T.card, borderRadius: 16, border: `1px solid ${T.brd}`, boxShadow: T.sh, padding: "16px 18px", marginBottom: 12, transition: "box-shadow .2s ease" };
   const btnBase = { border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", transition: "all .15s ease", fontFamily: "inherit" };
 
   const overlays = (
     <>
-      {sharePopupText && <SharePopup text={sharePopupText} onClose={() => setSharePopupText(null)} T={T} />}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
       {confirmAction && <ConfirmDialog message={confirmAction.message} confirmLabel={t("history.delete")} cancelLabel={t("settings.cancel")} onConfirm={confirmAction.onConfirm} onCancel={() => setConfirmAction(null)} T={T} />}
     </>
@@ -203,8 +186,6 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
       deleteFreeMatch={deleteFreeMatch}
       saveFreeMemo={saveFreeMemo}
       updateFreeMatchStage={updateFreeMatchStage}
-      buildShareText={buildShareText}
-      doShare={doShare}
       isPC={isPC}
       T={T}
       cd={cd}
