@@ -380,19 +380,21 @@ export default function OpponentDetail({
               </span>
             )}
           </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...btnBase, flex: 2, padding: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...btnBase, padding: 14, background: T.accentGrad, color: "#fff", fontSize: 15, fontWeight: 800, boxShadow: T.accentGlow }}>
               {t("free.rematch")}
               {isPC && <KeyHint keyLabel="N" T={T} />}
             </button>
-            <button onClick={() => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); }} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>
-              {t("free.changeChar")}
-              {isPC && <KeyHint keyLabel="C" T={T} />}
-            </button>
-            <button onClick={changeMyCharFromPost} style={{ ...btnBase, flex: 1, padding: 14, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>
-              {t("battle.changeChar")}
-              {isPC && <KeyHint keyLabel="9" T={T} />}
-            </button>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); }} style={{ ...btnBase, flex: 1, padding: 12, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>
+                {t("free.changeChar")}
+                {isPC && <KeyHint keyLabel="C" T={T} />}
+              </button>
+              <button onClick={changeMyCharFromPost} style={{ ...btnBase, flex: 1, padding: 12, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, border: `1px solid ${T.brd}` }}>
+                {t("battle.changeChar")}
+                {isPC && <KeyHint keyLabel="9" T={T} />}
+              </button>
+            </div>
           </div>
         </div>
       )}

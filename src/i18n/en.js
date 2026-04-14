@@ -339,7 +339,7 @@ export default {
     loseLabel: "L",
     matches: " matches",
     rematch: "Rematch",
-    changeChar: "Change fighter",
+    changeChar: "Change opponent",
     battle: "Battle",
     analysis: "Analysis",
     winRateTrend: "Win Rate Trend",

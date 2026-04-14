@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useMemo } from "react";
 import FreeMatchTab from "../free/FreeMatchTab";
 import MobileBattle from "./MobileBattle";
 import PCBattle from "./PCBattle";
@@ -14,7 +14,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const mode = battleMode || "ranked";
   const setMode = setBattleMode || (() => {});
 
-  const state = useBattleState({ data, onSave, T, isPC });
+  const state = useBattleState({ data, onSave, isPC });
   const memoRef = useRef(null);
   const stageRef = useRef(null);
   const powerRef = useRef(null);
@@ -24,7 +24,12 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   // must never leak into the free flow.
   const isActive = tabIdx === 0 && !modalsOpen && mode === "ranked";
 
-  const actions = useCallback(() => ({
+  // Note: state changes on every render, so this useMemo doesn't
+  // actually skip recomputation — but it expresses intent and keeps
+  // the action object's identity stable within a single render.
+  // The downstream useKeyboardShortcuts hook reads this through a
+  // ref (actionsRef) so stale closures aren't a concern.
+  const actions = useMemo(() => ({
     selectRes: state.selectRes,
     startBattle: state.startBattle,
     continueSame: () => {
@@ -46,6 +51,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       state.saveMemo();
       state.setOppChar("");
       state.setShowOppPicker(false);
+      state.setShowMyPicker(false);
       state.setPhase("setup");
       state.setResult(null);
     },
@@ -88,7 +94,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     closeMyPicker: () => { state.setShowMyPicker(false); },
     closeOppPicker: () => { state.setShowOppPicker(false); state.setResult(null); },
     closeShare: () => { state.setSharePopupText(null); state.setSharePopupImage(null); },
-  }), [state])();
+  }), [state]);
 
   useKeyboardShortcuts({
     phase: state.phase,
@@ -96,8 +102,6 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     isActive,
     result: state.result,
     oppChar: state.oppChar,
-    myChar: state.myChar,
-    pStart: state.pStart,
     recOpp: state.recOpp,
     showMyPicker: state.showMyPicker,
     showOppPicker: state.showOppPicker,

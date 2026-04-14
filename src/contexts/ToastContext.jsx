@@ -52,6 +52,9 @@ function GlobalToast({ toast, onDismiss }) {
   };
   return (
     <div
+      role="status"
+      aria-live={toast.type === "error" ? "assertive" : "polite"}
+      aria-atomic="true"
       onClick={onDismiss}
       style={{
         position: "fixed",

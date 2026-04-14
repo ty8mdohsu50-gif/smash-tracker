@@ -1,26 +1,19 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { fighterName } from "../constants/fighters";
-import { STAGES, stageName, stageImg } from "../constants/stages";
+import { STAGES, stageName } from "../constants/stages";
 import { useI18n } from "../i18n/index.jsx";
 import { useToast } from "../contexts/ToastContext";
 import {
   today,
-  formatDateWithDay,
   formatDateLong,
-  formatDateShort,
-  formatPower,
-  rawPower,
   numFormat,
   percentStr,
-  barColor,
-  formatTime,
-  blurOnEnter,
   getStreak,
   recentChars,
   lastEndPower,
 } from "../utils/format";
 
-export function useBattleState({ data, onSave, T, isPC }) {
+export function useBattleState({ data, onSave, isPC }) {
   const { t, lang } = useI18n();
   const toast = useToast();
 

@@ -339,7 +339,7 @@ export default {
     loseLabel: "負",
     matches: "戦",
     rematch: "連戦する",
-    changeChar: "キャラ変更",
+    changeChar: "相手キャラ変更",
     battle: "対戦",
     analysis: "分析",
     winRateTrend: "勝率推移",

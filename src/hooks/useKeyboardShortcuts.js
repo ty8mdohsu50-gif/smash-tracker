@@ -3,7 +3,7 @@ import { STAGES } from "../constants/stages";
 
 export function useKeyboardShortcuts({
   phase, isPC, isActive, result,
-  oppChar, myChar, pStart, recOpp,
+  oppChar, recOpp,
   showMyPicker, showOppPicker, sharePopupText, confirmAction,
   actions,
 }) {

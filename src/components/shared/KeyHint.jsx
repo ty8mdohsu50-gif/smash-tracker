@@ -1,6 +1,6 @@
 export default function KeyHint({ keyLabel, T }) {
   return (
-    <span style={{
+    <span aria-hidden="true" style={{
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
