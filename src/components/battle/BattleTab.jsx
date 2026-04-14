@@ -8,7 +8,7 @@ import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { useI18n } from "../../i18n/index.jsx";
 import { Monitor } from "lucide-react";
 
-export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattleMode, tabIdx, modalsOpen, broadcastMode, setBroadcastMode }) {
+export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattleMode, tabIdx, modalsOpen, broadcastMode, setBroadcastMode, onOpenOverlayBuilder }) {
   const { t } = useI18n();
 
   const mode = battleMode || "ranked";
@@ -135,6 +135,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       T={T}
       isPC={isPC}
       lang={state.lang}
+      onOpenBuilder={onOpenOverlayBuilder}
     />
   );
 

@@ -1,9 +1,11 @@
-import { Zap } from "lucide-react";
+import { Zap, Settings as SettingsIcon } from "lucide-react";
 import FighterIcon from "./FighterIcon";
 import { fighterName } from "../../constants/fighters";
 import { percentStr, numFormat } from "../../utils/format";
+import { useI18n } from "../../i18n/index.jsx";
 
-export default function BroadcastBar({ myChar, tW, tL, winRate, streak, pwrDelta, T, isPC, lang }) {
+export default function BroadcastBar({ myChar, tW, tL, winRate, streak, pwrDelta, T, isPC, lang, onOpenBuilder }) {
+  const { t } = useI18n();
   const total = tW + tL;
   const winColor = T.winBright;
   const loseColor = T.loseBright;
@@ -69,10 +71,39 @@ export default function BroadcastBar({ myChar, tW, tL, winRate, streak, pwrDelta
         </div>
       )}
 
-      {/* Live indicator */}
-      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#EF4444", animation: "pulse 2s infinite" }} />
-        <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>LIVE</span>
+      {/* Live indicator + OBS builder shortcut */}
+      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#EF4444", animation: "pulse 2s infinite" }} />
+          <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>LIVE</span>
+        </div>
+        {onOpenBuilder && (
+          <button
+            type="button"
+            onClick={onOpenBuilder}
+            aria-label={t("broadcast.builder.title")}
+            title={t("broadcast.builder.title")}
+            style={{
+              border: "none",
+              background: "rgba(255,255,255,0.08)",
+              borderRadius: 8,
+              padding: "5px 8px",
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              color: "rgba(255,255,255,0.85)",
+              fontSize: 10,
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "background .15s ease",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.18)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+          >
+            <SettingsIcon size={11} strokeWidth={2.5} />
+            {isPC && <span style={{ letterSpacing: 0.5 }}>OBS</span>}
+          </button>
+        )}
       </div>
     </div>
   );
