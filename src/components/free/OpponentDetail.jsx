@@ -6,10 +6,12 @@ import KeyHint from "../shared/KeyHint";
 import Chart from "../shared/Chart";
 import OpponentCalendar from "./OpponentCalendar";
 import MatchupGrid from "./MatchupGrid";
+import StageStatsGrid from "./StageStatsGrid";
+import WeeklyProgress from "./WeeklyProgress";
 import { fighterName, shortName, FIGHTERS } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
-import { today, formatDate, formatTime, percentStr, barColor } from "../../utils/format";
+import { today, formatDate, formatTime, percentStr, barColor, getStreak } from "../../utils/format";
 import { useFreeKeyboardShortcuts } from "../../hooks/useFreeKeyboardShortcuts";
 
 export default function OpponentDetail({
@@ -177,6 +179,10 @@ export default function OpponentDetail({
   const todayL = todayMs.length - todayW;
   const totalW = oppMs.filter((m) => m.result === "win").length;
   const totalL = oppMs.length - totalW;
+
+  // Recent form: last 10 matches as dots + streak badge from end
+  const recentForm = useMemo(() => oppMs.slice(-10), [oppMs]);
+  const oppStreak = useMemo(() => getStreak(oppMs), [oppMs]);
 
   const noteKey = myChar && oppChar ? `${myChar}|${oppChar}` : null;
 
@@ -364,10 +370,52 @@ export default function OpponentDetail({
       </div>
 
       {/* Summary */}
-      <div style={{ ...cd, display: "flex", padding: "12px 10px", textAlign: "center" }}>
-        <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div><div style={{ fontSize: 20, fontWeight: 900, color: T.text, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>{oppMs.length}</div></div>
-        <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div><div style={{ fontSize: 20, fontWeight: 900, color: oppMs.length > 0 ? barColor(totalW / oppMs.length) : T.dim, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>{oppMs.length > 0 ? percentStr(totalW, oppMs.length) : "-"}</div></div>
-        <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div><div style={{ fontSize: 20, fontWeight: 900, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}><span style={{ color: T.win }}>{totalW}</span><span style={{ color: T.dimmer, fontSize: 12, margin: "0 2px" }}>:</span><span style={{ color: T.lose }}>{totalL}</span></div></div>
+      <div style={{ ...cd, padding: "12px 10px" }}>
+        <div style={{ display: "flex", textAlign: "center" }}>
+          <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div><div style={{ fontSize: 20, fontWeight: 900, color: T.text, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>{oppMs.length}</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winRate")}</div><div style={{ fontSize: 20, fontWeight: 900, color: oppMs.length > 0 ? barColor(totalW / oppMs.length) : T.dim, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}>{oppMs.length > 0 ? percentStr(totalW, oppMs.length) : "-"}</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.winLoss")}</div><div style={{ fontSize: 20, fontWeight: 900, marginTop: 3, fontFamily: "'Chakra Petch', sans-serif" }}><span style={{ color: T.win }}>{totalW}</span><span style={{ color: T.dimmer, fontSize: 12, margin: "0 2px" }}>:</span><span style={{ color: T.lose }}>{totalL}</span></div></div>
+        </div>
+        {recentForm.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12, paddingTop: 10, borderTop: `1px solid ${T.inp}`, gap: 10 }}>
+            <span style={{ fontSize: 10, color: T.dim, fontWeight: 700, letterSpacing: 0.5, flexShrink: 0 }}>
+              {t("free.recentForm")}
+            </span>
+            <div style={{ display: "flex", gap: 4, flex: 1, justifyContent: "center", overflowX: "auto" }}>
+              {recentForm.map((m, i) => (
+                <span
+                  key={`${m.date}-${m.time}-${i}`}
+                  title={`${m.result === "win" ? "W" : "L"} ${formatDate(m.date)} ${formatTime(m.time)}`}
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 4,
+                    background: m.result === "win" ? T.win : T.lose,
+                    flexShrink: 0,
+                  }}
+                />
+              ))}
+            </div>
+            {oppStreak.count >= 2 && (
+              <span
+                style={{
+                  flexShrink: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 3,
+                  padding: "3px 9px",
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  background: oppStreak.type === "win" ? T.winBg : T.loseBg,
+                  color: oppStreak.type === "win" ? T.win : T.lose,
+                }}
+              >
+                {oppStreak.type === "win" ? "🔥" : "❄️"} {oppStreak.count}{oppStreak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose")}
+              </span>
+            )}
+          </div>
+        )}
       </div>
       {/* Win rate trend */}
       {(winRatePoints.length > 1 || trendChars.length > 0) && (
@@ -479,6 +527,16 @@ export default function OpponentDetail({
           />
         </div>
       )}
+
+      {/* Stage performance */}
+      <div style={{ ...cd, padding: "14px 16px" }}>
+        <StageStatsGrid matches={oppMs} T={T} />
+      </div>
+
+      {/* Weekly progress */}
+      <div style={{ ...cd, padding: "14px 16px" }}>
+        <WeeklyProgress matches={oppMs} T={T} />
+      </div>
 
       {/* Calendar */}
       <div style={{ ...cd, padding: "12px 14px" }}>
