@@ -115,11 +115,18 @@ export default function OpponentDetail({
     });
   }, [oppMs]);
 
+  // Rolling 10-match win-rate trend. We deliberately skip the first
+  // few matches: a window of 1 or 2 matches produces wild 0%/50%/100%
+  // swings that look like dramatic crashes on the chart but are just
+  // small-sample noise. Wait until we have at least 5 matches to
+  // include in the window.
   const winRatePoints = useMemo(() => {
-    if (oppMs.length < 2) return [];
+    if (oppMs.length < 5) return [];
     const pts = [];
-    for (let i = 0; i < oppMs.length; i++) {
-      const start = Math.max(0, i - 9);
+    const WINDOW = 10;
+    const MIN_SAMPLE = 5;
+    for (let i = MIN_SAMPLE - 1; i < oppMs.length; i++) {
+      const start = Math.max(0, i - (WINDOW - 1));
       const slice = oppMs.slice(start, i + 1);
       const w = slice.filter((m) => m.result === "win").length;
       pts.push({ date: `#${i + 1}`, value: Math.round((w / slice.length) * 100) });
@@ -338,7 +345,14 @@ export default function OpponentDetail({
       {winRatePoints.length > 1 && (
         <div style={{ ...cd, padding: "14px 16px" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("free.winRateTrend")}</div>
-          <Chart points={winRatePoints} T={T} />
+          <Chart
+            points={winRatePoints}
+            T={T}
+            yMin={0}
+            yMax={100}
+            yStep={25}
+            yFormat={(v) => `${Math.round(v)}%`}
+          />
         </div>
       )}
 

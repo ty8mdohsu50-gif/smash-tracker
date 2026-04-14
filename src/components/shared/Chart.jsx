@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { formatDateShort, formatTime } from "../../utils/format";
 
-export default function Chart({ points: pts, T, isToday }) {
+export default function Chart({ points: pts, T, isToday, yMin, yMax, yFormat, yStep }) {
   const [selected, setSelected] = useState(null);
 
   if (!pts || pts.length < 2) return null;
@@ -16,10 +16,16 @@ export default function Chart({ points: pts, T, isToday }) {
   const rawMn = Math.min(...vals);
   const rawMx = Math.max(...vals);
 
-  const niceStep = getNiceStep(rawMx - rawMn);
-  const mn = Math.floor(rawMn / niceStep) * niceStep;
-  const mx = Math.ceil(rawMx / niceStep) * niceStep;
+  // When yMin/yMax are passed (e.g. for win-rate charts that are
+  // bounded 0..100), use them verbatim. Otherwise auto-scale to the
+  // data range with nice round numbers — the right call for
+  // unbounded series like GSP that span wildly different magnitudes.
+  const fixedRange = yMin != null && yMax != null;
+  const niceStep = fixedRange ? (yStep ?? (yMax - yMin) / 4) : getNiceStep(rawMx - rawMn);
+  const mn = fixedRange ? yMin : Math.floor(rawMn / niceStep) * niceStep;
+  const mx = fixedRange ? yMax : Math.ceil(rawMx / niceStep) * niceStep;
   const rng = mx - mn || 1;
+  const formatY = yFormat || ((v) => Math.round(v).toLocaleString());
 
   const x = (i) => P.l + (i / (pts.length - 1 || 1)) * cW;
   const y = (v) => P.t + cH - ((v - mn) / rng) * cH;
@@ -28,14 +34,14 @@ export default function Chart({ points: pts, T, isToday }) {
   const lineColor = isUp ? T.win : T.lose;
 
   const grids = [];
-  for (let gv = mn; gv <= mx; gv += niceStep) {
+  for (let gv = mn; gv <= mx + 0.0001; gv += niceStep) {
     const gy = y(gv);
     grids.push(
-      <line key={`g${gv}`} x1={P.l} x2={W - P.r} y1={gy} y2={gy} stroke={T.inp} strokeWidth={0.5} strokeDasharray={gv === mn || gv === mx ? "0" : "4,4"} />,
+      <line key={`g${gv}`} x1={P.l} x2={W - P.r} y1={gy} y2={gy} stroke={T.inp} strokeWidth={0.5} strokeDasharray={gv === mn || gv >= mx - 0.0001 ? "0" : "4,4"} />,
     );
     grids.push(
       <text key={`gt${gv}`} x={P.l - 8} y={gy + 4} textAnchor="end" fontSize={11} fontWeight={500} fill={T.dim} fontFamily="'Chakra Petch', sans-serif">
-        {Math.round(gv).toLocaleString()}
+        {formatY(gv)}
       </text>,
     );
   }
@@ -144,7 +150,7 @@ export default function Chart({ points: pts, T, isToday }) {
           const d = pts[selected];
           const tx = x(selected);
           const ty = y(d.value) - 20;
-          const label = Math.round(d.value).toLocaleString();
+          const label = formatY(d.value);
           const labelW = label.length * 9 + 20;
           const clampedX = Math.max(P.l + labelW / 2, Math.min(W - P.r - labelW / 2, tx));
           return (
