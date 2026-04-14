@@ -32,33 +32,10 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const actions = useMemo(() => ({
     selectRes: state.selectRes,
     startBattle: state.startBattle,
-    continueSame: () => {
-      state.saveMemo();
-      state.setSelectedStage(null);
-      state.setPhase("battle");
-      state.setShowOppPicker(false);
-      state.setResult(null);
-    },
-    changeOpp: () => {
-      state.saveMemo();
-      state.setSelectedStage(null);
-      state.setOppChar("");
-      state.setShowOppPicker(true);
-      state.setPhase("battle");
-      state.setResult(null);
-    },
-    changeChar: () => {
-      state.saveMemo();
-      state.setOppChar("");
-      state.setShowOppPicker(false);
-      state.setShowMyPicker(false);
-      state.setPhase("setup");
-      state.setResult(null);
-    },
-    endSession: () => {
-      if (state.phase === "postMatch") state.saveMemo();
-      state.setPhase("end");
-    },
+    continueSame: state.continueSame,
+    changeOpp: state.changeOpp,
+    changeChar: state.changeChar,
+    endSession: state.endSession,
     goBack: () => {
       if (state.phase === "battle") {
         state.setPhase("setup");

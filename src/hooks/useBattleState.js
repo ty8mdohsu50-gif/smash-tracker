@@ -251,6 +251,40 @@ export function useBattleState({ data, onSave, isPC }) {
     if (!isPC) restoreScrollAfter(y);
   };
 
+  // Phase transitions invoked from button handlers and from the
+  // shortcut listener. Centralized so PCBattle, MobileBattle, and
+  // the keyboard hook all execute the exact same sequence.
+  const continueSame = () => {
+    saveMemo();
+    setSelectedStage(null);
+    setPhase("battle");
+    setShowOppPicker(false);
+    setResult(null);
+  };
+
+  const changeOpp = () => {
+    saveMemo();
+    setSelectedStage(null);
+    setOppChar("");
+    setShowOppPicker(true);
+    setPhase("battle");
+    setResult(null);
+  };
+
+  const changeChar = () => {
+    saveMemo();
+    setOppChar("");
+    setShowOppPicker(false);
+    setShowMyPicker(false);
+    setPhase("setup");
+    setResult(null);
+  };
+
+  const endSession = () => {
+    if (phase === "postMatch") saveMemo();
+    setPhase("end");
+  };
+
   const saveEndSession = (andShare, imageBlob = null) => {
     const d = JSON.parse(JSON.stringify(data));
     if (!d.daily) d.daily = {};
@@ -346,6 +380,7 @@ export function useBattleState({ data, onSave, isPC }) {
     switchCharPower, startBattle, recordMatch,
     selectRes, confirmOppAndRecord,
     deleteMatch, updateMatchStage, saveStage,
+    continueSame, changeOpp, changeChar, endSession,
     saveEndSession, buildShareText, buildAndShare,
   };
 }

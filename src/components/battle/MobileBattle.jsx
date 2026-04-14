@@ -5,6 +5,7 @@ import SessionCard from "../shared/SessionCard";
 import FighterIcon from "../shared/FighterIcon";
 import RecentMatchList from "./RecentMatchList";
 import BattleOverlays from "./BattleOverlays";
+import StageSelector from "./StageSelector";
 import { fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useSessionCard } from "../../hooks/useSessionCard";
@@ -52,6 +53,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
     switchCharPower, startBattle, recordMatch,
     selectRes, confirmOppAndRecord,
     deleteMatch, updateMatchStage, saveStage,
+    continueSame, changeOpp, changeChar, endSession,
     saveEndSession,
   } = state;
 
@@ -355,29 +357,13 @@ export default function MobileBattle({ state, data, onSave, T }) {
           </div>
 
           {/* Stage selection */}
-          <div style={{ ...cd, padding: "10px 14px", marginTop: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-              <span style={{ fontSize: 13 }}>{"\uD83D\uDDFA\uFE0F"}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-              {STAGES.map((s) => {
-                const active = selectedStage === s.id;
-                return (
-                  <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => { setSelectedStage(active ? null : s.id); }} style={{
-                    border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
-                    overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
-                    boxShadow: active ? T.accentGlow : "none",
-                  }}>
-                    <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
-                    <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
-                      {lang === "ja" ? s.jp : s.en}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <StageSelector
+            selectedStage={selectedStage}
+            onSelect={(id) => setSelectedStage(id)}
+            suppressPointerFocus={suppressPointerFocus}
+            T={T}
+            marginTop={10}
+          />
 
           {/* Char memo */}
           {myChar && (
@@ -433,38 +419,22 @@ export default function MobileBattle({ state, data, onSave, T }) {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12, animation: "slideUp .3s ease .3s both" }}>
-            <button onClick={() => { saveMemo(); setSelectedStage(null); setPhase("battle"); setShowOppPicker(false); setResult(null); }} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
-            <button onClick={() => { saveMemo(); setSelectedStage(null); setOppChar(""); setShowOppPicker(true); setPhase("battle"); setResult(null); }} style={{ width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 15, fontWeight: 700, transition: "all .15s ease" }}>{t("battle.changeOpp")}</button>
+            <button onClick={continueSame} style={{ width: "100%", padding: 20, border: "none", borderRadius: 14, background: T.accentGrad, color: "#fff", fontSize: 17, fontWeight: 800, boxShadow: T.accentGlow }}>{t("battle.continueSame")}</button>
+            <button onClick={changeOpp} style={{ width: "100%", padding: 16, border: `2px solid ${T.accent}`, borderRadius: 12, background: T.card, color: T.accent, fontSize: 15, fontWeight: 700, transition: "all .15s ease" }}>{t("battle.changeOpp")}</button>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => { saveMemo(); setOppChar(""); setShowOppPicker(false); setPhase("setup"); setResult(null); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{t("battle.changeChar")}</button>
-              <button onClick={() => { saveMemo(); setPhase("end"); }} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
+              <button onClick={changeChar} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.text, fontSize: 13, fontWeight: 600, transition: "all .15s ease" }}>{t("battle.changeChar")}</button>
+              <button onClick={endSession} style={{ flex: 1, padding: 14, border: `1px solid ${T.brd}`, borderRadius: 10, background: T.card, color: T.sub, fontSize: 13, fontWeight: 600 }}>{t("battle.endSession")}</button>
             </div>
           </div>
 
           {/* Stage selection (mobile) — placed after primary actions */}
-          <div style={{ ...cd, padding: "12px 16px", marginTop: 12, animation: "slideUp .2s ease .15s both" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-              <span style={{ fontSize: 13 }}>{"\uD83D\uDDFA\uFE0F"}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-              {STAGES.map((s) => {
-                const active = selectedStage === s.id;
-                return (
-                  <button key={s.id} type="button" onPointerDown={suppressPointerFocus} onClick={() => saveStage(active ? null : s.id)} style={{
-                    border: `2px solid ${active ? T.accent : T.brd}`, borderRadius: 8, padding: 0, background: "none",
-                    overflow: "hidden", cursor: "pointer", opacity: active ? 1 : 0.7, transition: "all .15s ease",
-                    boxShadow: active ? T.accentGlow : "none",
-                  }}>
-                    <img src={stageImg(s.id)} alt={s.jp} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
-                    <div style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? T.accent : T.sub, padding: "3px 4px", textAlign: "center", background: T.inp, lineHeight: 1.2 }}>
-                      {lang === "ja" ? s.jp : s.en}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <StageSelector
+            selectedStage={selectedStage}
+            onSelect={(id) => saveStage(id)}
+            suppressPointerFocus={suppressPointerFocus}
+            T={T}
+            marginTop={12}
+          />
         </div>
       )}
 
