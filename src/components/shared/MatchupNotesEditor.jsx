@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, Fragment } from "react";
 import { useI18n } from "../../i18n/index.jsx";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
+import { DAY_MS } from "../../constants/timings";
 
 const SECTIONS = ["flash", "gameplan", "stage"];
 const EMPTY_NOTE = { flash: "", gameplan: "", stage: "" };
@@ -11,10 +12,10 @@ export function needsReview(note, matches, charKey) {
   if (!hasContent) return false;
   const reviewed = note._lastReviewed;
   if (!reviewed) return true;
-  const daysSince = (Date.now() - reviewed) / 86400000;
+  const daysSince = (Date.now() - reviewed) / DAY_MS;
   const recentCount = matches?.filter((m) => m.oppChar === charKey).filter((m) => {
     const d = new Date(m.time || m.date);
-    return (Date.now() - d.getTime()) / 86400000 < 30;
+    return (Date.now() - d.getTime()) / DAY_MS < 30;
   }).length || 0;
   return recentCount <= 2 && daysSince > 14;
 }

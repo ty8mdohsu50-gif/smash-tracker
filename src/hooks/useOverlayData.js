@@ -2,6 +2,12 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { load, cloudLoad } from "../utils/storage";
 import { supabase } from "../lib/supabase";
 import { today, getStreak } from "../utils/format";
+import {
+  OVERLAY_POLL_AUTH_S,
+  OVERLAY_POLL_ANON_S,
+  OVERLAY_TIMER_TICK_MS,
+  OVERLAY_FLASH_MS,
+} from "../constants/timings";
 
 const clampNum = (v, min, max, fallback) => {
   const n = Number(v);
@@ -71,8 +77,8 @@ export function useOverlayData() {
   // Initial fetch + polling
   useEffect(() => {
     fetchData();
-    const pollMs = (params.poll || (userId ? 5 : 3)) * 1000;
-    const interval = setInterval(fetchData, pollMs);
+    const pollSeconds = params.poll || (userId ? OVERLAY_POLL_AUTH_S : OVERLAY_POLL_ANON_S);
+    const interval = setInterval(fetchData, pollSeconds * 1000);
     return () => clearInterval(interval);
   }, [fetchData, userId, params.poll]);
 
@@ -100,7 +106,7 @@ export function useOverlayData() {
   // Session timer tick (1 Hz) — only when timer module is active
   useEffect(() => {
     if (!params.modules.has("timer")) return;
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    const id = setInterval(() => setTick((t) => t + 1), OVERLAY_TIMER_TICK_MS);
     return () => clearInterval(id);
   }, [params.modules]);
 
@@ -150,7 +156,7 @@ export function useOverlayData() {
       const last = allMatches[count - 1];
       if (params.flash && last?.result) {
         setFlashState({ result: last.result, at: Date.now() });
-        setTimeout(() => setFlashState(null), 1400);
+        setTimeout(() => setFlashState(null), OVERLAY_FLASH_MS);
       }
     }
     prevCountRef.current = count;

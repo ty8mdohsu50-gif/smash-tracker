@@ -2,9 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { load, save, cloudLoad, cloudSave, migrateLocalToCloud } from "../utils/storage";
 import { useToast } from "../contexts/ToastContext";
 import { useI18n } from "../i18n/index.jsx";
-
-const CLOUD_DEBOUNCE_MS = 800;
-const LOCAL_DEBOUNCE_MS = 250;
+import { DEBOUNCE_LOCAL_MS, DEBOUNCE_CLOUD_MS } from "../constants/timings";
 
 export function useCloudSync(user) {
   const [data, setData] = useState(() => load());
@@ -95,11 +93,11 @@ export function useCloudSync(user) {
     pendingRef.current = d;
 
     if (localTimerRef.current) clearTimeout(localTimerRef.current);
-    localTimerRef.current = setTimeout(flushLocal, LOCAL_DEBOUNCE_MS);
+    localTimerRef.current = setTimeout(flushLocal, DEBOUNCE_LOCAL_MS);
 
     if (userRef.current) {
       if (cloudTimerRef.current) clearTimeout(cloudTimerRef.current);
-      cloudTimerRef.current = setTimeout(flushCloud, CLOUD_DEBOUNCE_MS);
+      cloudTimerRef.current = setTimeout(flushCloud, DEBOUNCE_CLOUD_MS);
     }
   }, [flushLocal, flushCloud]);
 
