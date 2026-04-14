@@ -1,10 +1,11 @@
 import { useRef, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
 import FighterIcon from "../shared/FighterIcon";
 import KeyHint from "../shared/KeyHint";
 import Chart from "../shared/Chart";
+import OpponentCalendar from "./OpponentCalendar";
+import MatchupGrid from "./MatchupGrid";
 import { fighterName, shortName, FIGHTERS } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
@@ -141,107 +142,6 @@ export default function OpponentDetail({
   const todayL = todayMs.length - todayW;
   const totalW = oppMs.filter((m) => m.result === "win").length;
   const totalL = oppMs.length - totalW;
-
-  // Calendar
-  const calendarView = (() => {
-    const [yStr, mStr] = calMonth.split("-");
-    const year = Number(yStr); const mo = parseInt(mStr) - 1;
-    const monthLabel = lang === "ja" ? `${year}${mo + 1}` : `${new Date(year, mo).toLocaleString("en", { month: "long" })} ${year}`;
-    const firstDay = new Date(year, mo, 1).getDay();
-    const daysInMonth = new Date(year, mo + 1, 0).getDate();
-    const startOffset = (firstDay + 6) % 7;
-    const todayStr = today();
-    const weekDays = t("heatmap.weekDays");
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const dotColor = (r) => r >= 0.6 ? T.win : r <= 0.4 ? T.lose : T.mid;
-
-    const monthDays = Object.entries(freeDailyMap).filter(([d]) => d.startsWith(calMonth));
-    const mW = monthDays.reduce((a, [, d]) => a + d.w, 0);
-    const mL = monthDays.reduce((a, [, d]) => a + d.l, 0);
-    const mT = mW + mL;
-
-    const selData = calDate ? freeDailyMap[calDate] : null;
-
-    return (
-      <div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-          <button onClick={() => { setCalMonth(`${new Date(year, mo - 1, 1).getFullYear()}-${String(new Date(year, mo - 1, 1).getMonth() + 1).padStart(2, "0")}`); setCalDate(null); }}
-            style={{ border: "none", background: "transparent", color: T.text, padding: 4, cursor: "pointer" }}><ChevronLeft size={18} /></button>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{monthLabel}</span>
-            {calMonth !== currentMonth && <button onClick={() => { setCalMonth(currentMonth); setCalDate(null); }} style={{ border: `1px solid ${T.brd}`, background: T.card, color: T.sub, fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 6, cursor: "pointer" }}>{t("analysis.thisMonth")}</button>}
-          </div>
-          <button onClick={() => { setCalMonth(`${new Date(year, mo + 1, 1).getFullYear()}-${String(new Date(year, mo + 1, 1).getMonth() + 1).padStart(2, "0")}`); setCalDate(null); }}
-            style={{ border: "none", background: "transparent", color: T.text, padding: 4, cursor: "pointer" }}><ChevronRight size={18} /></button>
-        </div>
-        {mT > 0 && (
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 2px 4px", fontSize: 11, color: T.dim }}>
-            <span>{mT}{t("analysis.battles")}</span>
-            <span style={{ fontWeight: 800, fontSize: 12 }}><span style={{ color: T.win }}>{mW}</span><span style={{ color: T.dimmer }}> : </span><span style={{ color: T.lose }}>{mL}</span></span>
-            <span style={{ fontWeight: 700, fontSize: 11, color: barColor(mT ? mW / mT : 0) }}>{percentStr(mW, mT)}</span>
-          </div>
-        )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, textAlign: "center" }}>
-          {weekDays.map((d, i) => <div key={`h${i}`} style={{ fontSize: 10, fontWeight: 600, color: T.dim, padding: "2px 0" }}>{d}</div>)}
-          {Array.from({ length: startOffset }).map((_, i) => <div key={`e${i}`} />)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
-            const dd = freeDailyMap[dateStr]; const isFuture = dateStr > todayStr;
-            const isSel = calDate === dateStr; const isToday = dateStr === todayStr;
-            const r = dd ? dd.w / (dd.w + dd.l) : 0;
-            return (
-              <div key={day} onClick={() => { if (dd) setCalDate(isSel ? null : dateStr); }}
-                style={{ padding: "4px 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRadius: 8, cursor: dd ? "pointer" : "default",
-                  background: isSel ? T.accentSoft : "transparent", border: isSel ? `2px solid ${T.accent}` : isToday ? `1px solid ${T.dimmer}` : "1px solid transparent", opacity: isFuture ? 0.3 : 1 }}>
-                <span style={{ fontSize: 11, fontWeight: isToday ? 800 : 500, color: isSel ? T.accent : isToday ? T.text : T.sub, lineHeight: 1 }}>{day}</span>
-                {dd && <div style={{ width: 5, height: 5, borderRadius: 3, background: dotColor(r), marginTop: 2 }} />}
-              </div>
-            );
-          })}
-        </div>
-        {selData && (
-          <div style={{ marginTop: 8, borderTop: `1px solid ${T.inp}`, paddingTop: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{formatDate(calDate)}</span>
-              <span style={{ fontSize: 13, fontWeight: 800 }}><span style={{ color: T.win }}>{selData.w}W</span> <span style={{ color: T.lose }}>{selData.l}L</span> <span style={{ color: barColor(selData.w / (selData.w + selData.l)) }}>{percentStr(selData.w, selData.w + selData.l)}</span></span>
-            </div>
-            <div style={{ maxHeight: 200, overflowY: "auto" }}>
-              {selData.matches.slice().reverse().map((m, i) => {
-                const isEditing = editingStageMatch && editingStageMatch.time === m.time && editingStageMatch.date === m.date;
-                return (
-                  <div key={i} style={{ paddingBottom: 4 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 32 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                      <FighterIcon name={m.myChar} size={18} /><span style={{ fontSize: 11, color: T.sub }}>{shortName(m.myChar, lang)}</span>
-                      <span style={{ fontSize: 10, color: T.dim }}>vs</span>
-                      <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
-                      {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 4px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-                      <span style={{ fontSize: 10, color: T.dim }}>{formatTime(m.time)}</span>
-                      <button onClick={() => setEditingStageMatch(isEditing ? null : m)} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "1px 4px", borderRadius: 3, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
-                      <button onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
-                    </div>
-                    {isEditing && (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 3, marginBottom: 2 }}>
-                        {STAGES.map((st) => (
-                          <div key={st.id} onClick={() => updateFreeMatchStage(m, m.stage === st.id ? null : st.id)}
-                            style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
-                            <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 22, objectFit: "cover", borderRadius: 4 }} />
-                            <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  })();
 
   const noteKey = myChar && oppChar ? `${myChar}|${oppChar}` : null;
 
@@ -445,72 +345,34 @@ export default function OpponentDetail({
       {/* Matchups */}
       {matchups.length > 0 && (
         <div style={{ ...cd, padding: "14px 16px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 10 }}>{t("free.matchupStats")}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-            {matchups.map((mu) => {
-              const r = mu.w / (mu.w + mu.l);
-              const k = `${mu.myChar}|${mu.oppChar}`;
-              return (
-                <div key={k} onClick={() => setExpandedMatchup(expandedMatchup === k ? null : k)}
-                  style={{ textAlign: "center", cursor: "pointer", padding: "6px 2px", borderRadius: 10, background: expandedMatchup === k ? T.accentSoft : "transparent", border: expandedMatchup === k ? `1.5px solid ${T.accentBorder}` : "1.5px solid transparent", transition: "all .15s" }}>
-                  <div style={{ display: "flex", justifyContent: "center", gap: 2, marginBottom: 2 }}>
-                    <FighterIcon name={mu.myChar} size={20} />
-                    <FighterIcon name={mu.oppChar} size={20} />
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: barColor(r), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(mu.w, mu.w + mu.l)}</div>
-                  <div style={{ fontSize: 9, color: T.dim }}>{mu.w}W {mu.l}L</div>
-                </div>
-              );
-            })}
-          </div>
-          {/* Expanded matchup detail */}
-          {expandedMatchup && (() => {
-            const mu = matchups.find((m) => `${m.myChar}|${m.oppChar}` === expandedMatchup);
-            if (!mu) return null;
-            return (
-              <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                  <FighterIcon name={mu.myChar} size={22} /><span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(mu.myChar, lang)}</span>
-                  <span style={{ fontSize: 10, color: T.dim }}>vs</span>
-                  <FighterIcon name={mu.oppChar} size={22} /><span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(mu.oppChar, lang)}</span>
-                  <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 800, color: barColor(mu.w / (mu.w + mu.l)), fontFamily: "'Chakra Petch', sans-serif" }}>{percentStr(mu.w, mu.w + mu.l)}</span>
-                </div>
-                <div style={{ maxHeight: 220, overflowY: "auto" }}>
-                  {mu.matches.slice().reverse().map((m, i) => {
-                    const isEditing = editingStageMatch && editingStageMatch.time === m.time && editingStageMatch.date === m.date;
-                    return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 0", borderBottom: `1px solid ${T.inp}`, flexWrap: isEditing ? "wrap" : "nowrap" }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: m.result === "win" ? T.win : T.lose, minWidth: 30 }}>{m.result === "win" ? "WIN" : "LOSE"}</span>
-                        <span style={{ fontSize: 10, color: T.dim }}>{formatDate(m.date)}</span>
-                        {m.stage && !isEditing && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 5px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
-                        <span style={{ fontSize: 10, color: T.dim, marginLeft: "auto" }}>{formatTime(m.time)}</span>
-                        <button onClick={(e) => { e.stopPropagation(); setEditingStageMatch(isEditing ? null : m); }} style={{ border: "none", background: T.inp, color: T.sub, fontSize: 9, padding: "2px 5px", borderRadius: 4, cursor: "pointer", flexShrink: 0 }}>{isEditing ? "✓" : "🗺"}</button>
-                        <button onClick={(e) => { e.stopPropagation(); deleteFreeMatch(m); }} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 13, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
-                        {isEditing && (
-                          <div style={{ width: "100%", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, marginTop: 4, marginBottom: 4 }}>
-                            {STAGES.map((st) => (
-                              <div key={st.id} onClick={(e) => { e.stopPropagation(); updateFreeMatchStage(m, m.stage === st.id ? null : st.id); }}
-                                style={{ textAlign: "center", cursor: "pointer", borderRadius: 6, border: m.stage === st.id ? `2px solid ${T.accent}` : `1px solid ${T.brd}`, padding: 2, opacity: m.stage === st.id ? 1 : 0.6 }}>
-                                <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 24, objectFit: "cover", borderRadius: 4 }} />
-                                <div style={{ fontSize: 8, color: T.text, marginTop: 1 }}>{stageName(st.id, lang)}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
+          <MatchupGrid
+            matchups={matchups}
+            expandedMatchup={expandedMatchup}
+            setExpandedMatchup={setExpandedMatchup}
+            editingStageMatch={editingStageMatch}
+            setEditingStageMatch={setEditingStageMatch}
+            deleteFreeMatch={deleteFreeMatch}
+            updateFreeMatchStage={updateFreeMatchStage}
+            T={T}
+          />
         </div>
       )}
 
       {/* Calendar */}
       <div style={{ ...cd, padding: "12px 14px" }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>{t("analysis.dailyRecord")}</div>
-        {calendarView}
+        <OpponentCalendar
+          freeDailyMap={freeDailyMap}
+          calMonth={calMonth}
+          setCalMonth={setCalMonth}
+          calDate={calDate}
+          setCalDate={setCalDate}
+          editingStageMatch={editingStageMatch}
+          setEditingStageMatch={setEditingStageMatch}
+          deleteFreeMatch={deleteFreeMatch}
+          updateFreeMatchStage={updateFreeMatchStage}
+          T={T}
+        />
       </div>
     </div>
   );
