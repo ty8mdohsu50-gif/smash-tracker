@@ -6,7 +6,7 @@ import { today, percentStr, recentChars } from "../../utils/format";
 import OpponentList from "./OpponentList";
 import OpponentDetail from "./OpponentDetail";
 
-export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
+export default function FreeMatchTab({ data, onSave, T, isPC, onBack, tabIdx, modalsOpen }) {
   const { t, lang } = useI18n();
 
   const [selectedOpponent, setSelectedOpponentRaw] = useState(null);
@@ -187,6 +187,8 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack }) {
       saveFreeMemo={saveFreeMemo}
       updateFreeMatchStage={updateFreeMatchStage}
       isPC={isPC}
+      tabIdx={tabIdx}
+      modalsOpen={modalsOpen}
       T={T}
       cd={cd}
       btnBase={btnBase}

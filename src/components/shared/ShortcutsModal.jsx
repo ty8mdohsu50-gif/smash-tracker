@@ -50,6 +50,21 @@ const SECTIONS = (t, lang) => {
         { key: "Esc", desc: ja ? "モーダル閉じ / 前の画面に戻る" : "Close modal / go back" },
       ],
     },
+    {
+      title: ja ? "フリー対戦" : "Free Battle",
+      keys: [
+        { key: "W", desc: ja ? "勝ち記録" : "Record win" },
+        { key: "L", desc: ja ? "負け記録" : "Record lose" },
+        { key: "1-5", desc: ja ? "最近の相手キャラ選択" : "Select recent opponent" },
+        { key: "0", desc: ja ? "相手キャラ変更" : "Change opponent" },
+        { key: "9", desc: ja ? "自キャラ変更" : "Change my fighter" },
+        { key: "Shift + 1-8", desc: ja ? "ステージ直接選択" : "Select stage directly" },
+        { key: "N", desc: ja ? "記録後：連戦" : "After record: rematch" },
+        { key: "C", desc: ja ? "記録後：相手キャラ変更" : "After record: change opponent" },
+        { key: "M", desc: ja ? "記録後：メモにフォーカス" : "After record: focus memo" },
+        { key: "Esc", desc: ja ? "ピッカーを閉じる / 相手リストに戻る" : "Close picker / back to opponent list" },
+      ],
+    },
   ];
 };
 

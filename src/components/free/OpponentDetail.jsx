@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
@@ -8,6 +8,7 @@ import { fighterName, shortName, FIGHTERS } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
 import { today, formatDate, formatTime, percentStr, barColor } from "../../utils/format";
+import { useFreeKeyboardShortcuts } from "../../hooks/useFreeKeyboardShortcuts";
 
 export default function OpponentDetail({
   data,
@@ -45,6 +46,8 @@ export default function OpponentDetail({
   saveFreeMemo,
   updateFreeMatchStage,
   isPC,
+  tabIdx,
+  modalsOpen,
   T,
   cd,
   btnBase,
@@ -52,6 +55,34 @@ export default function OpponentDetail({
 }) {
   const { t, lang } = useI18n();
   const analysisRef = useRef(null);
+  const memoRef = useRef(null);
+
+  const freeShortcutActions = useMemo(() => ({
+    recordWin: () => recordMatch("win"),
+    recordLose: () => recordMatch("lose"),
+    openMyPicker: () => { setShowOppPicker(false); setShowMyPicker(true); },
+    openOppPicker: () => { setShowMyPicker(false); setShowOppPicker(true); },
+    closeMyPicker: () => setShowMyPicker(false),
+    closeOppPicker: () => setShowOppPicker(false),
+    selectRecentOpp: (c) => setOppChar(c),
+    selectStage: (id) => setSelectedStage(selectedStage === id ? null : id),
+    rematch: () => { saveFreeMemo(); setPostRecord(false); },
+    changeOpp: () => { saveFreeMemo(); setOppChar(""); setShowOppPicker(true); setPostRecord(false); },
+    focusMemo: () => { memoRef.current?.focus(); },
+    goBack: () => { setSelectedOpponent(null); setPostRecord(false); },
+  }), [recordMatch, setShowMyPicker, setShowOppPicker, setOppChar, setSelectedStage, selectedStage, saveFreeMemo, setPostRecord, setSelectedOpponent]);
+
+  useFreeKeyboardShortcuts({
+    isPC,
+    isActive: isPC && !modalsOpen && tabIdx === 0,
+    postRecord,
+    myChar,
+    oppChar,
+    showMyPicker,
+    showOppPicker,
+    recOpp,
+    actions: freeShortcutActions,
+  });
 
   const oppMs = useMemo(() => freeMatches.filter((m) => m.opponent === selectedOpponent), [freeMatches, selectedOpponent]);
 
@@ -304,6 +335,7 @@ export default function OpponentDetail({
             <div style={{ fontSize: 20, fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif", color: lastResult === "win" ? T.win : T.lose, marginBottom: 12 }}>{lastResult === "win" ? "WIN" : "LOSE"}</div>
           </div>
           <textarea
+            ref={memoRef}
             value={freeMemo}
             onChange={(e) => { setFreeMemo(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = `${Math.max(44, el.scrollHeight)}px`; }}
             onBlur={saveFreeMemo}

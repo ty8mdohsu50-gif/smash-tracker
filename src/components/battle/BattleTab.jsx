@@ -144,7 +144,7 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
       <div>
         {modeToggle}
         {broadcastBar}
-        <FreeMatchTab data={data} onSave={onSave} T={T} isPC={isPC} onBack={() => setMode("ranked")} />
+        <FreeMatchTab data={data} onSave={onSave} T={T} isPC={isPC} onBack={() => setMode("ranked")} tabIdx={tabIdx} modalsOpen={modalsOpen} />
       </div>
     );
   }
