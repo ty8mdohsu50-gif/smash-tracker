@@ -8,6 +8,7 @@ import OpponentCalendar from "./OpponentCalendar";
 import MatchupGrid from "./MatchupGrid";
 import StageStatsGrid from "./StageStatsGrid";
 import WeeklyProgress from "./WeeklyProgress";
+import StageSelector from "../battle/StageSelector";
 import ResultBadge from "../shared/ResultBadge";
 import SectionTitle from "../shared/SectionTitle";
 import { getSecondaryBtn, getPrimaryBtn, getTextInputStyle } from "../battle/battleStyles";
@@ -104,6 +105,14 @@ export default function OpponentDetail({
   });
 
   const oppMs = useMemo(() => freeMatches.filter((m) => m.opponent === selectedOpponent), [freeMatches, selectedOpponent]);
+
+  // Past matches in this exact myChar vs oppChar matchup (against
+  // the same opponent), used to overlay per-stage history on the
+  // stage selector.
+  const matchupMatches = useMemo(
+    () => (myChar && oppChar ? oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar) : []),
+    [oppMs, myChar, oppChar],
+  );
 
   const matchups = useMemo(() => {
     const s = {};
@@ -253,19 +262,14 @@ export default function OpponentDetail({
               {isPC && <KeyHint keyLabel="L" T={T} />}
             </button>
           </div>
-          <div style={{ ...cd, padding: "12px 16px" }}>
-            <div style={{ fontSize: 12, color: T.sub, fontWeight: 600, marginBottom: 8 }}>{t("stages.selectStage")}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-              {STAGES.map((st, stageIdx) => (
-                <div key={st.id} onClick={() => setSelectedStage(selectedStage === st.id ? null : st.id)}
-                  style={{ textAlign: "center", cursor: "pointer", borderRadius: 8, border: selectedStage === st.id ? `2px solid ${T.accent}` : `1.5px solid ${T.brd}`, padding: 3, opacity: selectedStage === st.id ? 1 : 0.55, transition: "all .15s", position: "relative" }}>
-                  <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 32, objectFit: "cover", borderRadius: 5 }} />
-                  <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 2 }}>{stageName(st.id, lang)}</div>
-                  {isPC && <KeyHint keyLabel={"Shift+" + String(stageIdx + 1)} T={T} />}
-                </div>
-              ))}
-            </div>
-          </div>
+          <StageSelector
+            selectedStage={selectedStage}
+            onSelect={(id) => setSelectedStage(id)}
+            showHints={isPC}
+            matchupMatches={matchupMatches}
+            T={T}
+            marginBottom={10}
+          />
           {noteKey && (
             <BattleNotes noteKey={noteKey} data={data} T={T} onSave={onSave} />
           )}

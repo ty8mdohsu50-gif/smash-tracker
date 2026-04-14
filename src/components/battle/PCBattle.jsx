@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { X, Zap, Share2 } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
@@ -63,6 +64,15 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
   const cd = getCardStyle(T);
   const goalInputStyle = getGoalInputStyle(T);
   const btnR = getBtnR();
+
+  // Past matches with this exact myChar vs oppChar matchup. Powers
+  // the per-stage stats overlay on the stage selector so the player
+  // sees their history on each stage *for this matchup* before
+  // committing to one.
+  const matchupMatches = useMemo(
+    () => (myChar && oppChar ? data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar) : []),
+    [data.matches, myChar, oppChar],
+  );
 
   // Stat card helper
   const statCard = (label, value, color) => {
@@ -327,6 +337,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 onSelect={(id) => setSelectedStage(id)}
                 showHints
                 suppressPointerFocus={suppressPointerFocus}
+                matchupMatches={matchupMatches}
                 T={T}
               />
 
@@ -380,6 +391,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 onSelect={(id) => saveStage(id)}
                 showHints
                 suppressPointerFocus={suppressPointerFocus}
+                matchupMatches={matchupMatches}
                 T={T}
                 marginBottom={12}
               />

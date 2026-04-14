@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { X, Zap, Share2 } from "lucide-react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
 import CharPicker from "../shared/CharPicker";
@@ -62,6 +63,13 @@ export default function MobileBattle({ state, data, onSave, T }) {
 
   const cd = getCardStyle(T);
   const btnR = getBtnR();
+
+  // Past matches with this exact myChar vs oppChar matchup, fed
+  // into the StageSelector to overlay per-stage history.
+  const matchupMatches = useMemo(
+    () => (myChar && oppChar ? data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar) : []),
+    [data.matches, myChar, oppChar],
+  );
 
   // Recent match list
   const recentMatchList = tM.length === 0
@@ -362,6 +370,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             selectedStage={selectedStage}
             onSelect={(id) => setSelectedStage(id)}
             suppressPointerFocus={suppressPointerFocus}
+            matchupMatches={matchupMatches}
             T={T}
             marginTop={10}
           />
@@ -431,6 +440,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             selectedStage={selectedStage}
             onSelect={(id) => saveStage(id)}
             suppressPointerFocus={suppressPointerFocus}
+            matchupMatches={matchupMatches}
             T={T}
             marginTop={12}
           />

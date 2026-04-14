@@ -1,33 +1,85 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import KeyHint from "../shared/KeyHint";
 import { STAGES, stageImg } from "../../constants/stages";
 import { useI18n } from "../../i18n/index.jsx";
+import { percentStr, barColor } from "../../utils/format";
 import { getCardStyle } from "./battleStyles";
 
+// Build a per-stage W/L map from a list of matches scoped to the
+// current matchup. Stages with zero matches are still present in
+// the map (counts 0/0) so callers can render the neutral state.
+function computeStageStats(matches) {
+  const map = {};
+  for (const st of STAGES) map[st.id] = { w: 0, l: 0 };
+  for (const m of matches || []) {
+    if (!m.stage || !map[m.stage]) continue;
+    m.result === "win" ? map[m.stage].w++ : map[m.stage].l++;
+  }
+  return map;
+}
+
 const StageSelector = forwardRef(function StageSelector(
-  { selectedStage, onSelect, showHints = false, suppressPointerFocus, T, marginTop, marginBottom },
+  {
+    selectedStage,
+    onSelect,
+    showHints = false,
+    suppressPointerFocus,
+    matchupMatches,
+    T,
+    marginTop,
+    marginBottom,
+  },
   ref,
 ) {
   const { t, lang } = useI18n();
   const cd = getCardStyle(T);
+
+  const stats = useMemo(() => computeStageStats(matchupMatches), [matchupMatches]);
+  const hasContext = Array.isArray(matchupMatches);
+  const totalInContext = hasContext
+    ? Object.values(stats).reduce((acc, s) => acc + s.w + s.l, 0)
+    : 0;
 
   return (
     <div
       ref={ref}
       style={{
         ...cd,
-        padding: "10px 14px",
+        padding: "12px 16px",
         marginTop: marginTop ?? undefined,
         marginBottom: marginBottom ?? 10,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-        <span style={{ fontSize: 13 }}>{"\uD83D\uDDFA\uFE0F"}</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: T.sub }}>{t("stages.selectStage")}</span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 13 }}>{"\uD83D\uDDFA\uFE0F"}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: T.sub, letterSpacing: 0.3 }}>
+            {t("stages.selectStage")}
+          </span>
+        </div>
+        {hasContext && totalInContext > 0 && (
+          <span style={{ fontSize: 9, fontWeight: 700, color: T.dim, letterSpacing: 0.3 }}>
+            {t("stages.matchupHistoryHint", { n: totalInContext })}
+          </span>
+        )}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
         {STAGES.map((s, stageIdx) => {
           const active = selectedStage === s.id;
+          const cell = stats[s.id];
+          const total = cell.w + cell.l;
+          const rate = total > 0 ? cell.w / total : 0;
+          const dataColor = total > 0 ? barColor(rate) : null;
+
+          // Border priority: active accent > data color (only when
+          // matchup context provided) > neutral border.
+          const borderColor = active
+            ? T.accent
+            : hasContext && dataColor
+              ? dataColor
+              : T.brd;
+          const borderWidth = active || (hasContext && dataColor) ? 2 : 1.5;
+
           return (
             <button
               key={s.id}
@@ -35,28 +87,55 @@ const StageSelector = forwardRef(function StageSelector(
               onPointerDown={suppressPointerFocus}
               onClick={() => onSelect(active ? null : s.id)}
               style={{
-                border: `2px solid ${active ? T.accent : T.brd}`,
+                border: `${borderWidth}px solid ${borderColor}`,
                 borderRadius: 8,
                 padding: 0,
                 background: "none",
                 overflow: "hidden",
                 cursor: "pointer",
-                opacity: active ? 1 : 0.7,
+                opacity: active ? 1 : (hasContext && total === 0 ? 0.55 : 0.85),
                 transition: "all .15s ease",
                 boxShadow: active ? T.accentGlow : "none",
+                position: "relative",
               }}
             >
-              <img
-                src={stageImg(s.id)}
-                alt={s.jp}
-                style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }}
-              />
+              <div style={{ position: "relative" }}>
+                <img
+                  src={stageImg(s.id)}
+                  alt={s.jp}
+                  style={{
+                    width: "100%",
+                    aspectRatio: "16/9",
+                    objectFit: "cover",
+                    display: "block",
+                    filter: hasContext && total === 0 ? "grayscale(60%)" : "none",
+                  }}
+                />
+                {hasContext && total > 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 3,
+                      right: 3,
+                      background: "rgba(0,0,0,0.7)",
+                      color: dataColor,
+                      fontSize: 10,
+                      fontWeight: 800,
+                      padding: "1px 6px",
+                      borderRadius: 4,
+                      fontFamily: "'Chakra Petch', sans-serif",
+                    }}
+                  >
+                    {percentStr(cell.w, total)}
+                  </div>
+                )}
+              </div>
               <div
                 style={{
                   fontSize: 9,
                   fontWeight: active ? 700 : 500,
                   color: active ? T.accent : T.sub,
-                  padding: "3px 4px",
+                  padding: "3px 4px 1px",
                   textAlign: "center",
                   background: T.inp,
                   lineHeight: 1.2,
@@ -64,6 +143,28 @@ const StageSelector = forwardRef(function StageSelector(
               >
                 {lang === "ja" ? s.jp : s.en}
               </div>
+              {hasContext && (
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    textAlign: "center",
+                    background: T.inp,
+                    padding: "0 4px 3px",
+                    fontFamily: "'Chakra Petch', sans-serif",
+                  }}
+                >
+                  {total > 0 ? (
+                    <>
+                      <span style={{ color: T.win }}>{cell.w}</span>
+                      <span style={{ color: T.dimmer, margin: "0 2px" }}>:</span>
+                      <span style={{ color: T.lose }}>{cell.l}</span>
+                    </>
+                  ) : (
+                    <span style={{ color: T.dim, fontSize: 8 }}>—</span>
+                  )}
+                </div>
+              )}
               {showHints && <KeyHint keyLabel={"Shift+" + String(stageIdx + 1)} T={T} />}
             </button>
           );

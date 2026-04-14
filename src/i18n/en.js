@@ -376,6 +376,7 @@ export default {
     noData: "No data",
     selectStage: "Select stage (optional)",
     stageWinRate: "Stage Win Rate",
+    matchupHistoryHint: "{n} past matches in this matchup",
   },
   common: {
     win: "WIN",

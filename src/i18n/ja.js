@@ -376,6 +376,7 @@ export default {
     noData: "データなし",
     selectStage: "使用ステージを選択（任意）",
     stageWinRate: "ステージ勝率",
+    matchupHistoryHint: "このマッチアップの過去 {n} 戦",
   },
   common: {
     win: "WIN",
