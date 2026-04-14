@@ -372,47 +372,63 @@ export default function OpponentDetail({
       {/* Win rate trend */}
       {(winRatePoints.length > 1 || trendChars.length > 0) && (
         <div style={{ ...cd, padding: "14px 16px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T.sub }}>{t("free.winRateTrend")}</div>
-            {trendChars.length > 0 && (
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                <button
-                  type="button"
-                  onClick={() => setTrendFilter(null)}
-                  style={{
-                    border: trendFilter === null ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
-                    background: trendFilter === null ? T.accentSoft : T.inp,
-                    color: trendFilter === null ? T.accent : T.sub,
-                    fontSize: 10, fontWeight: 700,
-                    padding: "4px 10px", borderRadius: 8, cursor: "pointer",
-                  }}
-                >
-                  {t("free.trendOverall")}
-                </button>
-                {trendChars.map((c) => {
-                  const active = trendFilter === c;
-                  return (
-                    <button
-                      type="button"
-                      key={c}
-                      onClick={() => setTrendFilter(c)}
-                      style={{
-                        border: active ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
-                        background: active ? T.accentSoft : T.inp,
-                        color: active ? T.accent : T.sub,
-                        fontSize: 10, fontWeight: 700,
-                        padding: "3px 8px 3px 4px", borderRadius: 8, cursor: "pointer",
-                        display: "flex", alignItems: "center", gap: 4,
-                      }}
-                    >
-                      <FighterIcon name={c} size={16} />
-                      {shortName(c, lang)}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+          <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 8 }}>
+            {t("free.winRateTrend")}
           </div>
+          {trendChars.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 10,
+                overflowX: "auto",
+                paddingBottom: 4,
+                scrollbarWidth: "thin",
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setTrendFilter(null)}
+                style={{
+                  flexShrink: 0,
+                  border: trendFilter === null ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                  background: trendFilter === null ? T.accentSoft : T.inp,
+                  color: trendFilter === null ? T.accent : T.sub,
+                  fontSize: 10, fontWeight: 700,
+                  padding: "5px 12px", borderRadius: 8, cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {t("free.trendOverall")}
+              </button>
+              <div style={{ width: 1, height: 18, background: T.brd, flexShrink: 0, marginLeft: 2, marginRight: 2 }} />
+              {trendChars.map((c) => {
+                const active = trendFilter === c;
+                return (
+                  <button
+                    type="button"
+                    key={c}
+                    onClick={() => setTrendFilter(c)}
+                    style={{
+                      flexShrink: 0,
+                      border: active ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
+                      background: active ? T.accentSoft : T.inp,
+                      color: active ? T.accent : T.sub,
+                      fontSize: 10, fontWeight: 700,
+                      padding: "3px 9px 3px 4px", borderRadius: 8, cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: 4,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <FighterIcon name={c} size={16} />
+                    {shortName(c, lang)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {winRatePoints.length > 1 ? (
             <Chart
               points={winRatePoints}
