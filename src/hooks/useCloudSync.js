@@ -1,10 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { load, save, cloudLoad, cloudSave, migrateLocalToCloud } from "../utils/storage";
+import { useToast } from "../contexts/ToastContext";
+import { useI18n } from "../i18n/index.jsx";
+
+const CLOUD_DEBOUNCE_MS = 800;
+const LOCAL_DEBOUNCE_MS = 250;
 
 export function useCloudSync(user) {
   const [data, setData] = useState(() => load());
   const userRef = useRef(user);
   userRef.current = user;
+
+  const toast = useToast();
+  const { t } = useI18n();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
+  const tRef = useRef(t);
+  tRef.current = t;
+
+  const localTimerRef = useRef(null);
+  const cloudTimerRef = useRef(null);
+  const pendingRef = useRef(null);
+  const cloudErrorShownRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
@@ -25,15 +42,19 @@ export function useCloudSync(user) {
       const localCount = local.matches?.length || 0;
       const cloudCount = cloud?.matches?.length || 0;
 
-      if (cloudCount > localCount) {
-        setData(cloud);
-        save(cloud);
-      } else if (localCount > cloudCount) {
-        setData(local);
-        cloudSave(user.id, local);
-      } else if (cloud) {
-        setData(cloud);
-        save(cloud);
+      try {
+        if (cloudCount > localCount) {
+          setData(cloud);
+          save(cloud);
+        } else if (localCount > cloudCount) {
+          setData(local);
+          cloudSave(user.id, local);
+        } else if (cloud) {
+          setData(cloud);
+          save(cloud);
+        }
+      } catch {
+        toastRef.current.error(tRef.current("common.errors.saveLocal"));
       }
     };
     init();
@@ -41,17 +62,57 @@ export function useCloudSync(user) {
     return () => { cancelled = true; };
   }, [user]);
 
-  const saveData = useCallback((d) => {
-    setData(d);
-    save(d);
-
-    if (userRef.current) {
-      cloudSave(userRef.current.id, d).catch(() => {
-        // Network or Supabase failure — local save already persisted,
-        // next saveData call will retry naturally.
-      });
+  const flushLocal = useCallback(() => {
+    if (!pendingRef.current) return;
+    try {
+      save(pendingRef.current);
+    } catch {
+      toastRef.current.error(tRef.current("common.errors.saveLocal"));
     }
   }, []);
+
+  const flushCloud = useCallback(() => {
+    if (!pendingRef.current || !userRef.current) return;
+    cloudSave(userRef.current.id, pendingRef.current)
+      .then((ok) => {
+        if (!ok && !cloudErrorShownRef.current) {
+          cloudErrorShownRef.current = true;
+          toastRef.current.error(tRef.current("common.errors.saveCloud"));
+        } else if (ok) {
+          cloudErrorShownRef.current = false;
+        }
+      })
+      .catch(() => {
+        if (!cloudErrorShownRef.current) {
+          cloudErrorShownRef.current = true;
+          toastRef.current.error(tRef.current("common.errors.saveCloud"));
+        }
+      });
+  }, []);
+
+  const saveData = useCallback((d) => {
+    setData(d);
+    pendingRef.current = d;
+
+    if (localTimerRef.current) clearTimeout(localTimerRef.current);
+    localTimerRef.current = setTimeout(flushLocal, LOCAL_DEBOUNCE_MS);
+
+    if (userRef.current) {
+      if (cloudTimerRef.current) clearTimeout(cloudTimerRef.current);
+      cloudTimerRef.current = setTimeout(flushCloud, CLOUD_DEBOUNCE_MS);
+    }
+  }, [flushLocal, flushCloud]);
+
+  useEffect(() => {
+    const onUnload = () => {
+      if (localTimerRef.current) {
+        clearTimeout(localTimerRef.current);
+        flushLocal();
+      }
+    };
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
+  }, [flushLocal]);
 
   return { data, saveData };
 }

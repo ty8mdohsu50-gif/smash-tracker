@@ -1,4 +1,3 @@
-import { Share2 } from "lucide-react";
 import FighterIcon from "../shared/FighterIcon";
 import { shortName, fighterName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";

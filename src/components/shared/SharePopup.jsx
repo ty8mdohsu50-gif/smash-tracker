@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getShareLinks } from "../../utils/share";
 import { useI18n } from "../../i18n/index.jsx";
+import { useToast } from "../../contexts/ToastContext";
 import { Z_SHARE_POPUP } from "../../constants/zIndex";
 
 const XIcon = () => (
@@ -32,6 +33,7 @@ const ShareDeviceIcon = () => (
 
 export default function SharePopup({ text, onClose, T, imageBlob }) {
   const { t } = useI18n();
+  const toast = useToast();
   const links = getShareLinks(text);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -144,7 +146,9 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
                 await navigator.clipboard.writeText(text);
                 setCopied(true);
                 setTimeout(() => { setCopied(false); onClose(); }, 800);
-              } catch (_) { /* */ }
+              } catch (_) {
+                toast.error(t("common.errors.copy"));
+              }
             }}
             style={{ ...btnBase, background: T.inp, color: T.text, border: `1px solid ${T.brd}` }}
           >

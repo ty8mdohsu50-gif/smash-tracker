@@ -377,6 +377,12 @@ export default {
     deleteConfirm: "Delete this match record?",
     saveImage: "Save Image",
     shareText: "Share via other apps",
+    errors: {
+      saveLocal: "Failed to save (storage may be full)",
+      saveCloud: "Cloud sync failed (saved locally)",
+      imageGen: "Failed to generate image",
+      copy: "Failed to copy to clipboard",
+    },
   },
   legal: {
     effectiveDate: "Effective: April 10, 2026 (revised April 10, 2026)",

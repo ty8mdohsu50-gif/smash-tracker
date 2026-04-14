@@ -377,6 +377,12 @@ export default {
     deleteConfirm: "この対戦記録を削除しますか？",
     saveImage: "画像を保存",
     shareText: "他のアプリで共有",
+    errors: {
+      saveLocal: "保存に失敗しました（ストレージ容量不足の可能性）",
+      saveCloud: "クラウド同期に失敗しました（オフライン保存は完了）",
+      imageGen: "画像の生成に失敗しました",
+      copy: "クリップボードへのコピーに失敗しました",
+    },
   },
   legal: {
     effectiveDate: "施行日: 2026年4月10日（2026年4月10日改定）",

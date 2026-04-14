@@ -72,11 +72,7 @@ export function load() {
 }
 
 export function save(d) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-  } catch {
-    // storage full
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
 }
 
 /* ── Supabase (cloud) ── */
