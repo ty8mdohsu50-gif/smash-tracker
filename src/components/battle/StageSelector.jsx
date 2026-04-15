@@ -26,6 +26,7 @@ const StageSelector = forwardRef(function StageSelector(
     suppressPointerFocus,
     matchupMatches,
     historyHint,
+    bannedStageIds,
     T,
     marginTop,
     marginBottom,
@@ -40,6 +41,10 @@ const StageSelector = forwardRef(function StageSelector(
   const totalInContext = hasContext
     ? Object.values(stats).reduce((acc, s) => acc + s.w + s.l, 0)
     : 0;
+  const banSet = useMemo(
+    () => new Set(Array.isArray(bannedStageIds) ? bannedStageIds : []),
+    [bannedStageIds],
+  );
 
   return (
     <div
@@ -67,19 +72,22 @@ const StageSelector = forwardRef(function StageSelector(
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
         {STAGES.map((s, stageIdx) => {
           const active = selectedStage === s.id;
+          const banned = banSet.has(s.id);
           const cell = stats[s.id];
           const total = cell.w + cell.l;
           const rate = total > 0 ? cell.w / total : 0;
           const dataColor = total > 0 ? barColor(rate) : null;
 
-          // Border priority: active accent > data color (only when
-          // matchup context provided) > neutral border.
+          // Border priority: active accent > ban red > data color
+          // (only when matchup context provided) > neutral border.
           const borderColor = active
             ? T.accent
-            : hasContext && dataColor
-              ? dataColor
-              : T.brd;
-          const borderWidth = active || (hasContext && dataColor) ? 2 : 1.5;
+            : banned
+              ? T.lose
+              : hasContext && dataColor
+                ? dataColor
+                : T.brd;
+          const borderWidth = active || banned || (hasContext && dataColor) ? 2 : 1.5;
 
           return (
             <button
@@ -112,6 +120,38 @@ const StageSelector = forwardRef(function StageSelector(
                     filter: hasContext && total === 0 ? "grayscale(60%)" : "none",
                   }}
                 />
+                {banned && (
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "rgba(255,69,58,.28)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 3,
+                        left: 3,
+                        background: "rgba(0,0,0,0.7)",
+                        color: T.lose,
+                        fontSize: 11,
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        width: 16,
+                        height: 16,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 4,
+                      }}
+                    >
+                      ✕
+                    </div>
+                  </>
+                )}
                 {hasContext && total > 0 && (
                   <div
                     style={{

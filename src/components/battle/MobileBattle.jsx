@@ -87,6 +87,13 @@ export default function MobileBattle({ state, data, onSave, T }) {
     return t("stages.allHistoryHint", { n });
   }, [matchupMatches.length, myChar, oppChar, t, lang]);
 
+  // Stage bans surfaced on the selector. Bans are keyed on
+  // myChar|oppChar so there's nothing to show until both are picked.
+  const bannedStageIds = useMemo(() => {
+    if (!matchupNotesKey) return [];
+    return data.matchupNotes?.[matchupNotesKey]?.stageBans ?? [];
+  }, [matchupNotesKey, data.matchupNotes]);
+
   // Recent match list
   const recentMatchList = tM.length === 0
     ? <div style={{ textAlign: "center", padding: "32px 0", color: T.dim, fontSize: 13 }}>{t("battle.startMatching")}</div>
@@ -388,6 +395,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             suppressPointerFocus={suppressPointerFocus}
             matchupMatches={matchupMatches}
             historyHint={stageHistoryHint}
+            bannedStageIds={bannedStageIds}
             T={T}
             marginTop={10}
           />
@@ -459,6 +467,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             suppressPointerFocus={suppressPointerFocus}
             matchupMatches={matchupMatches}
             historyHint={stageHistoryHint}
+            bannedStageIds={bannedStageIds}
             T={T}
             marginTop={12}
           />

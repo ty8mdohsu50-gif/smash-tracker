@@ -90,6 +90,14 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
     return t("stages.allHistoryHint", { n });
   }, [matchupMatches.length, myChar, oppChar, t, lang]);
 
+  // Stage bans surfaced on the selector so the player is reminded
+  // mid-flow. Bans are keyed on myChar|oppChar, so there's nothing
+  // to show until both sides are picked.
+  const bannedStageIds = useMemo(() => {
+    if (!matchupNotesKey) return [];
+    return data.matchupNotes?.[matchupNotesKey]?.stageBans ?? [];
+  }, [matchupNotesKey, data.matchupNotes]);
+
   // Stat card helper
   const statCard = (label, value, color) => {
     const len = String(value).length;
@@ -355,6 +363,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 suppressPointerFocus={suppressPointerFocus}
                 matchupMatches={matchupMatches}
                 historyHint={stageHistoryHint}
+                bannedStageIds={bannedStageIds}
                 T={T}
               />
 
@@ -410,6 +419,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 suppressPointerFocus={suppressPointerFocus}
                 matchupMatches={matchupMatches}
                 historyHint={stageHistoryHint}
+                bannedStageIds={bannedStageIds}
                 T={T}
                 marginBottom={12}
               />

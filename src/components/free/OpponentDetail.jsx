@@ -213,6 +213,15 @@ export default function OpponentDetail({
 
   const noteKey = myChar && oppChar ? `${myChar}|${oppChar}` : null;
 
+  // Stage bans surfaced on the selector so the player gets a visual
+  // reminder of what to avoid mid-flow. Bans live on the global
+  // matchupNotes map (shared across opponents), so we only have
+  // something to show once both sides are picked.
+  const bannedStageIds = useMemo(() => {
+    if (!noteKey) return [];
+    return data.matchupNotes?.[noteKey]?.stageBans ?? [];
+  }, [noteKey, data.matchupNotes]);
+
   // Battle area (char selection + win/lose)
   const battleArea = (
     <div>
@@ -283,6 +292,7 @@ export default function OpponentDetail({
             showHints={isPC}
             matchupMatches={matchupMatches}
             historyHint={stageHistoryHint}
+            bannedStageIds={bannedStageIds}
             T={T}
             marginBottom={10}
           />
