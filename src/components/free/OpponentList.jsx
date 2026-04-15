@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Users } from "lucide-react";
 import ConfirmDialog from "../shared/ConfirmDialog";
 import { getTextInputStyle, getPrimaryBtn, getSecondaryBtn } from "../battle/battleStyles";
 import { useI18n } from "../../i18n/index.jsx";
@@ -40,7 +40,15 @@ export default function OpponentList({
       </div>
 
       {freeOpponents.length === 0 ? (
-        <div style={{ ...cd, textAlign: "center", padding: "32px 18px" }}><div style={{ fontSize: 14, color: T.dim }}>{t("free.noOpponents")}</div></div>
+        <div style={{ ...cd, textAlign: "center", padding: "40px 24px" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: T.accentSoft, border: `2px solid ${T.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Users size={24} strokeWidth={2} color={T.accent} />
+            </div>
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: T.text, marginBottom: 6 }}>{t("free.noOpponents")}</div>
+          <div style={{ fontSize: 11, color: T.dim, lineHeight: 1.6, whiteSpace: "pre-line" }}>{t("free.noOpponentsHint")}</div>
+        </div>
       ) : (
         <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
           {freeOpponents.map((opp) => {

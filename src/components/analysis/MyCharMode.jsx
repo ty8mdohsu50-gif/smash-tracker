@@ -153,7 +153,10 @@ export default function MyCharMode({
           </div>
         ) : (
           <div style={{ ...cd, textAlign: "center", padding: 30 }}>
-            <div style={{ fontSize: 13, color: T.dim }}>{t("analysis.enterPowerToSee")}</div>
+            <div style={{ fontSize: 13, color: T.dim, marginBottom: 6 }}>{t("analysis.enterPowerToSee")}</div>
+            <div style={{ fontSize: 11, color: T.dimmer, lineHeight: 1.6, whiteSpace: "pre-line" }}>
+              {t("analysis.enterPowerToSeeHint")}
+            </div>
           </div>
         )}
         {trendData.points.length > 1 && (
