@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import FighterIcon from "../shared/FighterIcon";
 import ResultBadge from "../shared/ResultBadge";
@@ -21,6 +22,13 @@ export default function OpponentCalendar({
   T,
 }) {
   const { t, lang } = useI18n();
+  const selectedRef = useRef(null);
+
+  useEffect(() => {
+    if (calDate && selectedRef.current) {
+      selectedRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [calDate]);
 
   const [yStr, mStr] = calMonth.split("-");
   const year = Number(yStr);
@@ -126,7 +134,7 @@ export default function OpponentCalendar({
       </div>
 
       {selData && (
-        <div style={{ marginTop: 8, borderTop: `1px solid ${T.inp}`, paddingTop: 8 }}>
+        <div ref={selectedRef} style={{ marginTop: 8, borderTop: `1px solid ${T.inp}`, paddingTop: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{formatDate(calDate)}</span>
             <span style={{ fontSize: 13, fontWeight: 800 }}>

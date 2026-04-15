@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import FighterIcon from "../shared/FighterIcon";
 import ResultBadge from "../shared/ResultBadge";
 import SectionTitle from "../shared/SectionTitle";
@@ -21,12 +21,21 @@ export default function MatchupGrid({
 }) {
   const { t, lang } = useI18n();
   const [drillFilter, setDrillFilter] = useState("all");
+  const expandedRef = useRef(null);
 
   // Reset the drilldown filter whenever the user opens a different
   // matchup so they always start from "all" instead of inheriting a
   // stale "memo only" filter from the previous matchup.
   useEffect(() => {
     setDrillFilter("all");
+  }, [expandedMatchup]);
+
+  // Bring the drilldown into view when it opens so the user doesn't
+  // have to hunt for it below the fold on mobile.
+  useEffect(() => {
+    if (expandedMatchup && expandedRef.current) {
+      expandedRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }, [expandedMatchup]);
 
   if (matchups.length === 0) return null;
@@ -76,7 +85,7 @@ export default function MatchupGrid({
         });
         const filterLabel = (k) => t(`free.drilldown${k.charAt(0).toUpperCase() + k.slice(1)}`);
         return (
-          <div style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
+          <div ref={expandedRef} style={{ marginTop: 10, borderTop: `1px solid ${T.inp}`, paddingTop: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
               <FighterIcon name={mu.myChar} size={22} />
               <span style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{shortName(mu.myChar, lang)}</span>
