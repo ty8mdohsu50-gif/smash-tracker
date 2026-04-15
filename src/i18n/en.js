@@ -353,8 +353,6 @@ export default {
     trendOverall: "Overall",
     trendNotEnough: "Not enough matches with this fighter",
     recentForm: "Last 10",
-    stageMatrix: "Stage Performance",
-    stageNoData: "No data",
     weeklyProgress: "Weekly Progress",
     drilldownAll: "All",
     drilldownWins: "Wins only",

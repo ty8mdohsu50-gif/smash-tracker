@@ -353,8 +353,6 @@ export default {
     trendOverall: "全体",
     trendNotEnough: "このキャラの試合数が足りません",
     recentForm: "直近10戦",
-    stageMatrix: "ステージ別成績",
-    stageNoData: "未対戦",
     weeklyProgress: "週ごとの推移",
     drilldownAll: "全部",
     drilldownWins: "勝ちのみ",

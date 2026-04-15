@@ -6,7 +6,6 @@ import KeyHint from "../shared/KeyHint";
 import Chart from "../shared/Chart";
 import OpponentCalendar from "./OpponentCalendar";
 import MatchupGrid from "./MatchupGrid";
-import StageStatsGrid from "./StageStatsGrid";
 import WeeklyProgress from "./WeeklyProgress";
 import StageSelector from "../battle/StageSelector";
 import ResultBadge from "../shared/ResultBadge";
@@ -106,13 +105,17 @@ export default function OpponentDetail({
 
   const oppMs = useMemo(() => freeMatches.filter((m) => m.opponent === selectedOpponent), [freeMatches, selectedOpponent]);
 
-  // Past matches in this exact myChar vs oppChar matchup (against
-  // the same opponent), used to overlay per-stage history on the
-  // stage selector.
-  const matchupMatches = useMemo(
-    () => (myChar && oppChar ? oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar) : []),
-    [oppMs, myChar, oppChar],
-  );
+  // Stage selector overlay context: adapts to what's currently
+  // picked so the per-stage history shown always matches the user's
+  // intent. Neither side picked → this opponent's full history;
+  // one side picked → filter to that character; both picked → the
+  // exact matchup.
+  const matchupMatches = useMemo(() => {
+    if (!myChar && !oppChar) return oppMs;
+    if (myChar && !oppChar) return oppMs.filter((m) => m.myChar === myChar);
+    if (!myChar && oppChar) return oppMs.filter((m) => m.oppChar === oppChar);
+    return oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+  }, [oppMs, myChar, oppChar]);
 
   const matchups = useMemo(() => {
     const s = {};
@@ -534,11 +537,6 @@ export default function OpponentDetail({
           />
         </div>
       )}
-
-      {/* Stage performance */}
-      <div style={{ ...cd, padding: "14px 16px" }}>
-        <StageStatsGrid matches={oppMs} T={T} />
-      </div>
 
       {/* Weekly progress */}
       <div style={{ ...cd, padding: "14px 16px" }}>
