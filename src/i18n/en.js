@@ -382,6 +382,9 @@ export default {
     selectStage: "Select stage (optional)",
     stageWinRate: "Stage Win Rate",
     matchupHistoryHint: "{n} past matches in this matchup",
+    opponentHistoryHint: "{n} past matches vs this opponent",
+    myCharHistoryHint: "{n} past matches as {char}",
+    oppCharHistoryHint: "{n} past matches vs {char}",
   },
   common: {
     win: "WIN",

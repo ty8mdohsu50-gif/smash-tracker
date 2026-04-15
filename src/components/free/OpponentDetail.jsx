@@ -117,6 +117,18 @@ export default function OpponentDetail({
     return oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
   }, [oppMs, myChar, oppChar]);
 
+  // Keep the "N matches" hint honest about what the grid is actually
+  // aggregating — the default matchupHistoryHint only makes sense
+  // once both sides are picked.
+  const stageHistoryHint = useMemo(() => {
+    const n = matchupMatches.length;
+    if (n === 0) return null;
+    if (myChar && oppChar) return t("stages.matchupHistoryHint", { n });
+    if (myChar) return t("stages.myCharHistoryHint", { char: shortName(myChar, lang), n });
+    if (oppChar) return t("stages.oppCharHistoryHint", { char: shortName(oppChar, lang), n });
+    return t("stages.opponentHistoryHint", { n });
+  }, [matchupMatches.length, myChar, oppChar, t, lang]);
+
   const matchups = useMemo(() => {
     const s = {};
     oppMs.forEach((m) => {
@@ -270,6 +282,7 @@ export default function OpponentDetail({
             onSelect={(id) => setSelectedStage(id)}
             showHints={isPC}
             matchupMatches={matchupMatches}
+            historyHint={stageHistoryHint}
             T={T}
             marginBottom={10}
           />

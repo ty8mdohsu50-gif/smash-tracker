@@ -25,6 +25,7 @@ const StageSelector = forwardRef(function StageSelector(
     showHints = false,
     suppressPointerFocus,
     matchupMatches,
+    historyHint,
     T,
     marginTop,
     marginBottom,
@@ -59,7 +60,7 @@ const StageSelector = forwardRef(function StageSelector(
         </div>
         {hasContext && totalInContext > 0 && (
           <span style={{ fontSize: 9, fontWeight: 700, color: T.dim, letterSpacing: 0.3 }}>
-            {t("stages.matchupHistoryHint", { n: totalInContext })}
+            {historyHint ?? t("stages.matchupHistoryHint", { n: totalInContext })}
           </span>
         )}
       </div>

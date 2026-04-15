@@ -382,6 +382,9 @@ export default {
     selectStage: "使用ステージを選択（任意）",
     stageWinRate: "ステージ勝率",
     matchupHistoryHint: "このマッチアップの過去 {n} 戦",
+    opponentHistoryHint: "この相手の過去 {n} 戦",
+    myCharHistoryHint: "{char} で過去 {n} 戦",
+    oppCharHistoryHint: "vs {char} の過去 {n} 戦",
   },
   common: {
     win: "WIN",
