@@ -45,7 +45,7 @@ export default function OppCharMode({
     return (
       <div>
         {charSortToolbar({ sortKey: "topOppSort", hideKey: "topOppHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
-        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6 }}>
           {sortedOpps.map((s) => matchupCell({ s, parentChar: null, popupOverride: { myChar: null, oppChar: s.c, isOppMode: true }, ...cellProps }))}
         </div>
       </div>
@@ -104,7 +104,7 @@ export default function OppCharMode({
             return (
               <div>
                 {charSortToolbar({ sortKey: "oppMySort", hideKey: "oppMyHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
-                <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6 }}>
                   {sortedOmc.map((s) => matchupCell({ s, parentChar: null, popupOverride: { myChar: s.c, oppChar: oppDetail }, ...cellProps }))}
                 </div>
               </div>

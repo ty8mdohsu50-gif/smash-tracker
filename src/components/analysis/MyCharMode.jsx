@@ -182,7 +182,7 @@ export default function MyCharMode({
     return (
       <div>
         {charSortToolbar({ sortKey: "topMySort", hideKey: "topMyHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
-        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6 }}>
           {sortedMy.map((s) => {
             const r = s.t ? s.w / s.t : 0;
             const used = s.t > 0;
@@ -294,7 +294,7 @@ export default function MyCharMode({
           >
             {t("analysis.openMatchLog")}
           </button>
-          <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(6, 1fr)" : "repeat(4, 1fr)", gap: isPC ? 8 : 6 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6 }}>
             {sortedMu.map((s) => matchupCell({ s, parentChar: charDetail, popupOverride: null, ...cellProps }))}
           </div>
         </div>

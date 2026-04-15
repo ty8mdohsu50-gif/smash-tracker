@@ -407,13 +407,15 @@ export default function OpponentDetail({
                   flexShrink: 0,
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 3,
-                  padding: "3px 9px",
+                  gap: 4,
+                  padding: "5px 11px",
                   borderRadius: 999,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 800,
-                  background: oppStreak.type === "win" ? T.winBg : T.loseBg,
-                  color: oppStreak.type === "win" ? T.win : T.lose,
+                  background: oppStreak.type === "win" ? T.winGrad : T.loseGrad,
+                  color: "#fff",
+                  boxShadow: oppStreak.type === "win" ? T.winGlow : T.loseGlow,
+                  letterSpacing: 0.3,
                 }}
               >
                 {oppStreak.type === "win" ? "🔥" : "❄️"} {oppStreak.count}{oppStreak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose")}

@@ -270,7 +270,7 @@ export default function App() {
               style={{
                 position: "absolute", bottom: 0,
                 left: `${(tabIdx * 100) / TABS.length}%`, width: `${100 / TABS.length}%`,
-                height: 3,
+                height: 4,
                 background: T.accentGrad,
                 borderRadius: "3px 3px 0 0",
                 transition: "left .25s cubic-bezier(.4,0,.2,1)",
