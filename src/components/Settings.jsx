@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { csvDownload } from "../utils/storage";
 import { THEME_KEYS, getThemeLabel } from "../styles/theme";
 import { useI18n } from "../i18n/index.jsx";
+import { useToast } from "../contexts/ToastContext";
 import CloseButton from "./shared/CloseButton";
 import { Z_APP_MODAL } from "../constants/zIndex";
 
@@ -21,6 +22,7 @@ const SWATCH_COLORS = {
 
 export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbout, onLogout, user, T }) {
   const { t, lang, setLanguage } = useI18n();
+  const toast = useToast();
   const [step, setStep] = useState(0);
   const [showTheme, setShowTheme] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -331,7 +333,14 @@ export default function Settings({ data, onSave, onClose, onOpenLegal, onOpenAbo
           {/* CSV / Reset */}
           <div style={{ padding: "16px 0", borderBottom: `1px solid ${T.inp}` }}>
             <button
-              onClick={() => csvDownload(data)}
+              onClick={() => {
+                try {
+                  csvDownload(data);
+                  toast.success(t("settings.csvExported"));
+                } catch {
+                  toast.error(t("common.errors.saveLocal"));
+                }
+              }}
               style={{
                 width: "100%", padding: 16, border: "none", borderRadius: 12,
                 background: T.inp, color: T.text, fontSize: 15, fontWeight: 600,

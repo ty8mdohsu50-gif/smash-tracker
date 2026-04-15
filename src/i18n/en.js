@@ -256,6 +256,7 @@ export default {
     showStages: "Show stage win rates",
     themeColor: "Theme Color",
     darkMode: "Dark Mode",
+    csvExported: "CSV exported",
     csvDownload: "Download CSV",
     csvDownloadDesc: "Download all match data and power records as a CSV file",
     dataCount: "{count} records",

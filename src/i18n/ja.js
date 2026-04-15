@@ -256,6 +256,7 @@ export default {
     showStages: "ステージ別勝率を表示",
     themeColor: "テーマカラー",
     darkMode: "ダークモード",
+    csvExported: "CSVを保存しました",
     csvDownload: "CSVダウンロード",
     csvDownloadDesc: "全ての対戦データと戦闘力記録をCSVファイルとしてダウンロードします",
     dataCount: "戦績{count}件",

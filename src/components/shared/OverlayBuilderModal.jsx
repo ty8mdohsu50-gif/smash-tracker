@@ -81,7 +81,7 @@ export default function OverlayBuilderModal({ T, user, onClose, onOpenHelp }) {
           ) : (
             <div
               style={{
-                padding: "28px 20px",
+                padding: "28px 24px",
                 textAlign: "center",
                 color: T.sub,
                 fontSize: 13,
@@ -91,7 +91,30 @@ export default function OverlayBuilderModal({ T, user, onClose, onOpenHelp }) {
                 border: `1px solid ${T.brd}`,
               }}
             >
-              {t("broadcast.builder.loginRequired")}
+              <div style={{ marginBottom: 16 }}>{t("broadcast.builder.loginRequired")}</div>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem("smash-skipped-auth");
+                  window.location.reload();
+                }}
+                style={{
+                  display: "inline-block",
+                  minHeight: 44,
+                  padding: "10px 28px",
+                  border: "none",
+                  borderRadius: 12,
+                  background: T.accentGrad,
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  boxShadow: T.accentGlow,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                {t("settings.loginButton")}
+              </button>
             </div>
           )}
         </div>
