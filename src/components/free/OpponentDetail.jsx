@@ -1,5 +1,6 @@
 import { useRef, useMemo, useCallback, useState } from "react";
 import { BattleNotes } from "../shared/MatchupNotesEditor";
+import StageBansGrid from "../shared/StageBansGrid";
 import CharPicker from "../shared/CharPicker";
 import FighterIcon from "../shared/FighterIcon";
 import KeyHint from "../shared/KeyHint";
@@ -213,14 +214,38 @@ export default function OpponentDetail({
 
   const noteKey = myChar && oppChar ? `${myChar}|${oppChar}` : null;
 
-  // Stage bans surfaced on the selector so the player gets a visual
-  // reminder of what to avoid mid-flow. Bans live on the global
-  // matchupNotes map (shared across opponents), so we only have
-  // something to show once both sides are picked.
-  const bannedStageIds = useMemo(() => {
-    if (!noteKey) return [];
-    return data.matchupNotes?.[noteKey]?.stageBans ?? [];
-  }, [noteKey, data.matchupNotes]);
+  // Per-opponent stage bans. Free対戦 is scoped to a specific
+  // opponent player, so bans live at data.freeStageBans[opp][key]
+  // rather than the global matchupNotes map. When that per-opponent
+  // entry is missing we fall back to the global matchup bans so a
+  // user who had already configured bans elsewhere still sees them
+  // on first load; editing seeds the per-opponent entry and from
+  // then on the per-opponent value is authoritative.
+  const perOpponentBans = noteKey && selectedOpponent
+    ? data.freeStageBans?.[selectedOpponent]?.[noteKey]
+    : undefined;
+  const globalBans = noteKey
+    ? (data.matchupNotes?.[noteKey]?.stageBans ?? [])
+    : [];
+  const bannedStageIds = useMemo(
+    () => (perOpponentBans ?? globalBans),
+    [perOpponentBans, globalBans],
+  );
+
+  const updateFreeStageBans = useCallback((next) => {
+    if (!noteKey || !selectedOpponent || !onSave) return;
+    const prevOpp = data.freeStageBans?.[selectedOpponent] || {};
+    onSave({
+      ...data,
+      freeStageBans: {
+        ...(data.freeStageBans || {}),
+        [selectedOpponent]: {
+          ...prevOpp,
+          [noteKey]: next,
+        },
+      },
+    });
+  }, [noteKey, selectedOpponent, data, onSave]);
 
   // Battle area (char selection + win/lose)
   const battleArea = (
@@ -297,7 +322,22 @@ export default function OpponentDetail({
             marginBottom={10}
           />
           {noteKey && (
-            <BattleNotes noteKey={noteKey} data={data} T={T} onSave={onSave} />
+            <div style={{ marginBottom: 10 }}>
+              <StageBansGrid
+                value={bannedStageIds}
+                onChange={updateFreeStageBans}
+                T={T}
+              />
+            </div>
+          )}
+          {noteKey && (
+            <BattleNotes
+              noteKey={noteKey}
+              data={data}
+              T={T}
+              onSave={onSave}
+              sections={["flash", "gameplan"]}
+            />
           )}
           {noteKey && (() => {
             const muPair = oppMs.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
