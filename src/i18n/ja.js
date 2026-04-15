@@ -385,6 +385,7 @@ export default {
     opponentHistoryHint: "この相手の過去 {n} 戦",
     myCharHistoryHint: "{char} で過去 {n} 戦",
     oppCharHistoryHint: "vs {char} の過去 {n} 戦",
+    allHistoryHint: "全試合の過去 {n} 戦",
   },
   common: {
     win: "WIN",

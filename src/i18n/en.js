@@ -385,6 +385,7 @@ export default {
     opponentHistoryHint: "{n} past matches vs this opponent",
     myCharHistoryHint: "{n} past matches as {char}",
     oppCharHistoryHint: "{n} past matches vs {char}",
+    allHistoryHint: "{n} past matches overall",
   },
   common: {
     win: "WIN",

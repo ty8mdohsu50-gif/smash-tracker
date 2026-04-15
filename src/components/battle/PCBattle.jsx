@@ -9,7 +9,7 @@ import RecentMatchList from "./RecentMatchList";
 import BattleOverlays from "./BattleOverlays";
 import StageSelector from "./StageSelector";
 import ResultBadge from "../shared/ResultBadge";
-import { fighterName } from "../../constants/fighters";
+import { fighterName, shortName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useSessionCard } from "../../hooks/useSessionCard";
 import {
@@ -65,14 +65,30 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
   const goalInputStyle = getGoalInputStyle(T);
   const btnR = getBtnR();
 
-  // Past matches with this exact myChar vs oppChar matchup. Powers
-  // the per-stage stats overlay on the stage selector so the player
-  // sees their history on each stage *for this matchup* before
-  // committing to one.
-  const matchupMatches = useMemo(
-    () => (myChar && oppChar ? data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar) : []),
-    [data.matches, myChar, oppChar],
-  );
+  // Stage selector overlay context: adapts to what's currently
+  // picked so the per-stage history shown always matches the user's
+  // intent. Neither side picked → all ranked history; one side
+  // picked → filter to that character; both picked → the exact
+  // matchup. This keeps the grid useful even before the user has
+  // committed to a matchup.
+  const matchupMatches = useMemo(() => {
+    if (!myChar && !oppChar) return data.matches;
+    if (myChar && !oppChar) return data.matches.filter((m) => m.myChar === myChar);
+    if (!myChar && oppChar) return data.matches.filter((m) => m.oppChar === oppChar);
+    return data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+  }, [data.matches, myChar, oppChar]);
+
+  // Keep the "N matches" hint honest about what the grid is actually
+  // aggregating — the default matchupHistoryHint only makes sense
+  // once both sides are picked.
+  const stageHistoryHint = useMemo(() => {
+    const n = matchupMatches.length;
+    if (n === 0) return null;
+    if (myChar && oppChar) return t("stages.matchupHistoryHint", { n });
+    if (myChar) return t("stages.myCharHistoryHint", { char: shortName(myChar, lang), n });
+    if (oppChar) return t("stages.oppCharHistoryHint", { char: shortName(oppChar, lang), n });
+    return t("stages.allHistoryHint", { n });
+  }, [matchupMatches.length, myChar, oppChar, t, lang]);
 
   // Stat card helper
   const statCard = (label, value, color) => {
@@ -338,6 +354,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 showHints
                 suppressPointerFocus={suppressPointerFocus}
                 matchupMatches={matchupMatches}
+                historyHint={stageHistoryHint}
                 T={T}
               />
 
@@ -392,6 +409,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
                 showHints
                 suppressPointerFocus={suppressPointerFocus}
                 matchupMatches={matchupMatches}
+                historyHint={stageHistoryHint}
                 T={T}
                 marginBottom={12}
               />

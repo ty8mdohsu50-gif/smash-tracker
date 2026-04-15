@@ -8,7 +8,7 @@ import RecentMatchList from "./RecentMatchList";
 import BattleOverlays from "./BattleOverlays";
 import StageSelector from "./StageSelector";
 import ResultBadge from "../shared/ResultBadge";
-import { fighterName } from "../../constants/fighters";
+import { fighterName, shortName } from "../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../constants/stages";
 import { useSessionCard } from "../../hooks/useSessionCard";
 import {
@@ -64,12 +64,28 @@ export default function MobileBattle({ state, data, onSave, T }) {
   const cd = getCardStyle(T);
   const btnR = getBtnR();
 
-  // Past matches with this exact myChar vs oppChar matchup, fed
-  // into the StageSelector to overlay per-stage history.
-  const matchupMatches = useMemo(
-    () => (myChar && oppChar ? data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar) : []),
-    [data.matches, myChar, oppChar],
-  );
+  // Stage selector overlay context: adapts to what's currently
+  // picked so the per-stage history shown always matches the user's
+  // intent. Neither side picked → all ranked history; one side
+  // picked → filter to that character; both picked → the exact
+  // matchup.
+  const matchupMatches = useMemo(() => {
+    if (!myChar && !oppChar) return data.matches;
+    if (myChar && !oppChar) return data.matches.filter((m) => m.myChar === myChar);
+    if (!myChar && oppChar) return data.matches.filter((m) => m.oppChar === oppChar);
+    return data.matches.filter((m) => m.myChar === myChar && m.oppChar === oppChar);
+  }, [data.matches, myChar, oppChar]);
+
+  // Adaptive hint label so the "N matches" text reflects the actual
+  // filter scope instead of always claiming "this matchup".
+  const stageHistoryHint = useMemo(() => {
+    const n = matchupMatches.length;
+    if (n === 0) return null;
+    if (myChar && oppChar) return t("stages.matchupHistoryHint", { n });
+    if (myChar) return t("stages.myCharHistoryHint", { char: shortName(myChar, lang), n });
+    if (oppChar) return t("stages.oppCharHistoryHint", { char: shortName(oppChar, lang), n });
+    return t("stages.allHistoryHint", { n });
+  }, [matchupMatches.length, myChar, oppChar, t, lang]);
 
   // Recent match list
   const recentMatchList = tM.length === 0
@@ -371,6 +387,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             onSelect={(id) => setSelectedStage(id)}
             suppressPointerFocus={suppressPointerFocus}
             matchupMatches={matchupMatches}
+            historyHint={stageHistoryHint}
             T={T}
             marginTop={10}
           />
@@ -441,6 +458,7 @@ export default function MobileBattle({ state, data, onSave, T }) {
             onSelect={(id) => saveStage(id)}
             suppressPointerFocus={suppressPointerFocus}
             matchupMatches={matchupMatches}
+            historyHint={stageHistoryHint}
             T={T}
             marginTop={12}
           />
