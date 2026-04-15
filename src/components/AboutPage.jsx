@@ -97,16 +97,14 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
           )}
 
           {section(t("about.howToUse"), (
-            <div style={{ fontSize: 13, color: T.sub, lineHeight: 2 }}>
-              <div style={{ fontWeight: 600, color: T.text, marginBottom: 4 }}>{t("about.howStep1Title")}</div>
-              {t("about.howStep1Desc")}
-              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>{t("about.howStep2Title")}</div>
-              {t("about.howStep2Desc")}
-              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>{t("about.howStep3Title")}</div>
-              {t("about.howStep3Desc")}
-              <div style={{ fontWeight: 600, color: T.text, marginTop: 12, marginBottom: 4 }}>{t("about.howStep4Title")}</div>
-              {t("about.howStep4Desc")}
-            </div>
+            <ol style={{ fontSize: 13, color: T.sub, lineHeight: 1.8, margin: 0, paddingLeft: 20 }}>
+              {[1, 2, 3, 4].map((n) => (
+                <li key={n} style={{ marginBottom: 10 }}>
+                  <div style={{ fontWeight: 600, color: T.text, marginBottom: 2 }}>{t(`about.howStep${n}Title`)}</div>
+                  {t(`about.howStep${n}Desc`)}
+                </li>
+              ))}
+            </ol>
           ))}
 
           {section(t("about.features"), (
