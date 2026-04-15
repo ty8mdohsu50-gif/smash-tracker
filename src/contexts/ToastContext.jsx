@@ -58,7 +58,10 @@ function GlobalToast({ toast, onDismiss }) {
       onClick={onDismiss}
       style={{
         position: "fixed",
-        top: 24,
+        // Sit below the mobile sticky header and iOS notch so the
+        // toast is always visible even on small screens in
+        // landscape mode.
+        top: "max(24px, env(safe-area-inset-top, 0px))",
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: Z_TOAST,
@@ -71,7 +74,12 @@ function GlobalToast({ toast, onDismiss }) {
         boxShadow: "0 6px 24px rgba(0,0,0,0.28)",
         animation: "fadeUp .25s ease",
         cursor: "pointer",
-        maxWidth: "calc(100vw - 40px)",
+        // Keep the toast readable on small screens: 240px min so
+        // short error strings don't shrink, ~(100vw - 32px) max
+        // so it never touches the edges.
+        minWidth: "min(240px, calc(100vw - 32px))",
+        maxWidth: "calc(100vw - 32px)",
+        textAlign: "center",
       }}
     >
       {toast.message}

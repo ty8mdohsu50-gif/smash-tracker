@@ -25,7 +25,9 @@ export default function BroadcastBar({ myChar, tW, tL, winRate, streak, pwrDelta
       color: "#fff",
       border: `1px solid ${T.accent}33`,
       boxShadow: `0 2px 12px ${T.accent}15`,
-      overflow: "hidden",
+      overflowX: "auto",
+      WebkitOverflowScrolling: "touch",
+      scrollbarWidth: "none",
     }}>
       {/* Character */}
       {myChar && (

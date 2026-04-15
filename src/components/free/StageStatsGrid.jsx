@@ -25,7 +25,7 @@ export default function StageStatsGrid({ matches, T }) {
   return (
     <div>
       <SectionTitle T={T}>{t("free.stageMatrix")}</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 6 }}>
         {stageStats.map((s) => {
           const total = s.w + s.l;
           const rate = total > 0 ? s.w / total : 0;

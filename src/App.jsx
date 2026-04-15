@@ -279,7 +279,7 @@ export default function App() {
             />
           </nav>
         </div>
-        <div style={{ padding: isLandscape ? "8px 12px 20px" : "14px 16px 40px" }}>
+        <div style={{ padding: isLandscape ? "6px 10px 16px" : "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
             {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} modalsOpen={anyModalOpen} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} onOpenOverlayBuilder={() => setShowOverlayBuilder(true)} />}
             {tabIdx === 1 && <AnalysisTab data={data} onSave={saveData} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />}
