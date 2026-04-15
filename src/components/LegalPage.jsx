@@ -63,7 +63,7 @@ export default function LegalPage({ T, onClose, page }) {
         left: 0,
         right: 0,
         bottom: 0,
-        background: "rgba(0,0,0,.7)",
+        background: T.modalScrimStrong,
         zIndex: Z_APP_MODAL,
         display: "flex",
         alignItems: "center",

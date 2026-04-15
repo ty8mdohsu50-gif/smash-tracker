@@ -108,7 +108,7 @@ export default function ShortcutsModal({ onClose, T }) {
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: Z_APP_MODAL,
+        position: "fixed", inset: 0, background: T.modalScrim, zIndex: Z_APP_MODAL,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn .15s ease",
       }}

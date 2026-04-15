@@ -136,17 +136,22 @@ export default function App() {
   );
 
   const onboardModal = showOnboard && (
-    <div style={{ position: "fixed", inset: 0, zIndex: Z_ONBOARDING, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", padding: 20 }}>
-      <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 380, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboard-title"
+      style={{ position: "fixed", inset: 0, zIndex: Z_ONBOARDING, display: "flex", alignItems: "center", justifyContent: "center", background: T.modalScrim, padding: 20 }}
+    >
+      <div style={{ background: T.card, borderRadius: 20, width: "100%", maxWidth: 380, overflow: "hidden", boxShadow: T.sh }}>
         <div style={{ background: T.accent, padding: "28px 24px 22px", textAlign: "center" }}>
-          <div style={{ fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: 2, fontFamily: "'Chakra Petch', sans-serif" }}>SMASH TRACKER</div>
+          <div id="onboard-title" style={{ fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: 2, fontFamily: "'Chakra Petch', sans-serif" }}>SMASH TRACKER</div>
         </div>
         <div style={{ padding: "24px 24px 28px", textAlign: "center" }}>
-          <div style={{ fontSize: 14, lineHeight: 1.8, color: "#333", whiteSpace: "pre-line", marginBottom: 24 }}>
+          <div style={{ fontSize: 14, lineHeight: 1.8, color: T.text, whiteSpace: "pre-line", marginBottom: 24 }}>
             {t("battle.onboardDesc")}
           </div>
           <button
-            onClick={() => { localStorage.setItem("smash-onboard-done", "1"); setShowOnboard(false); }}
+            onClick={dismissOnboard}
             style={{ width: "100%", padding: "14px 0", background: T.accent, color: "#fff", border: "none", borderRadius: 12, fontSize: 16, fontWeight: 800, cursor: "pointer", letterSpacing: 1 }}
           >
             {t("battle.onboardOk")}

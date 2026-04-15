@@ -64,6 +64,10 @@ function buildLight(accent) {
     accentGlow: isNeutral
       ? "0 4px 16px rgba(55,65,81,.35)"
       : `0 4px 16px ${c}55`,
+    // Scrim used by modal backdrops. Light-theme modals sit over a
+    // lighter page, so we dim less than the dark theme variant.
+    modalScrim: "rgba(15, 23, 42, 0.55)",
+    modalScrimStrong: "rgba(15, 23, 42, 0.7)",
   };
 }
 
@@ -113,6 +117,10 @@ function buildDark(accent) {
     accentGlow: isNeutral
       ? "0 4px 16px rgba(107,114,128,.3)"
       : `0 4px 16px ${accent.light}55`,
+    // Scrim used by modal backdrops. Dark theme needs a heavier
+    // dim to separate the modal from the already-dark page.
+    modalScrim: "rgba(0, 0, 0, 0.6)",
+    modalScrimStrong: "rgba(0, 0, 0, 0.75)",
   };
 }
 

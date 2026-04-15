@@ -24,7 +24,7 @@ export default function OverlayBuilderModal({ T, user, onClose, onOpenHelp }) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,.65)",
+        background: T.modalScrim,
         zIndex: Z_APP_MODAL,
         display: "flex",
         alignItems: "center",

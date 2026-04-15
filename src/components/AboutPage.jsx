@@ -51,7 +51,7 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
       onClick={onClose}
       style={{
         position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0,0,0,.7)", zIndex: Z_APP_MODAL,
+        background: T.modalScrimStrong, zIndex: Z_APP_MODAL,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "20px 16px", animation: "fadeIn .15s ease",
       }}

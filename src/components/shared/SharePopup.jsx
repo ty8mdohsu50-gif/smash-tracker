@@ -79,7 +79,7 @@ export default function SharePopup({ text, onClose, T, imageBlob }) {
       onClick={onClose}
       style={{
         position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-        background: "rgba(0,0,0,.5)", zIndex: Z_SHARE_POPUP,
+        background: T.modalScrim, zIndex: Z_SHARE_POPUP,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn .15s ease",
       }}
