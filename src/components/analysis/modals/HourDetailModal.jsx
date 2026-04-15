@@ -1,4 +1,5 @@
 import FighterIcon from "../../shared/FighterIcon";
+import { useEscapeKey } from "../../../hooks/useEscapeKey";
 import { fighterName } from "../../../constants/fighters";
 import { percentStr, barColor } from "../../../utils/format";
 import { topOpponentStats } from "../../../utils/analysis";
@@ -10,6 +11,7 @@ export default function HourDetailModal({
   T, isPC, t, lang,
   analysisModalBackdrop, analysisModalPanel,
 }) {
+  useEscapeKey(() => setHourDetailModal(null), hourDetailModal !== null);
   if (hourDetailModal === null || !hourlyStats[hourDetailModal]) return null;
 
   const hr = hourDetailModal;

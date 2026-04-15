@@ -1,4 +1,5 @@
 import FighterIcon from "../../shared/FighterIcon";
+import { useEscapeKey } from "../../../hooks/useEscapeKey";
 import { fighterName } from "../../../constants/fighters";
 import {
   formatDate,
@@ -17,6 +18,7 @@ export default function RollingDetailModal({
   data, totalW, T, isPC, t, lang,
   analysisModalBackdrop, analysisModalPanel,
 }) {
+  useEscapeKey(() => setExpandedRolling(null), expandedRolling !== null);
   if (expandedRolling === null) return null;
 
   const n = expandedRolling;

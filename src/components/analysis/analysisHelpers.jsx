@@ -102,12 +102,20 @@ export function matchupCell({ s, parentChar, popupOverride, setOppDetail, setOpp
     if (parentChar) setMatchupPopup({ myChar: parentChar, oppChar: s.c });
   };
   return (
-    <div key={s.c} onClick={handleClick}
+    <div
+      key={s.c}
+      onClick={fought ? handleClick : undefined}
+      role={fought ? "button" : undefined}
+      tabIndex={fought ? 0 : -1}
+      onKeyDown={fought ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleClick(); } } : undefined}
+      aria-disabled={fought ? undefined : true}
       style={{
         display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
         padding: isPC ? "8px 4px" : "6px 2px", borderRadius: 10,
         background: bgColor, border: `1px solid ${fought ? T.brd : "transparent"}`,
-        cursor: "pointer", opacity: fought ? 1 : 0.45,
+        cursor: fought ? "pointer" : "default",
+        pointerEvents: fought ? "auto" : "none",
+        opacity: fought ? 1 : 0.45,
         transition: "opacity .15s",
       }}>
       <FighterIcon name={s.c} size={iconSize} />

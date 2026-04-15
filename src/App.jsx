@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Swords, BarChart3, Settings as SettingsIcon, Keyboard, Radio } from "lucide-react";
+import { useEscapeKey } from "./hooks/useEscapeKey";
 import { getTheme } from "./styles/theme";
 import { load } from "./utils/storage";
 import AuthPage from "./components/AuthPage";
@@ -50,6 +51,12 @@ export default function App() {
   const isPC = useIsPC();
   const isLandscape = useIsLandscape();
   useThemeEffect(T);
+
+  const dismissOnboard = useCallback(() => {
+    localStorage.setItem("smash-onboard-done", "1");
+    setShowOnboard(false);
+  }, []);
+  useEscapeKey(dismissOnboard, showOnboard);
 
   const anyModalOpen = showSettings || !!legalPage || aboutPage || showShortcuts || showBroadcastHelp || showOverlayBuilder || showOnboard;
 

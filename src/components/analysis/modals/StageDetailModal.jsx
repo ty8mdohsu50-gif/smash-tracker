@@ -1,4 +1,5 @@
 import FighterIcon from "../../shared/FighterIcon";
+import { useEscapeKey } from "../../../hooks/useEscapeKey";
 import { fighterName } from "../../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../../constants/stages";
 import { percentStr, barColor } from "../../../utils/format";
@@ -11,6 +12,7 @@ export default function StageDetailModal({
   T, isPC, t, lang,
   analysisModalBackdrop, analysisModalPanel,
 }) {
+  useEscapeKey(() => setStageDetailId(null), !!stageDetailId);
   if (!stageDetailId) return null;
 
   const ms = data.matches.filter((m) => m.stage === stageDetailId);

@@ -2,6 +2,7 @@ import { Share2 } from "lucide-react";
 import FighterIcon from "../../shared/FighterIcon";
 import ResultBadge from "../../shared/ResultBadge";
 import MatchupNotesEditor from "../../shared/MatchupNotesEditor";
+import { useEscapeKey } from "../../../hooks/useEscapeKey";
 import { fighterName } from "../../../constants/fighters";
 import { STAGES, stageName, stageImg } from "../../../constants/stages";
 import { formatDate, formatTime, percentStr, barColor } from "../../../utils/format";
@@ -16,6 +17,7 @@ export default function MatchupPopupModal({
   doShare,
   T, isPC, t, lang,
 }) {
+  useEscapeKey(() => setMatchupPopup(null), !!matchupPopup);
   if (!matchupPopup) return null;
 
   const { myChar, oppChar } = matchupPopup;

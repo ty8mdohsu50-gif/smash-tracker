@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Z_MATCH_LOG_MODAL } from "../../constants/zIndex";
 import FighterIcon from "./FighterIcon";
 import ResultBadge from "./ResultBadge";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { shortName } from "../../constants/fighters";
 import { stageName } from "../../constants/stages";
 import { formatDate, formatTime } from "../../utils/format";
@@ -12,6 +13,7 @@ export default function MatchLogModal({ open, onClose, title, matches, T, t, lan
   const [filter, setFilter] = useState("all");
   const [memoFilter, setMemoFilter] = useState("any");
   const [sort, setSort] = useState("dateDesc");
+  useEscapeKey(onClose, open);
 
   const rows = useMemo(() => {
     let m = matches.map((row, i) => (typeof row.idx === "number" ? row : { ...row, idx: i }));

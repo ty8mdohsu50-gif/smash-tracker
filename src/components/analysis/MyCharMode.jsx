@@ -189,12 +189,20 @@ export default function MyCharMode({
             const iconSize = isPC ? 36 : 28;
             const bgColor = !used ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
             return (
-              <div key={s.c} onClick={() => { if (used) { setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setDateDetailModal(null); setPeriod("all"); } }}
+              <div
+                key={s.c}
+                onClick={used ? () => { setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setDateDetailModal(null); setPeriod("all"); } : undefined}
+                role={used ? "button" : undefined}
+                tabIndex={used ? 0 : -1}
+                aria-disabled={used ? undefined : true}
+                onKeyDown={used ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setDateDetailModal(null); setPeriod("all"); } } : undefined}
                 style={{
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                   padding: isPC ? "8px 4px" : "6px 2px", borderRadius: 10,
                   background: bgColor, border: `1px solid ${used ? T.brd : "transparent"}`,
-                  cursor: used ? "pointer" : "default", opacity: used ? 1 : 0.45,
+                  cursor: used ? "pointer" : "default",
+                  pointerEvents: used ? "auto" : "none",
+                  opacity: used ? 1 : 0.45,
                   transition: "opacity .15s",
                 }}>
                 <FighterIcon name={s.c} size={iconSize} />

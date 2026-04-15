@@ -100,10 +100,19 @@ export default function OverallMode({
                       const has = ms.length > 0;
                       const rr = has ? w / ms.length : 0;
                       return (
-                        <button key={stage.id} type="button" onClick={() => setStageDetailId(stage.id)} style={{
-                          textAlign: "center", border: "none", padding: "4px 4px", borderRadius: 10, background: "transparent",
-                          cursor: "pointer", fontFamily: "inherit", width: "100%", minWidth: 0, opacity: has ? 1 : 0.42,
-                        }}>
+                        <button
+                          key={stage.id}
+                          type="button"
+                          onClick={has ? () => setStageDetailId(stage.id) : undefined}
+                          disabled={!has}
+                          aria-disabled={!has}
+                          style={{
+                            textAlign: "center", border: "none", padding: "4px 4px", borderRadius: 10, background: "transparent",
+                            cursor: has ? "pointer" : "default",
+                            pointerEvents: has ? "auto" : "none",
+                            fontFamily: "inherit", width: "100%", minWidth: 0, opacity: has ? 1 : 0.42,
+                          }}
+                        >
                           <img src={stageImg(stage.id)} alt="" style={{ width: "100%", height: 48, objectFit: "cover", borderRadius: 6 }} />
                           <div style={{ fontSize: 9, fontWeight: 600, color: T.text, marginTop: 4, lineHeight: 1.2, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{stageName(stage.id, lang)}</div>
                           <div style={{ fontSize: 12, fontWeight: 800, color: has ? barColor(rr) : T.dim, fontFamily: "'Chakra Petch', sans-serif", marginTop: 2 }}>{has ? `${Math.round(rr * 100)}%` : "\u2014"}</div>
