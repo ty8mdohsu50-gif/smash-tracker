@@ -444,17 +444,18 @@ export default function OpponentDetail({
                 onClick={() => setTrendFilter(null)}
                 style={{
                   flexShrink: 0,
+                  minHeight: 34,
                   border: trendFilter === null ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
                   background: trendFilter === null ? T.accentSoft : T.inp,
                   color: trendFilter === null ? T.accent : T.sub,
-                  fontSize: 10, fontWeight: 700,
-                  padding: "5px 12px", borderRadius: 8, cursor: "pointer",
+                  fontSize: 11, fontWeight: 700,
+                  padding: "8px 14px", borderRadius: 9, cursor: "pointer",
                   whiteSpace: "nowrap",
                 }}
               >
                 {t("free.trendOverall")}
               </button>
-              <div style={{ width: 1, height: 18, background: T.brd, flexShrink: 0, marginLeft: 2, marginRight: 2 }} />
+              <div style={{ width: 1, height: 22, background: T.brd, flexShrink: 0, marginLeft: 2, marginRight: 2 }} />
               {trendChars.map((c) => {
                 const active = trendFilter === c;
                 return (
@@ -464,16 +465,17 @@ export default function OpponentDetail({
                     onClick={() => setTrendFilter(c)}
                     style={{
                       flexShrink: 0,
+                      minHeight: 34,
                       border: active ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
                       background: active ? T.accentSoft : T.inp,
                       color: active ? T.accent : T.sub,
-                      fontSize: 10, fontWeight: 700,
-                      padding: "3px 9px 3px 4px", borderRadius: 8, cursor: "pointer",
-                      display: "flex", alignItems: "center", gap: 4,
+                      fontSize: 11, fontWeight: 700,
+                      padding: "6px 12px 6px 8px", borderRadius: 9, cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: 5,
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <FighterIcon name={c} size={16} />
+                    <FighterIcon name={c} size={18} />
                     {shortName(c, lang)}
                   </button>
                 );

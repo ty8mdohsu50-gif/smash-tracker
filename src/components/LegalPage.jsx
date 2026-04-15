@@ -125,7 +125,7 @@ export default function LegalPage({ T, onClose, page }) {
                 </div>
               )}
             </div>
-            <CloseButton onClick={onClose} T={T} ariaLabel={t("legal.close")} size="sm" style={{ marginLeft: 12 }} />
+            <CloseButton onClick={onClose} T={T} ariaLabel={t("legal.close")} style={{ marginLeft: 12 }} />
           </div>
         </div>
 

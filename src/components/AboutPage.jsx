@@ -78,7 +78,7 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
                 <div style={{ fontSize: 11, color: T.dim }}>v1.2.0</div>
               </div>
             </div>
-            <CloseButton onClick={onClose} T={T} ariaLabel={t("common.close")} size="sm" />
+            <CloseButton onClick={onClose} T={T} ariaLabel={t("common.close")} />
           </div>
         </div>
 

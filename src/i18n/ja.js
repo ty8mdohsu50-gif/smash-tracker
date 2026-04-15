@@ -5,6 +5,7 @@ export default {
     shortcuts: "ショートカット",
     shortcutsTitle: "キーボードショートカット",
     shortcutsFooterNote: "テキスト入力中・Ctrl/Cmd/Alt押下時は無効です",
+    loading: "読み込み中",
   },
   broadcast: {
     toggle: "配信",

@@ -87,7 +87,7 @@ export default function MatchupGrid({
                 {percentStr(mu.w, mu.w + mu.l)}
               </span>
             </div>
-            <div style={{ display: "flex", gap: 4, marginBottom: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
               {FILTERS.map((k) => {
                 const active = drillFilter === k;
                 return (
@@ -96,11 +96,12 @@ export default function MatchupGrid({
                     key={k}
                     onClick={(e) => { e.stopPropagation(); setDrillFilter(k); }}
                     style={{
+                      minHeight: 32,
                       border: active ? `1.5px solid ${T.accentBorder}` : `1px solid ${T.brd}`,
                       background: active ? T.accentSoft : T.inp,
                       color: active ? T.accent : T.sub,
-                      fontSize: 10, fontWeight: 700,
-                      padding: "3px 9px", borderRadius: 7, cursor: "pointer",
+                      fontSize: 11, fontWeight: 700,
+                      padding: "7px 14px", borderRadius: 8, cursor: "pointer",
                     }}
                   >
                     {filterLabel(k)}

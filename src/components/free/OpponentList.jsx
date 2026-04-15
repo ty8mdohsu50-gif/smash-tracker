@@ -62,8 +62,18 @@ export default function OpponentList({
                   </div>
                   <ChevronRight size={16} style={{ color: T.dim, flexShrink: 0 }} />
                 </button>
-                <button onClick={() => deleteOpponent(opp)}
-                  style={{ ...btnBase, padding: "6px 10px", background: T.loseBg, color: T.lose, fontSize: 12 }}>×</button>
+                <button
+                  onClick={() => deleteOpponent(opp)}
+                  aria-label={t("free.deleteOpponent")}
+                  style={{
+                    width: 44, height: 44, flexShrink: 0,
+                    border: "none", borderRadius: 10,
+                    background: T.loseBg, color: T.lose,
+                    fontSize: 18, fontWeight: 700,
+                    cursor: "pointer", transition: "all .15s ease",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >×</button>
               </div>
             );
           })}

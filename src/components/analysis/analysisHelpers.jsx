@@ -17,12 +17,32 @@ export function cardStyle(T) {
 }
 
 export function pill(k, l, cur, fn, T, isPC) {
+  const active = cur === k;
   return (
-    <button key={k} onClick={() => fn(k)} style={{
-      flex: 1, padding: isPC ? "10px 0" : "9px 0", borderRadius: 10, border: "none",
-      fontSize: isPC ? 13 : 12, fontWeight: cur === k ? 700 : 500, cursor: "pointer", textAlign: "center",
-      background: cur === k ? T.accentGrad : T.inp, color: cur === k ? "#fff" : T.sub, transition: "all .15s ease",
-    }}>{l}</button>
+    <button
+      key={k}
+      type="button"
+      role="tab"
+      aria-selected={active}
+      aria-current={active ? "page" : undefined}
+      onClick={() => fn(k)}
+      style={{
+        flex: 1,
+        minHeight: 44,
+        padding: isPC ? "10px 0" : "9px 0",
+        borderRadius: 10,
+        border: "none",
+        fontSize: isPC ? 13 : 12,
+        fontWeight: active ? 700 : 500,
+        cursor: "pointer",
+        textAlign: "center",
+        background: active ? T.accentGrad : T.inp,
+        color: active ? "#fff" : T.sub,
+        transition: "all .15s ease",
+      }}
+    >
+      {l}
+    </button>
   );
 }
 

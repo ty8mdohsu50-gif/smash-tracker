@@ -72,11 +72,15 @@ export default function DailyCalendar({
 
   const calTight = pcOverallRightColumn && isPC;
   const calendarGrid = (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: calTight ? 0 : 1, textAlign: "center" }}>
+    <div
+      role="grid"
+      aria-label={monthLabel}
+      style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: calTight ? 0 : 1, textAlign: "center" }}
+    >
       {weekDays.map((d, i) => (
-        <div key={`h${i}`} style={{ fontSize: calTight ? 9 : 10, fontWeight: 600, color: T.dim, padding: calTight ? "1px 0" : "2px 0" }}>{d}</div>
+        <div key={`h${i}`} role="columnheader" style={{ fontSize: calTight ? 9 : 10, fontWeight: 600, color: T.dim, padding: calTight ? "1px 0" : "2px 0" }}>{d}</div>
       ))}
-      {Array.from({ length: startOffset }).map((_, i) => <div key={`e${i}`} />)}
+      {Array.from({ length: startOffset }).map((_, i) => <div key={`e${i}`} role="gridcell" aria-hidden="true" />)}
       {Array.from({ length: daysInMonth }).map((_, i) => {
         const day = i + 1;
         const dateStr = `${yStr}-${mStr}-${String(day).padStart(2, "0")}`;
@@ -86,29 +90,45 @@ export default function DailyCalendar({
         const isToday = dateStr === todayStr;
         const hasData = !!dayData;
         const r = hasData ? dayData.w / (dayData.w + dayData.l) : 0;
+        const minHit = calTight ? 28 : 36;
+
+        const handle = () => {
+          if (!hasData) return;
+          if (isSelected) setDateDetailModal(null);
+          else setDateDetailModal({ date: dateStr, scope });
+        };
+
+        const ariaLabel = hasData
+          ? `${formatDate(dateStr)} ${dayData.w}W ${dayData.l}L`
+          : formatDate(dateStr);
 
         return (
           <div
             key={day}
-            onClick={() => {
-              if (!hasData) return;
-              if (isSelected) setDateDetailModal(null);
-              else setDateDetailModal({ date: dateStr, scope });
-            }}
+            role={hasData ? "button" : "gridcell"}
+            tabIndex={hasData ? 0 : -1}
+            aria-label={ariaLabel}
+            aria-pressed={hasData ? isSelected : undefined}
+            onClick={handle}
+            onKeyDown={hasData ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handle(); } } : undefined}
             style={{
+              minHeight: minHit,
               padding: calTight ? "3px 0" : isPC ? "5px 0" : "4px 0",
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              borderRadius: 8, cursor: hasData ? "pointer" : "default",
+              borderRadius: 8,
+              cursor: hasData ? "pointer" : "default",
+              pointerEvents: hasData ? "auto" : "none",
               background: isSelected ? T.accentSoft : "transparent",
               border: isSelected ? `2px solid ${T.accent}` : isToday ? `1px solid ${T.dimmer}` : "1px solid transparent",
-              opacity: isFuture ? 0.3 : 1, transition: "all .1s ease",
+              opacity: isFuture ? 0.3 : 1,
+              transition: "all .1s ease",
             }}
           >
             <span style={{ fontSize: calTight ? 10 : isPC ? 12 : 11, fontWeight: isToday ? 800 : 500, color: isSelected ? T.accent : isToday ? T.text : T.sub, lineHeight: 1 }}>
               {day}
             </span>
             {hasData && (
-              <div style={{ width: 5, height: 5, borderRadius: 3, background: dotColor(r), marginTop: 2 }} />
+              <div aria-hidden="true" style={{ width: 5, height: 5, borderRadius: 3, background: dotColor(r), marginTop: 2 }} />
             )}
           </div>
         );

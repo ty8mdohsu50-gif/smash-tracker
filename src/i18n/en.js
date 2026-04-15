@@ -5,6 +5,7 @@ export default {
     shortcuts: "Shortcuts",
     shortcutsTitle: "Keyboard Shortcuts",
     shortcutsFooterNote: "Disabled during text input or with Ctrl/Cmd/Alt",
+    loading: "Loading",
   },
   broadcast: {
     toggle: "Live",

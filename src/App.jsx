@@ -63,18 +63,24 @@ export default function App() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#0f0f23",
-        color: "#D1D5DB",
-        fontFamily: "'Chakra Petch', sans-serif",
-        fontSize: 18,
-        fontWeight: 700,
-        letterSpacing: 2,
-      }}>
+      <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        aria-label={t("app.loading")}
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#0f0f23",
+          color: "#D1D5DB",
+          fontFamily: "'Chakra Petch', sans-serif",
+          fontSize: 18,
+          fontWeight: 700,
+          letterSpacing: 2,
+        }}
+      >
         SMASH TRACKER
       </div>
     );
@@ -224,22 +230,26 @@ export default function App() {
               </button>
             </div>
           </div>
-          <div style={{ display: "flex", position: "relative", marginTop: 10 }}>
+          <nav aria-label="Primary" role="tablist" style={{ display: "flex", position: "relative", marginTop: 10 }}>
             {TABS.map((t, i) => {
               const Icon = TAB_ICONS[i];
+              const active = tabIdx === i;
               return (
                 <button
                   key={i}
+                  role="tab"
+                  aria-selected={active}
+                  aria-current={active ? "page" : undefined}
                   onClick={() => setTabIdx(i)}
                   style={{
-                    flex: 1, padding: isLandscape ? "8px 0" : "12px 0", background: "transparent", border: "none",
-                    fontSize: 13, fontWeight: tabIdx === i ? 700 : 500,
-                    color: tabIdx === i ? T.accent : T.dim,
+                    flex: 1, minHeight: 44, padding: isLandscape ? "8px 0" : "12px 0", background: "transparent", border: "none",
+                    fontSize: 13, fontWeight: active ? 700 : 500,
+                    color: active ? T.accent : T.dim,
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                     transition: "color .15s ease",
                   }}
                 >
-                  <Icon size={15} strokeWidth={tabIdx === i ? 2.5 : 2} />
+                  <Icon size={15} strokeWidth={active ? 2.5 : 2} />
                   {t}
                 </button>
               );
@@ -255,7 +265,7 @@ export default function App() {
                 boxShadow: T.accentGlow,
               }}
             />
-          </div>
+          </nav>
         </div>
         <div style={{ padding: isLandscape ? "8px 12px 20px" : "14px 16px 40px" }}>
           <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
@@ -316,7 +326,7 @@ export default function App() {
           </div>
         </button>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "0 12px" }}>
+        <nav aria-label="Primary" style={{ display: "flex", flexDirection: "column", gap: 4, padding: "0 12px" }}>
           {TABS.map((t, i) => {
             const active = tabIdx === i;
             const Icon = TAB_ICONS[i];
@@ -324,6 +334,7 @@ export default function App() {
               <button
                 key={i}
                 onClick={() => setTabIdx(i)}
+                aria-current={active ? "page" : undefined}
                 style={{
                   display: "flex", alignItems: "center", gap: 14,
                   padding: "14px 18px",
@@ -343,7 +354,7 @@ export default function App() {
               </button>
             );
           })}
-        </div>
+        </nav>
 
         <div style={{ flex: 1 }} />
 
@@ -423,25 +434,31 @@ export default function App() {
             {(() => { const Icon = TAB_ICONS[tabIdx]; return <Icon size={24} strokeWidth={2.5} color={T.accent} />; })()}
             {TABS[tabIdx]}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div role="tablist" aria-label="Primary" style={{ display: "flex", gap: 8 }}>
             {TABS.map((t, i) => {
               const Icon = TAB_ICONS[i];
+              const active = tabIdx === i;
               return (
                 <button
                   key={i}
+                  role="tab"
+                  aria-selected={active}
+                  aria-current={active ? "page" : undefined}
                   onClick={() => setTabIdx(i)}
                   style={{
+                    minHeight: 44,
                     padding: "8px 18px",
                     borderRadius: 10,
-                    border: tabIdx === i ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
-                    background: tabIdx === i ? T.accentSoft : T.card,
-                    color: tabIdx === i ? T.accent : T.sub,
+                    border: active ? `2px solid ${T.accent}` : `1px solid ${T.brd}`,
+                    background: active ? T.accentSoft : T.card,
+                    color: active ? T.accent : T.sub,
                     fontSize: 13,
-                    fontWeight: tabIdx === i ? 700 : 500,
+                    fontWeight: active ? 700 : 500,
                     transition: "all .2s ease",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
+                    cursor: "pointer",
                   }}
                 >
                   <Icon size={14} strokeWidth={2} />
