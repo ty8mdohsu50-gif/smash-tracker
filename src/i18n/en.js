@@ -7,6 +7,9 @@ export default {
     shortcutsFooterNote: "Disabled during text input or with Ctrl/Cmd/Alt",
     loading: "Loading",
   },
+  overlay: {
+    waiting: "Waiting...",
+  },
   broadcast: {
     toggle: "Live",
     builder: {

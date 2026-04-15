@@ -8,7 +8,7 @@ import BarOverlay from "./layouts/BarOverlay";
 import { fighterName } from "../../constants/fighters";
 
 export default function OverlayPage() {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   const data = useOverlayData();
   const { params, myChar, total, hasData } = data;
 
@@ -42,7 +42,7 @@ export default function OverlayPage() {
   // Waiting state — no match today yet.
   if (!hasData) {
     const pal = paletteFor(params.theme);
-    const waitingLabel = lang === "ja" ? "待機中..." : "Waiting...";
+    const waitingLabel = t("overlay.waiting");
     const title = myChar ? fighterName(myChar, lang) : "SMASH TRACKER";
     return (
       <div style={wrapperStyle}>

@@ -4,6 +4,9 @@ import SharePopup from "./shared/SharePopup";
 import { useI18n } from "../i18n/index.jsx";
 import { Z_APP_MODAL } from "../constants/zIndex";
 import CloseButton from "./shared/CloseButton";
+import pkg from "../../package.json";
+
+const APP_VERSION = pkg.version;
 
 export default function AboutPage({ T, onClose, onOpenLegal }) {
   const { t } = useI18n();
@@ -75,7 +78,7 @@ export default function AboutPage({ T, onClose, onOpenLegal }) {
               <img src="/icon.png" alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: "contain" }} />
               <div>
                 <div id="about-modal-title" style={{ fontSize: 18, fontWeight: 800, color: T.text }}>SMASH TRACKER</div>
-                <div style={{ fontSize: 11, color: T.dim }}>v1.2.0</div>
+                <div style={{ fontSize: 11, color: T.dim }}>v{APP_VERSION}</div>
               </div>
             </div>
             <CloseButton onClick={onClose} T={T} ariaLabel={t("common.close")} />
