@@ -37,17 +37,29 @@ export function useCloudSync(user) {
       if (cancelled) return;
 
       const local = load();
-      const localCount = local.matches?.length || 0;
-      const cloudCount = cloud?.matches?.length || 0;
 
       try {
-        if (cloudCount > localCount) {
+        const localStamp = local?._updatedAt || 0;
+        const cloudStamp = cloud?._updatedAt || 0;
+
+        // Prefer whichever side was edited most recently. When neither
+        // carries a timestamp (legacy data) fall back to match-count so
+        // we don't strand earlier users.
+        if (!cloud) {
+          setData(local);
+          if (localStamp) cloudSave(user.id, local);
+        } else if (!localStamp && !cloudStamp) {
+          const winner = (cloud.matches?.length || 0) >= (local.matches?.length || 0) ? cloud : local;
+          setData(winner);
+          if (winner === cloud) save(winner);
+          else cloudSave(user.id, winner);
+        } else if (cloudStamp > localStamp) {
           setData(cloud);
           save(cloud);
-        } else if (localCount > cloudCount) {
+        } else if (localStamp > cloudStamp) {
           setData(local);
           cloudSave(user.id, local);
-        } else if (cloud) {
+        } else {
           setData(cloud);
           save(cloud);
         }
@@ -89,8 +101,12 @@ export function useCloudSync(user) {
   }, []);
 
   const saveData = useCallback((d) => {
-    setData(d);
-    pendingRef.current = d;
+    // Stamp every save with a monotonic timestamp so the init flow can
+    // pick the most recently edited side (local vs cloud) on next load
+    // instead of guessing from match counts.
+    const stamped = { ...d, _updatedAt: Date.now() };
+    setData(stamped);
+    pendingRef.current = stamped;
 
     if (localTimerRef.current) clearTimeout(localTimerRef.current);
     localTimerRef.current = setTimeout(flushLocal, DEBOUNCE_LOCAL_MS);
