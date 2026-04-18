@@ -601,10 +601,8 @@ export default function OpponentDetail({
         </div>
       )}
 
-      {/* Weekly progress */}
-      <div style={{ ...cd, padding: "14px 16px" }}>
-        <WeeklyProgress matches={oppMs} T={T} />
-      </div>
+      {/* Weekly progress (self-renders when it has enough data) */}
+      <WeeklyProgress matches={oppMs} T={T} cardStyle={{ ...cd, padding: "14px 16px" }} />
 
       {/* Calendar */}
       <div style={{ ...cd, padding: "12px 14px" }}>

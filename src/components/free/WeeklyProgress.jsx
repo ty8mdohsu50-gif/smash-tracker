@@ -18,7 +18,7 @@ function startOfWeek(dateStr) {
   return `${y}-${m}-${dd}`;
 }
 
-export default function WeeklyProgress({ matches, T }) {
+export default function WeeklyProgress({ matches, T, cardStyle }) {
   const { t, lang } = useI18n();
 
   const weeks = useMemo(() => {
@@ -49,7 +49,7 @@ export default function WeeklyProgress({ matches, T }) {
   const delta = Math.round((lastRate - firstRate) * 100);
 
   return (
-    <div>
+    <div style={cardStyle}>
       <SectionTitle
         T={T}
         right={
