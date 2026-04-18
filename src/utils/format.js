@@ -65,9 +65,11 @@ export const barColor = (r) =>
 export const numFormat = (n) => (n ? Number(n).toLocaleString() : "\u2014");
 
 export const toHiragana = (s) =>
-  s.replace(/[\u30A1-\u30F6]/g, (c) =>
-    String.fromCharCode(c.charCodeAt(0) - 0x60),
-  );
+  String(s)
+    .normalize("NFKC")
+    .replace(/[\u30A1-\u30F6]/g, (c) =>
+      String.fromCharCode(c.charCodeAt(0) - 0x60),
+    );
 
 /** キャラ検索欄用：カタカナ→ひらがな、互換文字の正規化 */
 export const normalizeCharSearchInput = (s) =>
@@ -80,6 +82,14 @@ export const formatPower = (v) => {
 };
 
 export const rawPower = (v) => String(v).replace(/[^0-9]/g, "");
+
+export const parsePower = (v) => {
+  if (v === null || v === undefined || v === "") return null;
+  const digits = String(v).replace(/[^0-9]/g, "");
+  if (!digits) return null;
+  const n = Number(digits);
+  return Number.isFinite(n) ? n : null;
+};
 
 export const blurOnEnter = (e) => {
   if (e.key === "Enter") e.target.blur();

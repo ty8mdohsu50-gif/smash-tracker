@@ -11,6 +11,7 @@ import {
   getStreak,
   recentChars,
   lastEndPower,
+  parsePower,
 } from "../utils/format";
 
 export function useBattleState({ data, onSave, isPC }) {
@@ -106,27 +107,26 @@ export function useBattleState({ data, onSave, isPC }) {
     prevMyCharRef.current = myChar;
   }
 
-  // Actions
-
-  // Open the share popup. The popup itself handles whether to attach
-  // the image via the user-facing toggle, so we don't route through
-  // navigator.share here anymore — the popup offers it as one of the
-  // share options once the user has decided on image/no-image.
   const doShare = (text, imageBlob = null) => {
     setSharePopupText(text);
     setSharePopupImage(imageBlob || null);
   };
 
   const savePower = (s, e) => {
+    const sNum = parsePower(s);
+    const eNum = parsePower(e);
     const d = { ...data };
     if (!d.daily) d.daily = {};
     if (!d.daily[today()]) d.daily[today()] = {};
     const day = d.daily[today()];
     if (!day.chars) day.chars = {};
     const existing = day.chars[myChar] || {};
-    day.chars[myChar] = { start: existing.start || (s ? Number(s) : null), end: e ? Number(e) : existing.end };
-    if (!day.start) day.start = s ? Number(s) : null;
-    if (e) day.end = Number(e);
+    day.chars[myChar] = {
+      start: existing.start ?? sNum,
+      end: eNum ?? existing.end ?? null,
+    };
+    if (day.start == null) day.start = sNum;
+    if (eNum != null) day.end = eNum;
     onSave(d);
   };
 
@@ -174,15 +174,20 @@ export function useBattleState({ data, onSave, isPC }) {
   };
 
   const startBattle = () => {
-    if (!pStart || !myChar) return;
+    const startNum = parsePower(pStart);
+    if (!startNum || !myChar) return;
+    const endNum = parsePower(pEnd);
     const d = { ...data };
     if (!d.daily) d.daily = {};
     if (!d.daily[today()]) d.daily[today()] = {};
     const day = d.daily[today()];
     if (!day.chars) day.chars = {};
     const existingChar = day.chars[myChar] || {};
-    day.chars[myChar] = { start: existingChar.start || Number(pStart), end: pEnd ? Number(pEnd) : existingChar.end };
-    if (!day.start) day.start = Number(pStart);
+    day.chars[myChar] = {
+      start: existingChar.start ?? startNum,
+      end: endNum ?? existingChar.end ?? null,
+    };
+    if (day.start == null) day.start = startNum;
     d.settings = { myChar };
     onSave(d);
     setPhase("battle");
@@ -191,10 +196,12 @@ export function useBattleState({ data, onSave, isPC }) {
   const recordMatch = (r, currentOppChar) => {
     const opp = currentOppChar || oppChar;
     if (!opp) return;
+    const startNum = parsePower(pStart);
+    const endNum = parsePower(pEnd);
     const m = {
       date: today(), time: new Date().toISOString(), myChar, oppChar: opp, result: r, memo: "",
-      power: pEnd ? Number(pEnd) : (pStart ? Number(pStart) : null),
-      startPower: pStart ? Number(pStart) : null,
+      power: endNum ?? startNum,
+      startPower: startNum,
       stage: selectedStage || null,
     };
     const newMatches = [...data.matches, m];
@@ -286,15 +293,20 @@ export function useBattleState({ data, onSave, isPC }) {
   };
 
   const saveEndSession = (andShare, imageBlob = null) => {
+    const startNum = parsePower(pStart);
+    const endNum = parsePower(pEnd);
     const d = JSON.parse(JSON.stringify(data));
     if (!d.daily) d.daily = {};
     if (!d.daily[today()]) d.daily[today()] = {};
     const day = d.daily[today()];
     if (!day.chars) day.chars = {};
     const existing = day.chars[myChar] || {};
-    day.chars[myChar] = { start: existing.start || (pStart ? Number(pStart) : null), end: pEnd ? Number(pEnd) : existing.end };
-    if (!day.start) day.start = pStart ? Number(pStart) : null;
-    if (pEnd) day.end = Number(pEnd);
+    day.chars[myChar] = {
+      start: existing.start ?? startNum,
+      end: endNum ?? existing.end ?? null,
+    };
+    if (day.start == null) day.start = startNum;
+    if (endNum != null) day.end = endNum;
     day.review = reviewText;
     onSave(d);
     if (andShare) buildAndShare(imageBlob);
@@ -302,9 +314,9 @@ export function useBattleState({ data, onSave, isPC }) {
   };
 
   const buildShareText = () => {
-    const dayStart = todayDaily.chars?.[myChar]?.start || Number(pStart);
-    const dayEnd = pEnd ? Number(pEnd) : (todayDaily.chars?.[myChar]?.end || null);
-    const shareDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
+    const dayStart = todayDaily.chars?.[myChar]?.start ?? parsePower(pStart);
+    const dayEnd = parsePower(pEnd) ?? todayDaily.chars?.[myChar]?.end ?? null;
+    const shareDelta = dayStart != null && dayEnd != null ? dayEnd - dayStart : null;
     const ss = { showChar: true, showMatchups: true, showPower: true, showRecord: true, showStages: true, ...(data.shareSettings || {}) };
     const lines = [`【SMASH TRACKER】${formatDateLong(today())}`];
     if (ss.showChar && myChar) {

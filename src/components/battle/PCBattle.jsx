@@ -20,6 +20,7 @@ import {
   percentStr,
   barColor,
   formatTime,
+  parsePower,
 } from "../../utils/format";
 import { getCardStyle, getGoalInputStyle, getBtnR, getPrimaryBtn, PwrInput } from "./battleStyles";
 
@@ -148,7 +149,7 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
   const pendingResultBanner = result && (
     <div style={{ ...cd, textAlign: "center", background: result === "win" ? T.winBg : T.loseBg, padding: "12px 16px", marginBottom: 8 }}>
       <div style={{ fontSize: 16, fontWeight: 800, color: result === "win" ? T.win : T.lose }}>
-        {result === "win" ? "WIN" : "LOSE"} - {t("battle.oppChar")}?
+        {result === "win" ? t("common.win") : t("common.lose")} - {t("battle.oppChar")}?
       </div>
     </div>
   );
@@ -430,9 +431,9 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
           {phase === "end" && (() => {
             const oppStats = {};
             tM.forEach((m) => { if (!oppStats[m.oppChar]) oppStats[m.oppChar] = { w: 0, l: 0 }; m.result === "win" ? oppStats[m.oppChar].w++ : oppStats[m.oppChar].l++; });
-            const dayStart = todayDaily.chars?.[myChar]?.start || Number(pStart);
-            const dayEnd = pEnd ? Number(pEnd) : (todayDaily.chars?.[myChar]?.end || null);
-            const pDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
+            const dayStart = todayDaily.chars?.[myChar]?.start ?? parsePower(pStart);
+            const dayEnd = parsePower(pEnd) ?? todayDaily.chars?.[myChar]?.end ?? null;
+            const pDelta = dayStart != null && dayEnd != null ? dayEnd - dayStart : null;
             return (
               <div style={{ animation: "fadeUp .2s ease" }}>
                 <div style={{ background: T.tBg, borderRadius: 20, padding: "32px 28px", marginBottom: 20, boxShadow: T.accentGlow }}>
