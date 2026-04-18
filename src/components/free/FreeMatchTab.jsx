@@ -12,7 +12,7 @@ export default function FreeMatchTab({ data, onSave, T, isPC, onBack, tabIdx, mo
 
   const [selectedOpponent, setSelectedOpponentRaw] = useState(null);
   const setSelectedOpponent = (v) => {
-    if (v && !isPC) window.history.pushState({ type: "freeOpp", v }, "");
+    if (v && !isPC) window.history.pushState({ type: "freeOpp", v }, "", `#f/opp/${encodeURIComponent(v)}`);
     setSelectedOpponentRaw(v);
   };
 

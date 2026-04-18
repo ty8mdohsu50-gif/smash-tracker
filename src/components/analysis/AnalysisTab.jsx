@@ -18,11 +18,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const [oppDetail, setOppDetailRaw] = useState(null);
 
   const setCharDetail = useCallback((v) => {
-    if (v && !isPC) window.history.pushState({ type: "charDetail", v }, "");
+    if (v && !isPC) window.history.pushState({ type: "charDetail", v }, "", `#a/char/${encodeURIComponent(v)}`);
     setCharDetailRaw(v);
   }, [isPC]);
   const setOppDetail = useCallback((v) => {
-    if (v && !isPC) window.history.pushState({ type: "oppDetail", v }, "");
+    if (v && !isPC) window.history.pushState({ type: "oppDetail", v }, "", `#a/opp/${encodeURIComponent(v)}`);
     setOppDetailRaw(v);
   }, [isPC]);
 
@@ -181,11 +181,11 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
           {pill("overall", t("analysis.overall"), aMode, setAMode, T, isPC)}
         </div>
         <div style={{ background: T.card, borderRadius: 16, padding: "48px 24px", boxShadow: T.sh, border: T.brd !== "transparent" ? `1px solid ${T.brd}` : "none", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-          <div style={{ background: T.accentSoft, borderRadius: "50%", width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <BarChart3 size={30} color={T.accent} />
+          <div style={{ background: T.accentSoft, borderRadius: "50%", width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${T.accentBorder}` }}>
+            <BarChart3 size={24} strokeWidth={2} color={T.accent} />
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{t("analysis.emptyTitle")}</div>
-          <div style={{ fontSize: 13, color: T.dim }}>{t("analysis.emptyDesc")}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: T.text }}>{t("analysis.emptyTitle")}</div>
+          <div style={{ fontSize: 11, color: T.dim, lineHeight: 1.6 }}>{t("analysis.emptyDesc")}</div>
         </div>
       </div>
     );

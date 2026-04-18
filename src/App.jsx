@@ -280,9 +280,11 @@ export default function App() {
           </nav>
         </div>
         <div style={{ padding: isLandscape ? "6px 10px 16px" : "14px 16px 40px" }}>
-          <div key={tabIdx} style={{ animation: "fadeUp .25s ease" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} modalsOpen={anyModalOpen} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} onOpenOverlayBuilder={() => setShowOverlayBuilder(true)} />}
-            {tabIdx === 1 && <AnalysisTab data={data} onSave={saveData} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />}
+          <div style={{ display: tabIdx === 0 ? "block" : "none", animation: tabIdx === 0 ? "fadeUp .25s ease" : undefined }}>
+            <BattleTab data={data} onSave={saveData} T={T} battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} modalsOpen={anyModalOpen} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} onOpenOverlayBuilder={() => setShowOverlayBuilder(true)} />
+          </div>
+          <div style={{ display: tabIdx === 1 ? "block" : "none", animation: tabIdx === 1 ? "fadeUp .25s ease" : undefined }}>
+            <AnalysisTab data={data} onSave={saveData} T={T} aMode={analysisMode} setAMode={setAnalysisMode} />
           </div>
         </div>
       </div>
@@ -482,9 +484,11 @@ export default function App() {
         </div>
 
         <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
-          <div key={tabIdx} style={{ animation: "fadeUp .25s ease", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "auto" }}>
-            {tabIdx === 0 && <BattleTab data={data} onSave={saveData} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} modalsOpen={anyModalOpen} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} onOpenOverlayBuilder={() => setShowOverlayBuilder(true)} />}
-            {tabIdx === 1 && <AnalysisTab data={data} onSave={saveData} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />}
+          <div style={{ display: tabIdx === 0 ? "flex" : "none", animation: tabIdx === 0 ? "fadeUp .25s ease" : undefined, flex: 1, flexDirection: "column", minHeight: 0, overflow: "auto" }}>
+            <BattleTab data={data} onSave={saveData} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} modalsOpen={anyModalOpen} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} onOpenOverlayBuilder={() => setShowOverlayBuilder(true)} />
+          </div>
+          <div style={{ display: tabIdx === 1 ? "flex" : "none", animation: tabIdx === 1 ? "fadeUp .25s ease" : undefined, flex: 1, flexDirection: "column", minHeight: 0, overflow: "auto" }}>
+            <AnalysisTab data={data} onSave={saveData} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />
           </div>
         </div>
       </main>
