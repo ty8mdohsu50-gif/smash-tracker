@@ -43,12 +43,7 @@ export const getActiveBtn = (T, disabled) => ({
   marginBottom: 12,
 });
 
-// Primary call-to-action button. Variants:
-//   - "accent" (default): the app accent gradient — used for 連戦,
-//     対戦開始, 保存して終了, etc.
-//   - "win" / "lose": result-colored gradients for WIN / LOSE picks.
-// Pass disabled=true to render the muted version.
-export const getPrimaryBtn = (T, { variant = "accent", disabled = false } = {}) => {
+export const getPrimaryBtn = (T, { variant = "accent", disabled = false, size = "lg" } = {}) => {
   const grad = disabled
     ? T.inp
     : variant === "win"
@@ -63,25 +58,26 @@ export const getPrimaryBtn = (T, { variant = "accent", disabled = false } = {}) 
       : variant === "lose"
         ? T.loseGlow
         : T.accentGlow;
+  const sizes = {
+    sm: { padding: "8px 14px", fontSize: 13, borderRadius: 10 },
+    md: { padding: "10px 18px", fontSize: 14, borderRadius: 12 },
+    lg: { padding: "16px 18px", fontSize: 17, borderRadius: 14 },
+  };
+  const s = sizes[size] || sizes.lg;
   return {
+    ...s,
     border: "none",
-    borderRadius: 14,
-    padding: "16px 18px",
     background: grad,
     color: disabled ? T.dim : "#fff",
-    fontSize: 17,
     fontWeight: 800,
     boxShadow: glow,
     transition: "all .2s ease",
     cursor: disabled ? "default" : "pointer",
+    opacity: disabled ? 0.6 : 1,
     fontFamily: "inherit",
   };
 };
 
-// Secondary / tertiary button used for 戻る, キャンセル, 変更, etc.
-// Three sizes — sm/md/lg — keep the visual hierarchy consistent
-// across every screen. The "ghost" prop swaps the filled background
-// for a translucent overlay (used inside dark hero headers).
 export const getSecondaryBtn = (T, { size = "md", ghost = false } = {}) => {
   const sizes = {
     sm: { padding: "5px 10px", fontSize: 11, borderRadius: 8 },
@@ -101,9 +97,6 @@ export const getSecondaryBtn = (T, { size = "md", ghost = false } = {}) => {
   };
 };
 
-// Single-line text input style used by memo input, opponent name
-// input, etc. Kept intentionally minimal so callers can spread it
-// and override individual fields when needed.
 export const getTextInputStyle = (T, { size = "md" } = {}) => {
   const sizes = {
     sm: { padding: "8px 10px", fontSize: 12 },

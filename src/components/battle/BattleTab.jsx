@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import FreeMatchTab from "../free/FreeMatchTab";
 import MobileBattle from "./MobileBattle";
 import PCBattle from "./PCBattle";
@@ -18,6 +18,27 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const memoRef = useRef(null);
   const stageRef = useRef(null);
   const powerRef = useRef(null);
+
+  // When the user leaves ranked mode we clear any transient overlays
+  // and unfinished picks so they don't flash back into view if/when
+  // they switch to ranked again later.
+  useEffect(() => {
+    if (mode !== "ranked") {
+      state.setShowMyPicker(false);
+      state.setShowOppPicker(false);
+      state.setSharePopupText(null);
+      state.setSharePopupImage(null);
+      state.setConfirmAction(null);
+      state.setResult(null);
+      state.setEditingStageIdx(null);
+      if (state.phase === "postMatch") {
+        state.setPhase("battle");
+        state.setSelectedStage(null);
+      }
+    }
+  // Only the mode switch should trigger this — state setters are stable.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   // Shortcuts fire only when: on the battle tab, no modal is open, and ranked mode.
   // Free mode shares state.phase internally but its UI is different, so ranked shortcuts
@@ -91,21 +112,29 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   const modeToggle = (
     <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
       {[["ranked", t("battle.ranked")], ["free", t("free.freeMatch")]].map(([k, l]) => (
-        <button key={k} onClick={() => setMode(k)} style={{
-          flex: 1, padding: isPC ? "10px 0" : "9px 0", borderRadius: 10, border: "none",
+        <button key={k} type="button" onClick={() => setMode(k)} aria-pressed={mode === k} style={{
+          flex: 1, minHeight: 40, padding: isPC ? "10px 0" : "9px 0", borderRadius: 10, border: "none",
           fontSize: isPC ? 13 : 12, fontWeight: mode === k ? 700 : 500, cursor: "pointer", textAlign: "center",
           background: mode === k ? T.accentGrad : T.inp, color: mode === k ? "#fff" : T.sub, transition: "all .15s ease",
+          fontFamily: "inherit",
         }}>{l}</button>
       ))}
-      <button onClick={() => setBroadcastMode(!broadcastMode)} style={{
-        padding: isPC ? "10px 14px" : "9px 12px", borderRadius: 10,
-        border: broadcastMode ? `2px solid ${T.accent}` : "none",
-        fontSize: isPC ? 12 : 11, fontWeight: broadcastMode ? 700 : 500, cursor: "pointer",
-        background: broadcastMode ? T.accentSoft : T.inp,
-        color: broadcastMode ? T.accent : T.sub,
-        display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
-        transition: "all .15s ease",
-      }}>
+      <button
+        type="button"
+        onClick={() => setBroadcastMode(!broadcastMode)}
+        aria-pressed={broadcastMode}
+        aria-label={t("broadcast.toggle")}
+        style={{
+          minHeight: 40, padding: isPC ? "10px 14px" : "9px 12px", borderRadius: 10,
+          border: broadcastMode ? `2px solid ${T.accent}` : "none",
+          fontSize: isPC ? 12 : 11, fontWeight: broadcastMode ? 700 : 500, cursor: "pointer",
+          background: broadcastMode ? T.accentSoft : T.inp,
+          color: broadcastMode ? T.accent : T.sub,
+          display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
+          transition: "all .15s ease",
+          fontFamily: "inherit",
+        }}
+      >
         <Monitor size={14} />
         {t("broadcast.toggle")}
       </button>
