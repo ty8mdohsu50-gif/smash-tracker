@@ -76,13 +76,19 @@ export default function OverallMode({
               const d = rolling[n];
               const r = d.t ? d.w / d.t : 0;
               return (
-                <div key={n} onClick={() => setExpandedRolling(n)} style={{
-                  ...cd, marginBottom: 0, padding: "8px 8px", textAlign: "center", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "center",
-                }}>
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setExpandedRolling(n)}
+                  style={{
+                    ...cd, marginBottom: 0, padding: "8px 8px", textAlign: "center", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "center",
+                    border: `1px solid ${T.brd}`, fontFamily: "inherit", color: T.text,
+                  }}
+                >
                   <div style={{ fontSize: 9, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 2 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
                   {d.t > 0 && <div style={{ fontSize: 9, color: T.dim, marginTop: 2 }}>{d.w}W {d.t - d.w}L</div>}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -207,13 +213,19 @@ export default function OverallMode({
                   const d = rolling[n];
                   const r = d.t ? d.w / d.t : 0;
                   return (
-                    <div key={n} onClick={() => setExpandedRolling(n)} style={{
-                      ...cd, flex: 1, marginBottom: 0, padding: "14px 16px", textAlign: "center", cursor: "pointer",
-                    }}>
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setExpandedRolling(n)}
+                      style={{
+                        ...cd, flex: 1, marginBottom: 0, padding: "14px 16px", textAlign: "center", cursor: "pointer",
+                        border: `1px solid ${T.brd}`, fontFamily: "inherit", color: T.text,
+                      }}
+                    >
                       <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("battle.recentLabel")} {d.t}{t("analysis.battles")}</div>
                       <div style={{ fontSize: 24, fontWeight: 800, color: d.t ? barColor(r) : T.dim, marginTop: 2 }}>{d.t ? percentStr(d.w, d.t) : "\u2014"}</div>
                       {d.t > 0 && <div style={{ fontSize: 10, color: T.dim, marginTop: 2 }}>{d.w}W {d.t - d.w}L</div>}
-                    </div>
+                    </button>
                   );
                 })}
               </div>

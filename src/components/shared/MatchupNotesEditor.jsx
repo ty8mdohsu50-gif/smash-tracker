@@ -135,8 +135,13 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
               const isBanned = bans.includes(st.id);
               const stats = stageStats[st.id];
               const r = stats ? stats.w / (stats.w + stats.l) : null;
+              const disabled = bans.length >= 3 && !isBanned;
               return (
-                <div key={st.id}
+                <button key={st.id}
+                  type="button"
+                  disabled={disabled}
+                  aria-pressed={isBanned}
+                  aria-label={stageName(st.id, lang)}
                   onClick={() => {
                     let next;
                     if (isBanned) {
@@ -151,9 +156,11 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
                     setTimeout(() => setSavedKey(null), 1200);
                   }}
                   style={{
-                    position: "relative", borderRadius: 8, overflow: "hidden", cursor: bans.length >= 3 && !isBanned ? "not-allowed" : "pointer",
+                    position: "relative", borderRadius: 8, overflow: "hidden",
+                    cursor: disabled ? "not-allowed" : "pointer",
                     border: isBanned ? `2px solid ${T.lose}` : `1px solid ${T.brd}`,
                     opacity: isBanned ? 0.45 : 1, transition: "all .15s ease",
+                    padding: 0, background: "transparent", fontFamily: "inherit", color: T.text,
                   }}
                 >
                   <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 40, objectFit: "cover", display: "block" }} />
@@ -166,7 +173,7 @@ export default function MatchupNotesEditor({ noteKey, data, onSave, T, compact }
                     <div style={{ fontSize: 9, fontWeight: 600, color: T.text, lineHeight: 1.2 }}>{stageName(st.id, lang)}</div>
                     {stats && <div style={{ fontSize: 8, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : T.mid }}>{Math.round(r * 100)}% ({stats.w}W{stats.l}L)</div>}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -273,8 +280,13 @@ export function BattleNotes({ noteKey, data, T, onSave, sections }) {
             const isBanned = bans.includes(st.id);
             const stats = stageStats[st.id];
             const r = stats ? stats.w / (stats.w + stats.l) : null;
+            const disabled = bans.length >= 3 && !isBanned;
             return (
-              <div key={st.id}
+              <button key={st.id}
+                type="button"
+                disabled={disabled}
+                aria-pressed={isBanned}
+                aria-label={stageName(st.id, lang)}
                 onClick={() => {
                   let next;
                   if (isBanned) { next = bans.filter((b) => b !== st.id); }
@@ -284,9 +296,10 @@ export function BattleNotes({ noteKey, data, T, onSave, sections }) {
                 }}
                 style={{
                   position: "relative", borderRadius: 6, overflow: "hidden",
-                  cursor: bans.length >= 3 && !isBanned ? "not-allowed" : "pointer",
+                  cursor: disabled ? "not-allowed" : "pointer",
                   border: isBanned ? `2px solid ${T.lose}` : `1px solid ${T.brd}`,
                   opacity: isBanned ? 0.4 : 1, transition: "all .15s ease",
+                  padding: 0, background: "transparent", fontFamily: "inherit", color: T.text,
                 }}
               >
                 <img src={stageImg(st.id)} alt="" style={{ width: "100%", height: 32, objectFit: "cover", display: "block" }} />
@@ -299,7 +312,7 @@ export function BattleNotes({ noteKey, data, T, onSave, sections }) {
                   <div style={{ fontSize: 8, fontWeight: 600, color: T.text, lineHeight: 1.2 }}>{stageName(st.id, lang)}</div>
                   {stats && <div style={{ fontSize: 7, fontWeight: 700, color: r >= 0.6 ? T.win : r <= 0.4 ? T.lose : T.mid }}>{Math.round(r * 100)}%</div>}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

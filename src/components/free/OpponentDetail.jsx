@@ -395,7 +395,7 @@ export default function OpponentDetail({
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={{ ...getPrimaryBtn(T), padding: 14, fontSize: 15 }}>
+            <button onClick={() => { saveFreeMemo(); setPostRecord(false); }} style={getPrimaryBtn(T, { size: "md" })}>
               {t("free.rematch")}
               {isPC && <KeyHint keyLabel="N" T={T} />}
             </button>
@@ -425,7 +425,7 @@ export default function OpponentDetail({
               <FighterIcon name={m.oppChar} size={18} /><span style={{ fontSize: 11, color: T.sub, flex: 1 }}>{shortName(m.oppChar, lang)}</span>
               {m.stage && <span style={{ fontSize: 9, color: T.dim, background: T.inp, padding: "1px 4px", borderRadius: 3, flexShrink: 0 }}>{stageName(m.stage, lang)}</span>}
               <span style={{ fontSize: 10, color: T.dim }}>{formatTime(m.time)}</span>
-              <button onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
+              <button type="button" aria-label={t("history.delete")} onClick={() => deleteFreeMatch(m)} style={{ border: "none", background: "transparent", color: T.dimmer, fontSize: 14, cursor: "pointer", padding: "2px 4px", flexShrink: 0 }}>×</button>
             </div>
           ))}
         </div>

@@ -192,13 +192,12 @@ export default function MyCharMode({
             const iconSize = isPC ? 36 : 28;
             const bgColor = !used ? "transparent" : r >= 0.6 ? (T.winBg || "rgba(52,199,89,.1)") : r <= 0.4 ? (T.loseBg || "rgba(255,69,58,.1)") : "rgba(255,159,10,.08)";
             return (
-              <div
+              <button
                 key={s.c}
+                type="button"
                 onClick={used ? () => { setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setDateDetailModal(null); setPeriod("all"); } : undefined}
-                role={used ? "button" : undefined}
-                tabIndex={used ? 0 : -1}
-                aria-disabled={used ? undefined : true}
-                onKeyDown={used ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setCharDetail(s.c); setCharSubTab("matchup"); setExpandedItem(null); setDateDetailModal(null); setPeriod("all"); } } : undefined}
+                disabled={!used}
+                aria-disabled={!used}
                 style={{
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
                   padding: isPC ? "8px 4px" : "6px 2px", borderRadius: 10,
@@ -207,6 +206,7 @@ export default function MyCharMode({
                   pointerEvents: used ? "auto" : "none",
                   opacity: used ? 1 : 0.45,
                   transition: "opacity .15s",
+                  fontFamily: "inherit", color: T.text,
                 }}>
                 <FighterIcon name={s.c} size={iconSize} />
                 <div style={{ fontSize: isPC ? 9 : 8, fontWeight: 600, color: T.sub, textAlign: "center", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
@@ -218,7 +218,7 @@ export default function MyCharMode({
                 {used && (
                   <div style={{ fontSize: isPC ? 9 : 8, color: T.dim, fontWeight: 500 }}>{s.w}W {s.l}L</div>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>
@@ -248,10 +248,19 @@ export default function MyCharMode({
 
       {/* Char memo (collapsible) */}
       <div key={`memo-${charDetail}`} style={{ ...cd, padding: "12px 16px" }}>
-        <div onClick={() => setCharMemoOpen(!charMemoOpen)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+        <button
+          type="button"
+          onClick={() => setCharMemoOpen(!charMemoOpen)}
+          aria-expanded={charMemoOpen}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            cursor: "pointer", background: "transparent", border: "none", padding: 0,
+            color: T.text, fontFamily: "inherit",
+          }}
+        >
           <span style={{ fontSize: 12, color: T.dim, fontWeight: 600 }}>{fighterName(charDetail, lang)} {t("battle.charMemo")}</span>
           <ChevronDown size={16} style={{ color: T.dim, transition: "transform .2s", transform: charMemoOpen ? "rotate(180deg)" : "rotate(0)" }} />
-        </div>
+        </button>
         {charMemoOpen && (
           <textarea
             defaultValue={data.charMemos?.[charDetail] || ""}

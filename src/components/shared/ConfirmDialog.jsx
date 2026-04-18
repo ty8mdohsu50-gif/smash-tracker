@@ -1,10 +1,6 @@
 import { Z_CONFIRM_DIALOG } from "../../constants/zIndex";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 
-// Generic yes/no confirm. Pass destructive=true (default) to style
-// the confirm button with the lose gradient — appropriate for
-// delete / reset / "lose unsaved memo" prompts. Pass destructive=false
-// for neutral confirmations like "change language to English?".
 export default function ConfirmDialog({
   message,
   onConfirm,
@@ -28,6 +24,8 @@ export default function ConfirmDialog({
       <div
         role="alertdialog"
         aria-modal="true"
+        aria-labelledby="confirm-dialog-message"
+        aria-describedby="confirm-dialog-message"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.card, borderRadius: 20, padding: "28px 24px",
@@ -37,7 +35,7 @@ export default function ConfirmDialog({
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 20, lineHeight: 1.6 }}>
+        <div id="confirm-dialog-message" style={{ fontSize: 15, fontWeight: 700, color: T.text, marginBottom: 20, lineHeight: 1.6 }}>
           {message}
         </div>
         <div style={{ display: "flex", gap: 10 }}>

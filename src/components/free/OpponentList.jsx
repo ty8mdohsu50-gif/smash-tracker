@@ -31,8 +31,8 @@ export default function OpponentList({
               onKeyDown={(e) => { if (e.key === "Enter") addOpponent(); if (e.key === "Escape") { setShowAddInput(false); setNewOpponentName(""); } }}
               placeholder={t("free.opponentName")} autoFocus maxLength={50}
               style={{ ...getTextInputStyle(T, { size: "lg" }), flex: 1, border: `1.5px solid ${T.accent}` }} />
-            <button onClick={addOpponent} disabled={!newOpponentName.trim()} style={{ ...getPrimaryBtn(T, { disabled: !newOpponentName.trim() }), padding: "10px 18px", fontSize: 13 }}>{t("free.add")}</button>
-            <button onClick={() => { setShowAddInput(false); setNewOpponentName(""); }} style={getSecondaryBtn(T, { size: "md" })}>×</button>
+            <button onClick={addOpponent} disabled={!newOpponentName.trim()} style={getPrimaryBtn(T, { disabled: !newOpponentName.trim(), size: "md" })}>{t("free.add")}</button>
+            <button type="button" aria-label={t("common.close")} onClick={() => { setShowAddInput(false); setNewOpponentName(""); }} style={getSecondaryBtn(T, { size: "md" })}>×</button>
           </div>
         ) : (
           <button onClick={() => setShowAddInput(true)} style={{ ...btnBase, width: "100%", background: T.accentSoft, color: T.accent, border: `1.5px dashed ${T.accentBorder}`, fontSize: 14 }}>+ {t("free.addOpponent")}</button>
@@ -55,9 +55,9 @@ export default function OpponentList({
             const { total, w, l } = getOpponentStats(opp);
             const rate = total > 0 ? Math.round((w / total) * 100) : null;
             return (
-              <div key={opp} style={{ ...cd, display: "flex", alignItems: "center", gap: 12, marginBottom: isPC ? 0 : 10 }}>
+              <div key={opp} style={{ ...cd, display: "flex", alignItems: "center", gap: 16, marginBottom: isPC ? 0 : 10 }}>
                 <button onClick={() => onSelectOpponent(opp)}
-                  style={{ flex: 1, display: "flex", alignItems: "center", gap: 14, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", fontFamily: "inherit" }}>
+                  style={{ flex: 1, display: "flex", alignItems: "center", gap: 14, background: "none", border: "none", cursor: "pointer", padding: "4px 0", textAlign: "left", fontFamily: "inherit", color: T.text }}>
                   <div style={{ width: 40, height: 40, borderRadius: "50%", background: T.accentSoft, border: `2px solid ${T.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: T.accent, flexShrink: 0 }}>{opp[0]}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 16, fontWeight: 800, color: T.text }}>{opp}</div>
