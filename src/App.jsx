@@ -484,10 +484,10 @@ export default function App() {
         </div>
 
         <div style={{ padding: "20px 32px 20px", flex: 1, display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
-          <div style={{ display: tabIdx === 0 ? "flex" : "none", animation: tabIdx === 0 ? "fadeUp .25s ease" : undefined, flex: 1, flexDirection: "column", minHeight: 0, overflow: "auto" }}>
+          <div style={{ display: tabIdx === 0 ? "flex" : "none", animation: tabIdx === 0 ? "fadeUp .25s ease" : undefined, flex: 1, flexDirection: "column", minHeight: 0, minWidth: 0, overflow: "hidden" }}>
             <BattleTab data={data} onSave={saveData} T={T} isPC battleMode={battleMode} setBattleMode={setBattleMode} tabIdx={tabIdx} modalsOpen={anyModalOpen} broadcastMode={broadcastMode} setBroadcastMode={setBroadcastMode} onOpenOverlayBuilder={() => setShowOverlayBuilder(true)} />
           </div>
-          <div style={{ display: tabIdx === 1 ? "flex" : "none", animation: tabIdx === 1 ? "fadeUp .25s ease" : undefined, flex: 1, flexDirection: "column", minHeight: 0, overflow: "auto" }}>
+          <div style={{ display: tabIdx === 1 ? "flex" : "none", animation: tabIdx === 1 ? "fadeUp .25s ease" : undefined, flex: 1, flexDirection: "column", minHeight: 0, minWidth: 0, overflow: "hidden" }}>
             <AnalysisTab data={data} onSave={saveData} T={T} isPC aMode={analysisMode} setAMode={setAnalysisMode} />
           </div>
         </div>

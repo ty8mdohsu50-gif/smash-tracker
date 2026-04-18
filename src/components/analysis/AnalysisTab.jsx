@@ -174,8 +174,8 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
 
   if (data.matches.length === 0) {
     return (
-      <div>
-        <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+      <div style={isPC ? { display: "flex", flexDirection: "column", height: "100%", minHeight: 0, minWidth: 0 } : undefined}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 16, flexShrink: 0 }}>
           {pill("myChar", t("analysis.myChar"), aMode, setAMode, T, isPC)}
           {pill("oppChar", t("analysis.oppChar"), aMode, setAMode, T, isPC)}
           {pill("overall", t("analysis.overall"), aMode, setAMode, T, isPC)}
@@ -196,15 +196,15 @@ export default function AnalysisTab({ data, onSave, T, isPC, aMode, setAMode }) 
   const switchMode = (k) => { setAMode(k); setCharDetail(null); setOppDetail(null); setDateDetailModal(null); };
 
   return (
-    <div>
+    <div style={isPC ? { display: "flex", flexDirection: "column", height: "100%", minHeight: 0, minWidth: 0 } : undefined}>
       {/* Top-level tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: isPC ? 8 : 12 }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: isPC ? 8 : 12, flexShrink: 0 }}>
         {pill("myChar", t("analysis.myChar"), aMode, switchMode, T, isPC)}
         {pill("oppChar", t("analysis.oppChar"), aMode, switchMode, T, isPC)}
         {pill("overall", t("analysis.overall"), aMode, switchMode, T, isPC)}
       </div>
       {data.matches.length > 0 && (
-        <div style={{ fontSize: 10, color: T.dim, marginBottom: isPC ? 6 : 10, lineHeight: 1.45 }}>{t("analysis.rankedOnlyNote")}</div>
+        <div style={{ fontSize: 10, color: T.dim, marginBottom: isPC ? 6 : 10, lineHeight: 1.45, flexShrink: 0 }}>{t("analysis.rankedOnlyNote")}</div>
       )}
 
       {/* MODE: MY CHAR */}

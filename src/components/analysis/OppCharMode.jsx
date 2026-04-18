@@ -43,9 +43,11 @@ export default function OppCharMode({
     });
     const sortedOpps = sortCharStatsRows(allOpps, analysisPrefs.topOppSort, analysisPrefs.topOppHide);
     return (
-      <div>
-        {charSortToolbar({ sortKey: "topOppSort", hideKey: "topOppHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
-        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6 }}>
+      <div style={isPC ? { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 } : undefined}>
+        <div style={isPC ? { flexShrink: 0 } : undefined}>
+          {charSortToolbar({ sortKey: "topOppSort", hideKey: "topOppHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6, ...(isPC ? { flex: 1, minHeight: 0, overflow: "auto", alignContent: "start", paddingRight: 4 } : {}) }}>
           {sortedOpps.map((s) => matchupCell({ s, parentChar: null, popupOverride: { myChar: null, oppChar: s.c, isOppMode: true }, ...cellProps }))}
         </div>
       </div>
@@ -58,9 +60,9 @@ export default function OppCharMode({
   const oppL = oppMatches.length - oppW;
 
   return (
-    <div>
+    <div style={isPC ? { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 } : undefined}>
       {/* Header */}
-      <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
+      <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", ...(isPC ? { flexShrink: 0 } : {}) }}>
         <button onClick={() => { setOppDetail(null); setExpandedItem(null); setDateDetailModal(null); }} style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
           {t("analysis.backToList")}
         </button>
@@ -73,6 +75,9 @@ export default function OppCharMode({
         </div>
       </div>
 
+      {/* Scrollable body (PC): matchup notes + sub-tabs + content all live here
+          so the header stays pinned but everything below scrolls together. */}
+      <div style={isPC ? { flex: 1, minHeight: 0, overflow: "auto", paddingRight: 4 } : undefined}>
       {/* Matchup Notes */}
       <div style={{ marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
@@ -174,6 +179,7 @@ export default function OppCharMode({
           })()}
         </>
       )}
+      </div>
     </div>
   );
 }

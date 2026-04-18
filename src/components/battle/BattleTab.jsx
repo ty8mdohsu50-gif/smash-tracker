@@ -156,11 +156,15 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
     />
   );
 
+  const pcRootStyle = { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0, height: "100%" };
+
   if (mode === "free") {
     return (
-      <div>
-        {modeToggle}
-        {broadcastBar}
+      <div style={isPC ? pcRootStyle : undefined}>
+        <div style={isPC ? { flexShrink: 0 } : undefined}>
+          {modeToggle}
+          {broadcastBar}
+        </div>
         <FreeMatchTab data={data} onSave={onSave} T={T} isPC={isPC} onBack={() => setMode("ranked")} tabIdx={tabIdx} modalsOpen={modalsOpen} />
       </div>
     );
@@ -177,9 +181,11 @@ export default function BattleTab({ data, onSave, T, isPC, battleMode, setBattle
   }
 
   return (
-    <div>
-      {modeToggle}
-      {broadcastBar}
+    <div style={pcRootStyle}>
+      <div style={{ flexShrink: 0 }}>
+        {modeToggle}
+        {broadcastBar}
+      </div>
       <PCBattle state={state} data={data} onSave={onSave} T={T} memoRef={memoRef} stageRef={stageRef} powerRef={powerRef} />
     </div>
   );

@@ -25,19 +25,20 @@ export default function OverallMode({
   const hourlyGridFluid = "repeat(auto-fill, minmax(62px, 1fr))";
 
   return (
-    <div>
+    <div style={isPC ? { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 } : undefined}>
       <button
         type="button"
         onClick={() => setMatchLogModal({ title: t("analysis.matchLogTitleOverall"), matches: matchesWithIdx })}
         style={{
           width: "100%", marginBottom: isPC ? 6 : 10, padding: isPC ? "8px 12px" : "10px 14px", borderRadius: 12, border: `1px solid ${T.accentBorder}`,
           background: T.accentSoft, color: T.accent, fontSize: isPC ? 12 : 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+          flexShrink: 0,
         }}
       >
         {t("analysis.openMatchLog")}
       </button>
       {/* Summary + Share */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isPC ? 6 : 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isPC ? 6 : 8, flexShrink: 0 }}>
         <span style={{ fontSize: isPC ? 12 : 13, fontWeight: 700, color: T.sub }}>{t("share.overallStats")}</span>
         <button onClick={() => {
           const tw = data.matches.filter((m) => m.result === "win").length;
@@ -53,7 +54,7 @@ export default function OverallMode({
       </div>
       {isPC ? (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)", gap: 8, marginBottom: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)", gap: 8, marginBottom: 10, flexShrink: 0 }}>
             <div style={{ ...cd, display: "flex", padding: "8px 10px", marginBottom: 0, textAlign: "center", alignItems: "center" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 10, color: T.dim, fontWeight: 600 }}>{t("analysis.totalMatches")}</div>
@@ -92,8 +93,8 @@ export default function OverallMode({
               );
             })}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, alignItems: "stretch" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, alignItems: "stretch", flex: 1, minHeight: 0 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0, minHeight: 0, overflow: "auto" }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 3 }}>{t("stages.winRateByStage")}</div>
                 <div style={{ fontSize: 10, color: T.dim, marginBottom: 4 }}>{t("analysis.tapForDetail")}</div>
@@ -166,8 +167,8 @@ export default function OverallMode({
                 </div>
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 6 }}>{t("analysis.allDailyRecord")}</div>
+            <div style={{ display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, overflow: "auto" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: T.sub, marginBottom: 6, flexShrink: 0 }}>{t("analysis.allDailyRecord")}</div>
               <DailyCalendar
                 data={data} filterFn={() => true} scope={{ type: "overall" }} dailyOpts={{ pcOverallRightColumn: true }}
                 dailyMonth={dailyMonth} setDailyMonth={setDailyMonth}

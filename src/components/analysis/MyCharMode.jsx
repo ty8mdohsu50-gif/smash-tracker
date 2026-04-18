@@ -183,9 +183,11 @@ export default function MyCharMode({
     });
     const sortedMy = sortCharStatsRows(allMyChars, analysisPrefs.topMySort, analysisPrefs.topMyHide);
     return (
-      <div>
-        {charSortToolbar({ sortKey: "topMySort", hideKey: "topMyHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
-        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6 }}>
+      <div style={isPC ? { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 } : undefined}>
+        <div style={isPC ? { flexShrink: 0 } : undefined}>
+          {charSortToolbar({ sortKey: "topMySort", hideKey: "topMyHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: isPC ? "repeat(auto-fill, minmax(110px, 1fr))" : "repeat(auto-fill, minmax(82px, 1fr))", gap: isPC ? 8 : 6, ...(isPC ? { flex: 1, minHeight: 0, overflow: "auto", alignContent: "start", paddingRight: 4 } : {}) }}>
           {sortedMy.map((s) => {
             const r = s.t ? s.w / s.t : 0;
             const used = s.t > 0;
@@ -231,9 +233,9 @@ export default function MyCharMode({
   const sortedMu = sortCharStatsRows(charMatchups, analysisPrefs.myMuSort, analysisPrefs.myMuHide);
 
   return (
-    <div>
+    <div style={isPC ? { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 } : undefined}>
       {/* Header */}
-      <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
+      <div style={{ ...cd, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", ...(isPC ? { flexShrink: 0 } : {}) }}>
         <button onClick={() => { setCharDetail(null); setExpandedItem(null); setDateDetailModal(null); }} style={{ border: "none", background: T.inp, borderRadius: 10, padding: "8px 14px", color: T.sub, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>
           {t("analysis.backToList")}
         </button>
@@ -247,7 +249,7 @@ export default function MyCharMode({
       </div>
 
       {/* Char memo (collapsible) */}
-      <div key={`memo-${charDetail}`} style={{ ...cd, padding: "12px 16px" }}>
+      <div key={`memo-${charDetail}`} style={{ ...cd, padding: "12px 16px", ...(isPC ? { flexShrink: 0 } : {}) }}>
         <button
           type="button"
           onClick={() => setCharMemoOpen(!charMemoOpen)}
@@ -279,7 +281,7 @@ export default function MyCharMode({
       </div>
 
       {/* Sub-tabs: matchup / trend / daily */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 14, ...(isPC ? { flexShrink: 0 } : {}) }}>
         {[["matchup", t("analysis.matchup")], ["trend", t("analysis.trend")], ["daily", t("analysis.dailyRecord")]].map(([k, l]) => (
           <button key={k} onClick={() => { setCharSubTab(k); setExpandedItem(null); setDateDetailModal(null); }} style={{
             flex: 1, padding: "10px 0", borderRadius: 10, border: "none", fontSize: 13,
@@ -291,7 +293,7 @@ export default function MyCharMode({
 
       {/* Matchup sub-tab */}
       {charSubTab === "matchup" && (
-        <div>
+        <div style={isPC ? { flex: 1, minHeight: 0, overflow: "auto", display: "flex", flexDirection: "column" } : undefined}>
           {charSortToolbar({ sortKey: "myMuSort", hideKey: "myMuHide", analysisPrefs, setAnalysisPrefs, T, isPC, t })}
           <button
             type="button"
@@ -313,11 +315,15 @@ export default function MyCharMode({
       )}
 
       {/* Trend sub-tab */}
-      {charSubTab === "trend" && trendSection()}
+      {charSubTab === "trend" && (
+        <div style={isPC ? { flex: 1, minHeight: 0, overflow: "auto" } : undefined}>
+          {trendSection()}
+        </div>
+      )}
 
       {/* Daily sub-tab */}
       {charSubTab === "daily" && (
-        <div>
+        <div style={isPC ? { flex: 1, minHeight: 0, overflow: "auto", display: "flex", flexDirection: "column" } : undefined}>
           <button
             type="button"
             onClick={() => setMatchLogModal({

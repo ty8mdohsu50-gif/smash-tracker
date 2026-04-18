@@ -22,9 +22,9 @@ export default function OpponentList({
   const { t } = useI18n();
 
   return (
-    <div style={{ animation: "fadeUp .2s ease" }}>
+    <div style={{ animation: "fadeUp .2s ease", ...(isPC ? { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 } : {}) }}>
       {/* Add opponent */}
-      <div style={cd}>
+      <div style={{ ...cd, ...(isPC ? { flexShrink: 0 } : {}) }}>
         {showAddInput ? (
           <div style={{ display: "flex", gap: 8 }}>
             <input type="text" value={newOpponentName} onChange={(e) => setNewOpponentName(e.target.value)}
@@ -50,7 +50,7 @@ export default function OpponentList({
           <div style={{ fontSize: 11, color: T.dim, lineHeight: 1.6, whiteSpace: "pre-line" }}>{t("free.noOpponentsHint")}</div>
         </div>
       ) : (
-        <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 } : undefined}>
+        <div style={isPC ? { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, flex: 1, minHeight: 0, overflow: "auto", alignContent: "start", paddingRight: 4 } : undefined}>
           {freeOpponents.map((opp) => {
             const { total, w, l } = getOpponentStats(opp);
             const rate = total > 0 ? Math.round((w / total) * 100) : null;

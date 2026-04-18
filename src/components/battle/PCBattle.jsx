@@ -156,8 +156,8 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
 
   // PC sidebar content
   const pcSidebar = (
-    <div style={{ flex: 1, minWidth: 0, background: T.card, borderRadius: 20, padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh, position: "sticky", top: 90, display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: "calc(100vh - 120px)" }}>
-      <div style={{ flex: 1, overflowY: "auto" }}>
+    <div style={{ flex: 1, minWidth: 0, minHeight: 0, background: T.card, borderRadius: 20, padding: 0, border: `1px solid ${T.brd}`, boxShadow: T.sh, display: "flex", flexDirection: "column", overflow: "hidden", alignSelf: "stretch" }}>
+      <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
         {phase === "battle" && oppChar && matchupNotesKey && !result && (
           <div style={{ padding: "16px 24px", borderBottom: `1px solid ${T.inp}` }}>
             <BattleNotes noteKey={matchupNotesKey} data={data} T={T} onSave={onSave} sections={["flash"]} />
@@ -227,19 +227,23 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
     </div>
   );
 
+  const pcRoot = { display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 };
+  const pcBody = { display: "flex", gap: 20, alignItems: "stretch", flex: 1, minHeight: 0, minWidth: 0 };
+  const pcMainColumn = { flex: 1, minWidth: 0, minHeight: 0, display: "flex", flexDirection: "column", overflowY: "auto", paddingRight: 4 };
+
   // PC: setup phase
   if (phase === "setup") {
     return (
-      <div>
-        <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+      <div style={pcRoot}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 16, flexShrink: 0 }}>
           {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
           {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? T.mid : T.lose) : T.dim)}
           {statCard(t("battle.matches"), `${tM.length}${t("battle.matches")}`)}
           {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
           {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : T.mid)}
         </div>
-        <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={pcBody}>
+          <div style={{ ...pcMainColumn, gap: 8 }}>
             <div style={{ display: "flex", gap: 16 }}>
               <div style={{ ...cd, flex: 1, padding: "20px 24px" }}>
                 {showMyPicker ? (
@@ -277,16 +281,16 @@ export default function PCBattle({ state, data, onSave, T, memoRef, stageRef, po
 
   // PC: battle / postMatch / end
   return (
-    <div>
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+    <div style={pcRoot}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16, flexShrink: 0 }}>
         {statCard(t("battle.winLoss"), tM.length > 0 ? `${tW}W - ${tL}L` : "\u2014")}
         {statCard(t("battle.winRate"), tM.length > 0 ? `${winRate}%` : "\u2014", tM.length > 0 ? (winRate >= 60 ? T.win : winRate >= 40 ? T.mid : T.lose) : T.dim)}
         {statCard(t("battle.matches"), `${tM.length}${t("battle.matches")}`)}
         {statCard(t("battle.powerDelta"), pwrDelta !== null ? `${pwrDelta >= 0 ? "+" : ""}${numFormat(pwrDelta)}` : todayDaily.start ? numFormat(todayDaily.start) : "\u2014", pwrDelta !== null ? (pwrDelta >= 0 ? T.win : T.lose) : T.dim)}
         {streak.count >= 2 && statCard(streak.type === "win" ? t("battle.streak.win") : t("battle.streak.lose"), `${streak.count}`, streak.type === "win" ? T.win : T.mid)}
       </div>
-      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={pcBody}>
+        <div style={pcMainColumn}>
 
           {/* PC Battle */}
           {phase === "battle" && (

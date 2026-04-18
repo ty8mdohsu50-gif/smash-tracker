@@ -622,9 +622,9 @@ export default function OpponentDetail({
   // -- PC: 2-column layout --
   if (isPC) {
     return (
-      <div style={{ animation: "fadeUp .2s ease" }}>
+      <div style={{ animation: "fadeUp .2s ease", display: "flex", flexDirection: "column", flex: 1, minHeight: 0, minWidth: 0 }}>
         {/* Header */}
-        <div style={{ background: T.tBg, borderRadius: 16, padding: "14px 18px", marginBottom: 12, boxShadow: T.sh, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ background: T.tBg, borderRadius: 16, padding: "14px 18px", marginBottom: 12, boxShadow: T.sh, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
           <button onClick={() => { setSelectedOpponent(null); setPostRecord(false); }} style={getSecondaryBtn(T, { size: "md", ghost: true })}>{t("free.back")}</button>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,.2)", border: "2px solid rgba(255,255,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#fff" }}>{selectedOpponent[0]}</div>
@@ -635,9 +635,9 @@ export default function OpponentDetail({
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <div style={{ flex: 1, minWidth: 0 }}>{battleArea}</div>
-          <div style={{ flex: 1, minWidth: 0 }}>{analysisArea}</div>
+        <div style={{ display: "flex", gap: 16, alignItems: "stretch", flex: 1, minHeight: 0, minWidth: 0 }}>
+          <div style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>{battleArea}</div>
+          <div style={{ flex: 1, minWidth: 0, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>{analysisArea}</div>
         </div>
         {overlays}
       </div>
