@@ -7,32 +7,25 @@ import {
   numFormat,
 } from "../../utils/format";
 
-const WIN = "#4ADE80";
-const LOSE = "#F87171";
-const AMBER = "#FBBF24";
-
-// 1200x630 Open-Graph / Twitter card. Rendered off-screen then
-// captured with html2canvas. The visual language matches the
-// in-app end-of-session gradient card (T.tBg + bold stats + icon-
-// forward opponent strip) rather than the previous flat layout.
 const SessionCard = forwardRef(function SessionCard(
   { myChar, tW, tL, tM, oppStats, dayStart, dayEnd, streak, date, playerTag, T, lang },
   ref,
 ) {
+  const WIN = T.winBright;
+  const LOSE = T.loseBright;
+  const AMBER = T.mid;
+
   const total = tW + tL;
   const pwrDelta = dayStart && dayEnd ? dayEnd - dayStart : null;
   const winRate = total > 0 ? Math.round((tW / total) * 100) : 0;
 
-  // Circular progress ring math for the win-rate badge.
   const ringR = 56;
   const ringC = 2 * Math.PI * ringR;
   const ringOffset = ringC * (1 - winRate / 100);
   const ringColor = winRate >= 60 ? WIN : winRate >= 40 ? AMBER : LOSE;
 
-  // Last up to 10 results for the dot strip
   const recentResults = (tM || []).slice(-10).map((m) => m.result);
 
-  // Top matchups (up to 6 to fit the strip cleanly)
   const topOpps = oppStats
     ? Object.entries(oppStats)
         .sort((a, b) => (b[1].w + b[1].l) - (a[1].w + a[1].l))

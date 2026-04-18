@@ -1,13 +1,4 @@
-// Canonical WIN / LOSE indicator. Use this everywhere instead of
-// inlining the same dozen lines of "background depending on result"
-// styling. Three sizes cover every existing call site:
-//
-//   - "chip"   (default)  : small fixed-width badge for match lists
-//   - "inline"             : colored text only, no background
-//   - "hero"               : large pill for post-match celebration
-//
-// All variants pull colors from the theme so dark/light themes
-// stay consistent.
+import { useI18n } from "../../i18n/index.jsx";
 
 const STYLES = {
   chip: {
@@ -34,6 +25,7 @@ const STYLES = {
 };
 
 export default function ResultBadge({ result, size = "chip", T, style: extraStyle }) {
+  const { t } = useI18n();
   const isWin = result === "win";
   const base = STYLES[size] || STYLES.chip;
   const filled = size !== "inline";
@@ -50,7 +42,7 @@ export default function ResultBadge({ result, size = "chip", T, style: extraStyl
         ...extraStyle,
       }}
     >
-      {isWin ? "WIN" : "LOSE"}
+      {isWin ? t("common.win") : t("common.lose")}
     </span>
   );
 }
