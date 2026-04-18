@@ -7,7 +7,6 @@ import KeyHint from "../shared/KeyHint";
 import Chart from "../shared/Chart";
 import OpponentCalendar from "./OpponentCalendar";
 import MatchupGrid from "./MatchupGrid";
-import WeeklyProgress from "./WeeklyProgress";
 import StageSelector from "../battle/StageSelector";
 import ResultBadge from "../shared/ResultBadge";
 import SectionTitle from "../shared/SectionTitle";
@@ -600,9 +599,6 @@ export default function OpponentDetail({
           />
         </div>
       )}
-
-      {/* Weekly progress (self-renders when it has enough data) */}
-      <WeeklyProgress matches={oppMs} T={T} cardStyle={{ ...cd, padding: "14px 16px" }} />
 
       {/* Calendar */}
       <div style={{ ...cd, padding: "12px 14px" }}>
