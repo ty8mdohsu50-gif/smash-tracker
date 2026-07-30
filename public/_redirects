@@ -1,1 +1,9 @@
-/overlay/* /index.html 200
+# 旧 v1 サイトは v2 (Vercel) へ全面転送する。
+# Cloudflare Pages は Netlify 互換の _redirects を解釈する。
+
+# SW の自壊ファイルだけは転送せず、必ず本体を配信する
+# （転送してしまうと古い Service Worker が更新されず居座り続ける）
+/sw.js  /sw.js  200
+
+# それ以外はすべて v2 へ（302=一時。方針変更時にキャッシュが残らない）
+/*  https://smabura-tracker-v2-4skq.vercel.app/:splat  302
